@@ -23,10 +23,27 @@ Source: CRAN
 Version: 1.1-2
 Hash: c0d56cd15034f395874c870141870c25
 
+Package: RCurl
+Source: CRAN
+Version: 1.95-4.8
+Hash: 79c7d5a8684e44e0e3426d3093aa7d90
+Requires: bitops
+
 Package: Rcpp
 Source: CRAN
 Version: 0.12.7
 Hash: f0ba7322cfb66f1b563462faa9c2b2ab
+
+Package: XML
+Source: CRAN
+Version: 3.98-1.4
+Hash: 9f8bc34c3c3d2967c7d25f8945216ffa
+
+Package: acs
+Source: CRAN
+Version: 2.0
+Hash: d356c835968d782919697359b102450c
+Requires: RCurl, XML, plyr, stringr
 
 Package: assertthat
 Source: CRAN
