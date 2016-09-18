@@ -1,10 +1,12 @@
 ---
 title: "_Dataset_ | People of Color"
 author: "Tiernan Martin, [Futurewise](http://www.futurewisewa.org/)"
-date: '`r format.Date(x = "2016-09-17", "%d %B, %Y")`'
-output: html_notebook
-df_print: tibble
+output:
+  word_document: default
+  pdf_document: default
+  html_notebook: default
 subtitle: Communities of Opportunity Displacement Risk Assessment
+df_print: tibble
 ---
 
 ###Introduction

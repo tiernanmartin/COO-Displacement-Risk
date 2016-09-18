@@ -1,0 +1,80 @@
+---
+title: "_Dataset_ | Census Tracts"
+author: "Tiernan Martin, [Futurewise](http://www.futurewisewa.org/)"
+output:
+  html_notebook: default
+subtitle: Communities of Opportunity Displacement Risk Assessment
+df_print: tibble
+---
+
+###Introduction
+The primary geographic unit of this assessment is the [census tract](https://www.census.gov/geo/reference/gtc/gtc_ct.html). As is the case with many communities, the census geographies do not coincide exactly with the formal geographic boundary of the study's three sites, and should be considered as _spatial approximations_ of these communities.
+
+Listed below are the geographic identifiers of the census tracts that approximate each site.
+
+```{r, echo = FALSE, results="asis", warning=FALSE,message=FALSE}
+library(tidyverse)
+library(knitr)
+library(tigris)
+library(miscgis)
+
+# Rainier Valley
+rv <- c("53033010001", "53033010300", "53033010401", "53033011001", "53033011002", "53033011101","53033011102", "53033011700", "53033011800", "53033011900")
+
+# White Center
+wc <- c("53033026600","53033026700","53033026500","53033026801","53033026802","53033027000")
+
+# Seatac
+
+stc_hus <- read_csv("./1_raw/seatac_hus/DEC_10_SF1_H1_with_ann.csv", 
+                    col_types = cols(Id2 = col_character()), skip = 1)
+
+stc <-  paste(substr(x = stc_hus$Id2,1,2),substr(x = stc_hus$Id2,8,16),sep = "")
+
+df <- miscgis::cbind_fill(rv,wc,stc) %>% 
+        as_tibble() %>% 
+        `colnames<-`(c("Rainier Valley",
+                       "White Center",
+                       "SeaTac"))
+
+knitr::kable(df,caption = "Census Tract GEOIDs")
+```
+
+###Spatial Polygons
+```{r, echo = FALSE, message=FALSE,fig.show='hold', out.width='33%'}
+library(htmltools)
+library(leaflet)
+
+tr <- tigris::tracts(state = "WA",county = "King", year = 2014)
+
+tr_sel <- tr[tr$GEOID %in% c(rv,wc,stc),]
+
+# Rainier Valley
+rv_map <- myLflt() %>% addPolygons(data = tr_sel[tr_sel$GEOID %in% rv,])
+
+# White Center
+wc_map <- myLflt() %>% addPolygons(data = tr_sel[tr_sel$GEOID %in% wc,])
+
+# SeaTac
+stc_map <- myLflt() %>% addPolygons(data = tr_sel[tr_sel$GEOID %in% stc,])
+
+browsable(
+  tagList(list(
+    tags$div(
+      style = 'width:30%;display:block;float:left;padding:3px;',
+      rv_map
+    ),
+    tags$div(
+      style = 'width:30%;display:block;float:left;padding:3px;',
+      wc_map
+    ),
+    tags$div(
+      style = 'width:30%;display:block;float:left;padding:3px;',
+      stc_map
+    )
+  ))
+)
+
+```
+
+
