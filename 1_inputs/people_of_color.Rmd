@@ -1,0 +1,87 @@
+---
+title: "_Dataset_ | People of Color"
+author: "Tiernan Martin, Futurewise"
+date: '`r format.Date(x = "2016-09-17", "%d %B, %Y")`'
+output: html_notebook
+df_print: tibble
+subtitle: Communities of Opportunity Displacement Risk Assessment
+---
+
+###Introduction
+This datset comes from the [American Community Survey](https://www.census.gov/programs-surveys/acs/). General information about the structure of this dataset can be found [here](https://factfinder.census.gov/faces/affhelp/jsf/pages/metadata.xhtml?lang=en&type=table&id=table.en.ACS_14_5YR_B03002#main_content).
+
+This dataset is used to create the indicator "Percent People of Color", which is defined as the percentage of the population that is a race other than non-Hispanic White.
+
+###Metadata
+
+```{r, echo = FALSE, results="asis", warning=FALSE,message=FALSE}
+library(knitr)
+library(tidyverse)
+
+
+df <- tibble(
+        "Program" = "American Community Survey",
+        "Data Set" = "2010-2014 American Community Survey 5-Year Estimates",
+        "Table" = "B03002 - HISPANIC OR LATINO ORIGIN BY RACE"
+           )
+
+
+knitr::kable(df)
+
+```
+
+###Raw Data
+
+```{r, echo = FALSE, results= "asis",warning=FALSE,message=FALSE}
+library(acs)
+library(readr)
+
+
+tbl <- "B03002"  # census table code
+geog <- geo.make(state = "WA",county = "King",tract = "*")
+
+#Coded column names
+acs.fetch(endyear = "2014",
+          span = 5,
+          geography = geog,
+          table.number = tbl,
+          col.names = "pretty") %>% readr::write_rds("./1_raw/poc_pretty.rds")
+
+# "Pretty" column names
+acs.fetch(endyear = "2014",
+          span = 5,
+          geography = geog,
+          table.number = tbl,
+          col.names = "pretty") %>% readr::write_rds("./1_raw/poc_pretty.rds")
+
+poc <- read_rds("./1_raw/poc.rds")
+poc_prty <- read_rds("./1_raw/poc_pretty.rds")
+
+knitr::kable(tibble("Abbr." = acs.colnames(poc),
+                    "Full Column Name" = acs.colnames(poc_prty)),
+             row.names = 1:ncol(poc))
+```
+
+The data is structured in a special format that retains important metadata about the variable, including the standard error values needed to calculate confidence intervals.
+```{r,echo= FALSE}
+head(poc[,1])
+```
+
+
+
+
+###New Column: People of Color
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
