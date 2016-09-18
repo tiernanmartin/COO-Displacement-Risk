@@ -1,6 +1,6 @@
 ---
 title: "_Dataset_ | People of Color"
-author: "Tiernan Martin, Futurewise"
+author: "Tiernan Martin, [Futurewise](http://www.futurewisewa.org/)"
 date: '`r format.Date(x = "2016-09-17", "%d %B, %Y")`'
 output: html_notebook
 df_print: tibble
@@ -16,6 +16,7 @@ This dataset is used to create the indicator "Percent People of Color", which is
 
 ```{r, echo = FALSE, results="asis", warning=FALSE,message=FALSE}
 library(knitr)
+library(magrittr)
 library(tidyverse)
 
 
@@ -29,8 +30,6 @@ df <- tibble(
 knitr::kable(df)
 
 ```
-
-###Raw Data
 
 ```{r, echo = FALSE, results= "asis",warning=FALSE,message=FALSE}
 library(acs)
@@ -54,17 +53,19 @@ acs.fetch(endyear = "2014",
           table.number = tbl,
           col.names = "pretty") %>% readr::write_rds("./1_raw/poc_pretty.rds")
 
-poc <- read_rds("./1_raw/poc.rds")
-poc_prty <- read_rds("./1_raw/poc_pretty.rds")
+poc_acs <- read_rds("./1_raw/poc.rds")
+poc_prty_acs <- read_rds("./1_raw/poc_pretty.rds")
 
-knitr::kable(tibble("Abbr." = acs.colnames(poc),
-                    "Full Column Name" = acs.colnames(poc_prty)),
-             row.names = 1:ncol(poc))
+knitr::kable(tibble("Abbr." = acs.colnames(poc_acs),
+                    "Full Column Name" = acs.colnames(poc_prty_acs)),
+             row.names = 1:ncol(poc_acs))
 ```
 
+
+###Raw Data
 The data is structured in a special format that retains important metadata about the variable, including the standard error values needed to calculate confidence intervals.
 ```{r,echo= FALSE}
-head(poc[,1])
+head(poc_prty_acs[,1])
 ```
 
 
@@ -72,11 +73,51 @@ head(poc[,1])
 
 ###New Column: People of Color
 ```{r}
+poc_acs2 <- poc_acs[, "B03002_001"] - poc_acs[, "B03002_003"]
+                                
+acs.colnames(poc_acs2) <- "POC"
+
+poc_acs2 %<>% cbind(poc_acs, .)
+
+poc_acs3 <- 
+        apply(
+                X = poc_acs2[, 22],
+                MARGIN = 1,
+                FUN = divide.acs,
+                denominator = poc_acs2[, 1],
+                method = "proportion",
+                verbose = FALSE
+        )
+
+acs.colnames(poc_acs3) <- "POC_PCT"
+
+readr::write_rds(poc_acs3,"./2_intermediate/poc_acs.rds")
+
+head(poc_acs3[])
 
 ```
 
+###Conversion to a Dataframe
 
+```{r}
 
+poc_acs <- readr::read_rds("./2_intermediate/poc_acs.rds")
+
+poc_df <- 
+        data.frame(
+                geography(poc_acs)["tract"], 
+                estimate(poc_acs), 
+                1.645 * standard.error(poc_acs)) %>% 
+        `colnames<-`(., c("GEOID6", "POC_PCT_EST","POC_PCT_MOE")) %>% 
+        mutate(UPPER = POC_PCT_EST + POC_PCT_MOE, 
+               LOWER = POC_PCT_EST - POC_PCT_MOE, 
+               UPPER = if_else(UPPER > 1, 1, UPPER), 
+               LOWER = if_else(LOWER < 0, 0, LOWER))
+
+readr::write_rds(poc_df,"./2_intermediate/poc_df.rds")
+as_tibble(poc_df)
+
+```
 
 
 
