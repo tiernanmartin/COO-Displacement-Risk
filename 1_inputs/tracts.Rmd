@@ -1,19 +1,34 @@
 ---
 title: "_Dataset_ | Census Tracts"
 author: "Tiernan Martin, [Futurewise](http://www.futurewisewa.org/)"
+df_print: tibble
 output:
+  pdf_document:
+    keep_tex: yes
   html_notebook: default
 subtitle: Communities of Opportunity Displacement Risk Assessment
-df_print: tibble
+always_allow_html: yes
 ---
+
+<script>
+  $(document).ready(function() {
+    $('.leaflet').css('float','left');
+    $('.leaflet').css('margin','1px');
+    $('.leaflet-control').css('visibility','hidden');
+  });
+</script>
+
 
 ###Introduction
 The primary geographic unit of this assessment is the [census tract](https://www.census.gov/geo/reference/gtc/gtc_ct.html). As is the case with many communities, the census geographies do not coincide exactly with the formal geographic boundary of the study's three sites, and should be considered as _spatial approximations_ of these communities.
 
 Listed below are the geographic identifiers of the census tracts that approximate each site.
 
+
+
 ```{r, echo = FALSE, results="asis", warning=FALSE,message=FALSE}
 library(tidyverse)
+library(webshot)
 library(knitr)
 library(tigris)
 library(miscgis)
@@ -41,40 +56,84 @@ knitr::kable(df,caption = "Census Tract GEOIDs")
 ```
 
 ###Spatial Polygons
-```{r, echo = FALSE, message=FALSE,fig.show='hold', out.width='33%'}
+```{r, echo=FALSE,message=FALSE,fig.height=1.5, fig.width=1,  fig.show='hold', dpi=150}
+
 library(htmltools)
 library(leaflet)
-
+library(gplots)
 tr <- tigris::tracts(state = "WA",county = "King", year = 2014)
 
 tr_sel <- tr[tr$GEOID %in% c(rv,wc,stc),]
 
 # Rainier Valley
-rv_map <- myLflt() %>% addPolygons(data = tr_sel[tr_sel$GEOID %in% rv,])
+wc_map <- leaflet() %>%
+  addProviderTiles(providers$CartoDB.PositronNoLabels) %>%
+  addProviderTiles(providers$CartoDB.PositronOnlyLabels,
+                   layerId = 'labels_layer' ) %>%
+        addPolygons(data = tr_sel[tr_sel$GEOID %in% wc,],
+                                       smoothFactor = 0,
+                                       color = col2hex("white"),
+                                       weight = .5,
+                                       opacity = 1,
+                                       fillColor = col2hex("tomato"),
+                                       fillOpacity = .65
+) %>% 
+        htmlwidgets::onRender("function(el, t){
+    var myMap = this;
+    myMap.removeControl(myMap.attributionControl);
+    myMap.removeControl(myMap.zoomControl);
+    var shadowPane = myMap.getPanes().shadowPane;
+    shadowPane.appendChild(
+      myMap.layerManager._byLayerId['tile\\nlabels_layer'].getContainer());
+  }")
 
 # White Center
-wc_map <- myLflt() %>% addPolygons(data = tr_sel[tr_sel$GEOID %in% wc,])
+        stc_map <- leaflet() %>%
+  addProviderTiles(providers$CartoDB.PositronNoLabels) %>%
+  addProviderTiles(providers$CartoDB.PositronOnlyLabels,
+                   layerId = 'labels_layer' ) %>%
+        addPolygons(data = tr_sel[tr_sel$GEOID %in% stc,],
+                                       smoothFactor = 0,
+                                       color = col2hex("white"),
+                                       weight = .5,
+                                       opacity = 1,
+                                       fillColor = col2hex("tomato"),
+                                       fillOpacity = .65
+) %>% 
+        htmlwidgets::onRender("function(el, t){
+    var myMap = this;
+    myMap.removeControl(myMap.attributionControl);
+    myMap.removeControl(myMap.zoomControl);
+    var shadowPane = myMap.getPanes().shadowPane;
+    shadowPane.appendChild(
+      myMap.layerManager._byLayerId['tile\\nlabels_layer'].getContainer());
+  }")
 
 # SeaTac
-stc_map <- myLflt() %>% addPolygons(data = tr_sel[tr_sel$GEOID %in% stc,])
+        rv_map <- leaflet() %>%
+  addProviderTiles(providers$CartoDB.PositronNoLabels) %>%
+  addProviderTiles(providers$CartoDB.PositronOnlyLabels,
+                   layerId = 'labels_layer' ) %>%
+        addPolygons(data = tr_sel[tr_sel$GEOID %in% rv,],
+                                       smoothFactor = 0,
+                                       color = col2hex("white"),
+                                       weight = .5,
+                                       opacity = 1,
+                                       fillColor = col2hex("tomato"),
+                                       fillOpacity = .65
+) %>% 
+        htmlwidgets::onRender("function(el, t){
+    var myMap = this;
+    myMap.removeControl(myMap.attributionControl);
+    myMap.removeControl(myMap.zoomControl);
+    var shadowPane = myMap.getPanes().shadowPane;
+    shadowPane.appendChild(
+      myMap.layerManager._byLayerId['tile\\nlabels_layer'].getContainer());
+  }")
 
-browsable(
-  tagList(list(
-    tags$div(
-      style = 'width:30%;display:block;float:left;padding:3px;',
-      rv_map
-    ),
-    tags$div(
-      style = 'width:30%;display:block;float:left;padding:3px;',
-      wc_map
-    ),
-    tags$div(
-      style = 'width:30%;display:block;float:left;padding:3px;',
-      stc_map
-    )
-  ))
-)
+rv_map
+wc_map
+stc_map
+
 
 ```
-
-
