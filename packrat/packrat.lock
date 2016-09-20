@@ -13,6 +13,12 @@ Source: CRAN
 Version: 0.5-1
 Hash: 375869004db963f9915f2b8a49b4a718
 
+Package: GISTools
+Source: CRAN
+Version: 0.7-4
+Hash: e8c112215956ecc1f6b706ae1972fe1b
+Requires: RColorBrewer, maptools, rgeos, sp
+
 Package: PKI
 Source: CRAN
 Version: 0.1-3
@@ -276,12 +282,12 @@ Requires: htmltools, shiny
 Package: miscgis
 Source: github
 Version: 0.1.0
-Hash: 98173dc53a6a59ec4c27c8cca85cdd83
+Hash: f36dc2635b7607be37f45a38537d4b1d
 Requires: dplyr, leaflet, miniUI, shinydashboard, sp, tigris
 GithubRepo: miscgis
 GithubUsername: tiernanmartin
 GithubRef: master
-GithubSha1: 0c01e25cf6e6119f853fc610648dcf0840ead5c6
+GithubSha1: a90bad26a429031884d28a31aa5c3175376b8111
 
 Package: mnormt
 Source: CRAN

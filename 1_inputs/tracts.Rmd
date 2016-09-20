@@ -3,20 +3,20 @@ title: "_Dataset_ | Census Tracts"
 author: "Tiernan Martin, [Futurewise](http://www.futurewisewa.org/)"
 df_print: tibble
 output:
+  html_notebook: default
   pdf_document:
     keep_tex: yes
-  html_notebook: default
 subtitle: Communities of Opportunity Displacement Risk Assessment
 always_allow_html: yes
 ---
 
-<script>
-  $(document).ready(function() {
-    $('.leaflet').css('float','left');
-    $('.leaflet').css('margin','1px');
-    $('.leaflet-control').css('visibility','hidden');
-  });
-</script>
+<!-- <script> -->
+<!--   $(document).ready(function() { -->
+<!--     $('.leaflet').css('float','left'); -->
+<!--     $('.leaflet').css('margin','1px'); -->
+<!--     $('#htmlwidget-bd681c4a306214d15bb9').css('float','none'); -->
+<!--   }); -->
+<!-- </script> -->
 
 
 ###Introduction
@@ -56,64 +56,25 @@ knitr::kable(df,caption = "Census Tract GEOIDs")
 ```
 
 ###Spatial Polygons
-```{r, echo=FALSE,message=FALSE,fig.height=1.5, fig.width=1,  fig.show='hold', dpi=150}
+
+####With Waterbodies
+Left to right: Rainier Valley, White Center, SeaTac
+<br></br>
+
+```{r, echo=FALSE,message=FALSE,fig.height=1.25, fig.width=1,  fig.show='hold', dpi=150,fig.cap='Rainier Valley, White Center, and SeaTac'}
 
 library(htmltools)
+library(htmlwidgets)
 library(leaflet)
 library(gplots)
 tr <- tigris::tracts(state = "WA",county = "King", year = 2014)
 
 tr_sel <- tr[tr$GEOID %in% c(rv,wc,stc),]
 
+
 # Rainier Valley
-wc_map <- leaflet() %>%
-  addProviderTiles(providers$CartoDB.PositronNoLabels) %>%
-  addProviderTiles(providers$CartoDB.PositronOnlyLabels,
-                   layerId = 'labels_layer' ) %>%
-        addPolygons(data = tr_sel[tr_sel$GEOID %in% wc,],
-                                       smoothFactor = 0,
-                                       color = col2hex("white"),
-                                       weight = .5,
-                                       opacity = 1,
-                                       fillColor = col2hex("tomato"),
-                                       fillOpacity = .65
-) %>% 
-        htmlwidgets::onRender("function(el, t){
-    var myMap = this;
-    myMap.removeControl(myMap.attributionControl);
-    myMap.removeControl(myMap.zoomControl);
-    var shadowPane = myMap.getPanes().shadowPane;
-    shadowPane.appendChild(
-      myMap.layerManager._byLayerId['tile\\nlabels_layer'].getContainer());
-  }")
-
-# White Center
-        stc_map <- leaflet() %>%
-  addProviderTiles(providers$CartoDB.PositronNoLabels) %>%
-  addProviderTiles(providers$CartoDB.PositronOnlyLabels,
-                   layerId = 'labels_layer' ) %>%
-        addPolygons(data = tr_sel[tr_sel$GEOID %in% stc,],
-                                       smoothFactor = 0,
-                                       color = col2hex("white"),
-                                       weight = .5,
-                                       opacity = 1,
-                                       fillColor = col2hex("tomato"),
-                                       fillOpacity = .65
-) %>% 
-        htmlwidgets::onRender("function(el, t){
-    var myMap = this;
-    myMap.removeControl(myMap.attributionControl);
-    myMap.removeControl(myMap.zoomControl);
-    var shadowPane = myMap.getPanes().shadowPane;
-    shadowPane.appendChild(
-      myMap.layerManager._byLayerId['tile\\nlabels_layer'].getContainer());
-  }")
-
-# SeaTac
-        rv_map <- leaflet() %>%
-  addProviderTiles(providers$CartoDB.PositronNoLabels) %>%
-  addProviderTiles(providers$CartoDB.PositronOnlyLabels,
-                   layerId = 'labels_layer' ) %>%
+        
+rv_map <- miscgis::myLfltGrey() %>%
         addPolygons(data = tr_sel[tr_sel$GEOID %in% rv,],
                                        smoothFactor = 0,
                                        color = col2hex("white"),
@@ -121,15 +82,34 @@ wc_map <- leaflet() %>%
                                        opacity = 1,
                                        fillColor = col2hex("tomato"),
                                        fillOpacity = .65
-) %>% 
-        htmlwidgets::onRender("function(el, t){
-    var myMap = this;
-    myMap.removeControl(myMap.attributionControl);
-    myMap.removeControl(myMap.zoomControl);
-    var shadowPane = myMap.getPanes().shadowPane;
-    shadowPane.appendChild(
-      myMap.layerManager._byLayerId['tile\\nlabels_layer'].getContainer());
-  }")
+) %>% miscgis::styleWidget(style = "float:left;margin:1px")
+
+
+
+# White Center
+
+
+wc_map <- miscgis::myLfltGrey() %>%
+        addPolygons(data = tr_sel[tr_sel$GEOID %in% wc,],
+                                       smoothFactor = 0,
+                                       color = col2hex("white"),
+                                       weight = .5,
+                                       opacity = 1,
+                                       fillColor = col2hex("tomato"),
+                                       fillOpacity = .65
+) %>% miscgis::styleWidget(style = "float:left;margin:1px")
+
+# SeaTac
+
+stc_map <- miscgis::myLfltGrey() %>%
+        addPolygons(data = tr_sel[tr_sel$GEOID %in% stc,],
+                                       smoothFactor = 0,
+                                       color = col2hex("white"),
+                                       weight = .5,
+                                       opacity = 1,
+                                       fillColor = col2hex("tomato"),
+                                       fillOpacity = .65
+) %>% miscgis::styleWidget(style = "float:none;margin:1px")
 
 rv_map
 wc_map
@@ -137,3 +117,12 @@ stc_map
 
 
 ```
+
+
+####Waterbodies Removed
+
+
+
+
+
+
