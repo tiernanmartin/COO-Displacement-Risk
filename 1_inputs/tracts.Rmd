@@ -10,15 +10,6 @@ subtitle: Communities of Opportunity Displacement Risk Assessment
 always_allow_html: yes
 ---
 
-<!-- <script> -->
-<!--   $(document).ready(function() { -->
-<!--     $('.leaflet').css('float','left'); -->
-<!--     $('.leaflet').css('margin','1px'); -->
-<!--     $('#htmlwidget-bd681c4a306214d15bb9').css('float','none'); -->
-<!--   }); -->
-<!-- </script> -->
-
-
 ###Introduction
 The primary geographic unit of this assessment is the [census tract](https://www.census.gov/geo/reference/gtc/gtc_ct.html). As is the case with many communities, the census geographies do not coincide exactly with the formal geographic boundary of the study's three sites, and should be considered as _spatial approximations_ of these communities.
 
@@ -67,22 +58,36 @@ library(htmltools)
 library(htmlwidgets)
 library(leaflet)
 library(gplots)
+library(ggmap)
+library(rgeos)
+
+
 tr <- tigris::tracts(state = "WA",county = "King", year = 2014)
 
 tr_sel <- tr[tr$GEOID %in% c(rv,wc,stc),]
+
+cntr <- tr_sel %>% gCentroid(byid = TRUE) %>% gCentroid()
+
+
+
+blue <- miscgis::miscgis_pals$tableau_cat[["blue"]]
+green <- miscgis::miscgis_pals$tableau_cat[["green"]]
+red <- miscgis::miscgis_pals$tableau_cat[["red"]]
 
 
 # Rainier Valley
         
 rv_map <- miscgis::myLfltGrey() %>%
         addPolygons(data = tr_sel[tr_sel$GEOID %in% rv,],
-                                       smoothFactor = 0,
-                                       color = col2hex("white"),
-                                       weight = .5,
-                                       opacity = 1,
-                                       fillColor = col2hex("tomato"),
-                                       fillOpacity = .65
-) %>% miscgis::styleWidget(style = "float:left;margin:1px")
+                    smoothFactor = 0,
+                    color = col2hex("white"),
+                    weight = .5,
+                    opacity = 1,
+                    fillColor = blue,
+                    fillOpacity = .65
+        ) %>% 
+        setView(cntr$x,cntr$y,zoom = 9) %>% 
+        miscgis::styleWidget(style = "float:left;margin:1px")
 
 
 
@@ -91,25 +96,29 @@ rv_map <- miscgis::myLfltGrey() %>%
 
 wc_map <- miscgis::myLfltGrey() %>%
         addPolygons(data = tr_sel[tr_sel$GEOID %in% wc,],
-                                       smoothFactor = 0,
-                                       color = col2hex("white"),
-                                       weight = .5,
-                                       opacity = 1,
-                                       fillColor = col2hex("tomato"),
-                                       fillOpacity = .65
-) %>% miscgis::styleWidget(style = "float:left;margin:1px")
+                    smoothFactor = 0,
+                    color = col2hex("white"),
+                    weight = .5,
+                    opacity = 1,
+                    fillColor = green,
+                    fillOpacity = .65
+        ) %>% 
+        setView(cntr$x,cntr$y,zoom = 9) %>% 
+        miscgis::styleWidget(style = "float:left;margin:1px")
 
 # SeaTac
 
 stc_map <- miscgis::myLfltGrey() %>%
         addPolygons(data = tr_sel[tr_sel$GEOID %in% stc,],
-                                       smoothFactor = 0,
-                                       color = col2hex("white"),
-                                       weight = .5,
-                                       opacity = 1,
-                                       fillColor = col2hex("tomato"),
-                                       fillOpacity = .65
-) %>% miscgis::styleWidget(style = "float:none;margin:1px")
+                    smoothFactor = 0,
+                    color = col2hex("white"),
+                    weight = .5,
+                    opacity = 1,
+                    fillColor = red,
+                    fillOpacity = .65
+        ) %>% 
+        setView(cntr$x,cntr$y,zoom = 9) %>% 
+        miscgis::styleWidget(style = "float:none;margin:1px")
 
 rv_map
 wc_map
@@ -119,8 +128,17 @@ stc_map
 ```
 
 
-####Waterbodies Removed
+####Without Waterbodies
+Left to right: Rainier Valley, White Center, SeaTac
+<br></br>
 
+```{r, echo=FALSE,message=FALSE,fig.height=1.25, fig.width=1,  fig.show='hold', dpi=150,fig.cap='Rainier Valley, White Center, and SeaTac'}
+
+
+
+
+
+```
 
 
 
