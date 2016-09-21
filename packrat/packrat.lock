@@ -46,6 +46,12 @@ Source: CRAN
 Version: 0.12.7
 Hash: f0ba7322cfb66f1b563462faa9c2b2ab
 
+Package: RgoogleMaps
+Source: CRAN
+Version: 1.4.1
+Hash: 3310ba24c8436b297d1fb60ac4324ff2
+Requires: png
+
 Package: XML
 Source: CRAN
 Version: 3.98-1.4
@@ -111,6 +117,12 @@ Source: CRAN
 Version: 0.6.10
 Hash: 87165608ca8aeb0958835c3c5b52b6b7
 
+Package: downloader
+Source: CRAN
+Version: 0.4
+Hash: c99f05ffa816e03ece87b37ea9d4f0ed
+Requires: digest
+
 Package: dplyr
 Source: CRAN
 Version: 0.5.0
@@ -140,11 +152,30 @@ Version: 2.17.0
 Hash: e7d520c2a9597b303f54499e3bd90644
 Requires: gtools
 
+Package: geosphere
+Source: CRAN
+Version: 1.5-5
+Hash: 6772bef0f3f3aaa58b475479c03ff596
+Requires: sp
+
+Package: ggmap
+Source: CRAN
+Version: 2.6.1
+Hash: 3e5545418aab1ad8e47c218236dd4f0b
+Requires: RgoogleMaps, digest, geosphere, ggplot2, jpeg, mapproj, plyr,
+    png, proto, reshape2, rjson, scales
+
 Package: ggplot2
 Source: CRAN
 Version: 2.1.0
 Hash: 50e297b0191179c39c7dcae0eff72b51
 Requires: digest, gtable, plyr, reshape2, scales
+
+Package: ggthemes
+Source: CRAN
+Version: 3.2.0
+Hash: 44ef6d3a43f207cea8003ed2d69c9c36
+Requires: assertthat, colorspace, ggplot2, scales
 
 Package: git2r
 Source: CRAN
@@ -207,6 +238,11 @@ Version: 1.2.1
 Hash: 7de1f8f760441881804af7c1ff324340
 Requires: R6, curl, jsonlite, mime, openssl
 
+Package: jpeg
+Source: CRAN
+Version: 0.1-8
+Hash: 189af3df9864c6aa8546033f08ba9358
+
 Package: jsonlite
 Source: CRAN
 Version: 1.1
@@ -250,6 +286,17 @@ Source: CRAN
 Version: 1.5
 Hash: bdc4d48c3135e8f3b399536ddf160df4
 
+Package: mapproj
+Source: CRAN
+Version: 1.2-4
+Hash: e4c4eaf5289ffa74413a9cd71584cb1d
+Requires: maps
+
+Package: maps
+Source: CRAN
+Version: 3.1.1
+Hash: 4a0a1b1764bfe2c41c6fc21790408caf
+
 Package: maptools
 Source: CRAN
 Version: 0.8-39
@@ -282,12 +329,12 @@ Requires: htmltools, shiny
 Package: miscgis
 Source: github
 Version: 0.1.0
-Hash: f36dc2635b7607be37f45a38537d4b1d
+Hash: 9a06c0e75e80514eb9c95ba8f7fab0d1
 Requires: dplyr, leaflet, miniUI, shinydashboard, sp, tigris
 GithubRepo: miscgis
 GithubUsername: tiernanmartin
 GithubRef: master
-GithubSha1: a90bad26a429031884d28a31aa5c3175376b8111
+GithubSha1: be1a5de5e97bca6832959ebd14fd18e106dcdda8
 
 Package: mnormt
 Source: CRAN
@@ -336,6 +383,11 @@ GithubRepo: printr
 GithubUsername: yihui
 GithubRef: master
 GithubSha1: 2c4c4b60677064b90d3b81f135b2567f2a272bb6
+
+Package: proto
+Source: CRAN
+Version: 0.3-10
+Hash: 05d7ad64db29a39d1b02c4b9f1f4edb2
 
 Package: psych
 Source: CRAN
@@ -389,6 +441,11 @@ Source: CRAN
 Version: 0.3-20
 Hash: 7417d1ed8568664c79fbe987f5745805
 Requires: sp
+
+Package: rjson
+Source: CRAN
+Version: 0.2.15
+Hash: def074f38d0cff3b597649ee6f976128
 
 Package: rmarkdown
 Source: github

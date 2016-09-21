@@ -3,9 +3,9 @@ title: "_Dataset_ | Census Tracts"
 author: "Tiernan Martin, [Futurewise](http://www.futurewisewa.org/)"
 df_print: tibble
 output:
-  html_notebook: default
   pdf_document:
     keep_tex: yes
+  html_notebook: default
 subtitle: Communities of Opportunity Displacement Risk Assessment
 always_allow_html: yes
 ---
