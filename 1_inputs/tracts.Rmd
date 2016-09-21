@@ -30,7 +30,7 @@ rv <- c("53033010001", "53033010300", "53033010401", "53033011001", "53033011002
 # White Center
 wc <- c("53033026600","53033026700","53033026500","53033026801","53033026802","53033027000")
 
-# Seatac
+# SeaTac/Tukwila
 
 stc_hus <- read_csv("./1_raw/seatac_hus/DEC_10_SF1_H1_with_ann.csv", 
                     col_types = cols(Id2 = col_character()), skip = 1)
@@ -41,7 +41,7 @@ df <- miscgis::cbind_fill(rv,wc,stc) %>%
         as_tibble() %>% 
         `colnames<-`(c("Rainier Valley",
                        "White Center",
-                       "SeaTac"))
+                       "SeaTac/Tukwila"))
 
 knitr::kable(df,caption = "Census Tract GEOIDs")
 ```
@@ -49,10 +49,10 @@ knitr::kable(df,caption = "Census Tract GEOIDs")
 ###Spatial Polygons
 
 ####With Waterbodies
-Left to right: Rainier Valley, White Center, SeaTac
+Left to right: Rainier Valley, White Center, SeaTac/Tukwila
 <br></br>
 
-```{r, echo=FALSE,message=FALSE,fig.height=1.25, fig.width=1,  fig.show='hold', dpi=150,fig.cap='Rainier Valley, White Center, and SeaTac'}
+```{r, echo=FALSE,message=FALSE,fig.height=1.25, fig.width=1,  fig.show='hold', dpi=150,fig.cap='Rainier Valley, White Center, and SeaTac/Tukwila'}
 
 library(htmltools)
 library(htmlwidgets)
@@ -107,7 +107,7 @@ wc_map <- miscgis::myLfltGrey() %>%
         setView(cntr$x,cntr$y,zoom = 9) %>% 
         miscgis::styleWidget(style = "float:left;margin:1px")
 
-# SeaTac
+# SeaTac/Tukwila
 
 stc_map <- miscgis::myLfltGrey() %>%
         addPolygons(data = tr_sel[tr_sel$GEOID %in% stc,],
@@ -130,10 +130,10 @@ stc_map
 
 
 ####Without Waterbodies
-Left to right: Rainier Valley, White Center, SeaTac
+Left to right: Rainier Valley, White Center, SeaTac/Tukwila
 <br></br>
 
-```{r, echo=FALSE,message=FALSE,fig.height=1.25, fig.width=1,  fig.show='hold', dpi=150,fig.cap='Rainier Valley, White Center, and SeaTac'}
+```{r, echo=FALSE,message=FALSE,fig.height=1.25, fig.width=1,  fig.show='hold', dpi=150,fig.cap='Rainier Valley, White Center, and SeaTac/Tukwila'}
 
 library(rgdal)
 library(magrittr)
@@ -182,7 +182,7 @@ wc_trim_map <- miscgis::myLfltGrey() %>%
         setView(cntr$x,cntr$y,zoom = 9) %>% 
         miscgis::styleWidget(style = "float:left;margin:1px")
 
-# SeaTac
+# SeaTac/Tukwila
 
 stc_trim_map <- miscgis::myLfltGrey() %>%
         addPolygons(data = stc_trim,
