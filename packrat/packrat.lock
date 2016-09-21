@@ -329,12 +329,12 @@ Requires: htmltools, shiny
 Package: miscgis
 Source: github
 Version: 0.1.0
-Hash: 9a06c0e75e80514eb9c95ba8f7fab0d1
+Hash: 6d21911f25c689933105ad69d1a5aa3a
 Requires: dplyr, leaflet, miniUI, shinydashboard, sp, tigris
 GithubRepo: miscgis
 GithubUsername: tiernanmartin
 GithubRef: master
-GithubSha1: be1a5de5e97bca6832959ebd14fd18e106dcdda8
+GithubSha1: 05cda0188d7954022d411c0897c75dd8c1e0afe6
 
 Package: mnormt
 Source: CRAN

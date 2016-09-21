@@ -3,9 +3,9 @@ title: "_Dataset_ | Census Tracts"
 author: "Tiernan Martin, [Futurewise](http://www.futurewisewa.org/)"
 df_print: tibble
 output:
+  html_notebook: default
   pdf_document:
     keep_tex: yes
-  html_notebook: default
 subtitle: Communities of Opportunity Displacement Risk Assessment
 always_allow_html: yes
 ---
@@ -60,11 +60,12 @@ library(leaflet)
 library(gplots)
 library(ggmap)
 library(rgeos)
+library(sp)
 
 
 tr <- tigris::tracts(state = "WA",county = "King", year = 2014)
 
-tr_sel <- tr[tr$GEOID %in% c(rv,wc,stc),]
+tr_sel <- tr[tr$GEOID %in% c(rv,wc,stc),] %>% spTransform(CRSobj = crs_proj)
 
 cntr <- tr_sel %>% gCentroid(byid = TRUE) %>% gCentroid()
 
@@ -134,7 +135,72 @@ Left to right: Rainier Valley, White Center, SeaTac
 
 ```{r, echo=FALSE,message=FALSE,fig.height=1.25, fig.width=1,  fig.show='hold', dpi=150,fig.cap='Rainier Valley, White Center, and SeaTac'}
 
+library(rgdal)
+library(magrittr)
 
+wtr <- readOGR(dsn = "./2_intermediate/wtr_sp.gpkg", 
+          layer = "wtr_sp",verbose = FALSE) %>% gUnaryUnion(.) %>% spTransform(CRSobj = crs_proj)
+
+rv_trim <- spClip(orig = tr_sel[tr_sel$GEOID %in% rv,],
+                  sp = wtr)
+
+wc_trim <- spClip(orig = tr_sel[tr_sel$GEOID %in% wc,],
+                  sp = wtr)
+
+stc_trim <- spClip(orig = tr_sel[tr_sel$GEOID %in% stc,],
+                  sp = wtr)
+
+
+# Rainier Valley
+        
+rv_trim_map <- miscgis::myLfltGrey() %>%
+        addPolygons(data = rv_trim,
+                    smoothFactor = 0,
+                    color = col2hex("white"),
+                    weight = .5,
+                    opacity = 1,
+                    fillColor = blue,
+                    fillOpacity = .65
+        ) %>% 
+        setView(cntr$x,cntr$y,zoom = 9) %>% 
+        miscgis::styleWidget(style = "float:left;margin:1px")
+
+
+
+# White Center
+
+
+wc_trim_map <- miscgis::myLfltGrey() %>%
+        addPolygons(data = wc_trim,
+                    smoothFactor = 0,
+                    color = col2hex("white"),
+                    weight = .5,
+                    opacity = 1,
+                    fillColor = green,
+                    fillOpacity = .65
+        ) %>% 
+        setView(cntr$x,cntr$y,zoom = 9) %>% 
+        miscgis::styleWidget(style = "float:left;margin:1px")
+
+# SeaTac
+
+stc_trim_map <- miscgis::myLfltGrey() %>%
+        addPolygons(data = stc_trim,
+                    smoothFactor = 0,
+                    color = col2hex("white"),
+                    weight = .5,
+                    opacity = 1,
+                    fillColor = red,
+                    fillOpacity = .65
+        ) %>% 
+        setView(cntr$x,cntr$y,zoom = 9) %>% 
+        miscgis::styleWidget(style = "float:none;margin:1px")
+
+rv_trim_map
+
+wc_trim_map
+
+stc_trim_map
 
 
 
