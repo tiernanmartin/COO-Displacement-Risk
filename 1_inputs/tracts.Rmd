@@ -61,15 +61,29 @@ library(gplots)
 library(ggmap)
 library(rgeos)
 library(sp)
+library(magrittr)
 
 
 tr <- tigris::tracts(state = "WA",county = "King", year = 2014)
 
 tr_sel <- tr[tr$GEOID %in% c(rv,wc,stc),] %>% spTransform(CRSobj = crs_proj)
 
-cntr <- tr_sel %>% gCentroid(byid = TRUE) %>% gCentroid()
+tr_sp <- tr_sel
 
+tr_sp@data %<>% mutate(COO_SITE = case_when(.$GEOID %in% rv ~ "Rainier Valley",
+                                            .$GEOID %in% wc ~ "White Center",
+                                            .$GEOID %in% stc ~ "SeaTac/Tukwila"))
 
+if(!file.exists("./2_intermediate/tr_sp_withwater.gpkg")){
+writeOGR(obj = tr_sp,
+         dsn = "./2_intermediate/tr_sp_withwater.gpkg",
+         layer = "tr_sp_withwater",
+         driver =  "GPKG",
+         verbose = FALSE,
+         overwrite_layer = TRUE)
+}
+
+cntr <- tr_sp %>% gCentroid(byid = TRUE) %>% gCentroid()
 
 blue <- miscgis::miscgis_pals$tableau_cat[["blue"]]
 green <- miscgis::miscgis_pals$tableau_cat[["green"]]
@@ -79,7 +93,7 @@ red <- miscgis::miscgis_pals$tableau_cat[["red"]]
 # Rainier Valley
         
 rv_map <- miscgis::myLfltGrey() %>%
-        addPolygons(data = tr_sel[tr_sel$GEOID %in% rv,],
+        addPolygons(data = tr_sp[tr_sp$COO_SITE == "Rainier Valley",],
                     smoothFactor = 0,
                     color = col2hex("white"),
                     weight = .5,
@@ -96,7 +110,7 @@ rv_map <- miscgis::myLfltGrey() %>%
 
 
 wc_map <- miscgis::myLfltGrey() %>%
-        addPolygons(data = tr_sel[tr_sel$GEOID %in% wc,],
+        addPolygons(data = tr_sp[tr_sp$COO_SITE == "White Center",],
                     smoothFactor = 0,
                     color = col2hex("white"),
                     weight = .5,
@@ -110,7 +124,7 @@ wc_map <- miscgis::myLfltGrey() %>%
 # SeaTac/Tukwila
 
 stc_map <- miscgis::myLfltGrey() %>%
-        addPolygons(data = tr_sel[tr_sel$GEOID %in% stc,],
+        addPolygons(data = tr_sp[tr_sp$COO_SITE == "SeaTac/Tukwila",],
                     smoothFactor = 0,
                     color = col2hex("white"),
                     weight = .5,
@@ -137,18 +151,28 @@ Left to right: Rainier Valley, White Center, SeaTac/Tukwila
 
 library(rgdal)
 library(magrittr)
+library(shiny)
 
 wtr <- readOGR(dsn = "./2_intermediate/wtr_sp.gpkg", 
           layer = "wtr_sp",verbose = FALSE) %>% gUnaryUnion(.) %>% spTransform(CRSobj = crs_proj)
 
-rv_trim <- spClip(orig = tr_sel[tr_sel$GEOID %in% rv,],
-                  sp = wtr)
+tr_trim_sp <- spClip(tr_sp,wtr)
 
-wc_trim <- spClip(orig = tr_sel[tr_sel$GEOID %in% wc,],
-                  sp = wtr)
+if(!file.exists("./2_intermediate/tr_trim_sp.gpkg")){
+        writeOGR(obj = tr_trim_sp,
+         dsn = "./2_intermediate/tr_trim_sp.gpkg",
+         layer = "tr_trim_sp",driver = "GPKG",
+         verbose = FALSE,
+         overwrite_layer = TRUE)
+}
 
-stc_trim <- spClip(orig = tr_sel[tr_sel$GEOID %in% stc,],
-                  sp = wtr)
+# Individiaul Maps
+
+rv_trim <- tr_trim_sp %>% subset(COO_SITE == "Rainier Valley")
+
+wc_trim <- tr_trim_sp %>% subset(COO_SITE == "White Center")
+
+stc_trim <- tr_trim_sp %>% subset(COO_SITE == "SeaTac/Tukwila")
 
 
 # Rainier Valley
@@ -168,7 +192,6 @@ rv_trim_map <- miscgis::myLfltGrey() %>%
 
 
 # White Center
-
 
 wc_trim_map <- miscgis::myLfltGrey() %>%
         addPolygons(data = wc_trim,
@@ -206,7 +229,53 @@ stc_trim_map
 
 ```
 
+```{r, echo=FALSE,message=FALSE, dpi = 150}
+# Combined map 
+
+pal_rgb <- miscgis_pals$tableau_cat[c("blue","green","red")] %>% unlist %>% palette()
+
+pal <- colorFactor(pal_rgb,domain = factor(tr_trim_sp$COO_SITE,levels = c("Rainier Valley",
+                                                                          "White Center",
+                                                                          "SeaTac/Tukwila")))
+pts <- gCentroid(tr,byid = TRUE) %>% spTransform(crs_proj) %>% 
+        SpatialPointsDataFrame(data = tr@data,match.ID = FALSE)
+
+popups <- paste0(tr_trim_sp@data$GEOID)
+
+leaflet() %>%
+        addProviderTiles(providers$CartoDB.Positron) %>% 
+        addPolygons(data = tr_trim_sp,
+                    smoothFactor = 0,
+                    color = col2hex("white"),
+                    weight = .5,
+                    opacity = 1,
+                    fillColor = ~pal(COO_SITE),
+                    fillOpacity = .65,
+                    group = "COO Sites") %>% 
+        addPolygons(data = tr,
+                    smoothFactor = 0,
+                    weight = .75,
+                    color = col2hex("grey50"),
+                    opacity = .75,
+                    fillOpacity = 0,
+                    group = "All Tracts", popup = popups) %>%
+        setView(cntr$x,cntr$y,zoom = 11) %>% 
+        addLayersControl(baseGroups = "COO Sites",overlayGroups = "All Tracts") %>% 
+        addLegend(title = "COO Sites",
+                  position = "topright",
+                  pal = pal,
+                  values = tr_trim_sp$COO_SITE) %>% 
+        saveWidget(file = "tr_coo_sites.html",selfcontained = FALSE,libdir = "./2_intermediate/html_support_files")
+                
 
 
+
+```
+
+####Links to Fullscreen Maps
+* [All three sites]()
+* [Rainier Valley]()
+* [White Center]()
+* [SeaTac/Tukwila]()
 
 

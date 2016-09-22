@@ -2,9 +2,9 @@
 title: "_Dataset_ | People of Color"
 author: "Tiernan Martin, [Futurewise](http://www.futurewisewa.org/)"
 output:
-  word_document: default
-  pdf_document: default
   html_notebook: default
+  pdf_document: default
+  word_document: default
 subtitle: Communities of Opportunity Displacement Risk Assessment
 df_print: tibble
 ---
@@ -121,6 +121,14 @@ as_tibble(poc_df)
 
 ```
 
+###Mapping
+
+```{r, echo=FALSE,message=FALSE,fig.height=1.25, fig.width=1,  fig.show='hold', dpi=150,fig.cap='Rainier Valley, White Center, and SeaTac/Tukwila'}
+
+
+
+
+```
 
 
 
