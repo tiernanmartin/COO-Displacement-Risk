@@ -2,7 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
-1_inputs/1_raw/*
-1_inputs/2_intermediate/*
+1_inputs/1_raw/
+1_inputs/2_intermediate/
 packrat/lib*/
 packrat/src/
