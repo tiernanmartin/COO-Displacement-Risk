@@ -64,7 +64,7 @@ library(sp)
 library(magrittr)
 
 
-tr <- tigris::tracts(state = "WA",county = "King", year = 2014)
+tr <- tigris::tracts(state = "WA",county = "King", year = 2014) %>% spTransform(CRSobj = crs_proj)
 
 tr_sel <- tr[tr$GEOID %in% c(rv,wc,stc),] %>% spTransform(CRSobj = crs_proj)
 
@@ -242,40 +242,103 @@ pts <- gCentroid(tr,byid = TRUE) %>% spTransform(crs_proj) %>%
 
 popups <- paste0(tr_trim_sp@data$GEOID)
 
-leaflet() %>%
-        addProviderTiles(providers$CartoDB.Positron) %>% 
-        addPolygons(data = tr_trim_sp,
-                    smoothFactor = 0,
-                    color = col2hex("white"),
-                    weight = .5,
-                    opacity = 1,
-                    fillColor = ~pal(COO_SITE),
-                    fillOpacity = .65,
-                    group = "COO Sites") %>% 
-        addPolygons(data = tr,
-                    smoothFactor = 0,
-                    weight = .75,
-                    color = col2hex("grey50"),
-                    opacity = .75,
-                    fillOpacity = 0,
-                    group = "All Tracts", popup = popups) %>%
-        setView(cntr$x,cntr$y,zoom = 11) %>% 
-        addLayersControl(baseGroups = "COO Sites",overlayGroups = "All Tracts") %>% 
-        addLegend(title = "COO Sites",
-                  position = "topright",
-                  pal = pal,
-                  values = tr_trim_sp$COO_SITE) %>% 
-        saveWidget(file = "tr_coo_sites.html",selfcontained = FALSE,libdir = "./2_intermediate/html_support_files")
-                
+hra <- readOGR(dsn = "./1_raw/HRA_2010Block_Clip/",
+               layer = "HRA_2010Block_Clip",verbose = FALSE) %>% spTransform(crs_proj)
+
+rv_hra_id <- c("SE Seattle")
+
+wc_hra_id <- c("Beacon/Gtown/S.Park",
+               "North Highline")
+
+stc_hra_id <- c("SeaTac/Tukwila")
 
 
+hra@data %<>% mutate(HRA_ID = case_when(.$HRA2010v2_ %in% rv_hra_id ~ "Rainier Valley",
+                                        .$HRA2010v2_ %in% wc_hra_id ~ "White Center",
+                                        .$HRA2010v2_ %in% stc_hra_id ~ "SeaTac/Tukwila")
+                     )
+
+hra_coo <- hra %>% subset(!is.na(HRA_ID))
+
+popup_hra <- paste0(hra_coo$HRA2010v2_)
+
+rv_tr_hra <- c(53033010100,53033010300,53033010200,53033011102,53033011101,53033011800,53033011900,53033026001) %>% as.character()
+
+wc_tr_hra <- c(53033009300,53033010002,53033010001,53033010402,53033010401,53033011002,53033011001,53033010900,53033011200,53033011700,53033026400,53033026500,53033026600,53033026700,53033027000,53033026802,53033026801) %>% as.character()
+
+stc_tr_hra <- c(53033026300,53033026400,53033027200,53033027100,53033026200,53033028200,53033028100,53033027300,53033028000,53033028500,53033028402,53033028300,53033028403,53033028802,53033028700,53033028801,53033028500,53033029101) %>% 
+        as.character()
+
+tr_trim_sp@data %<>% mutate(HRA_COO_SITE = case_when(.$GEOID %in% rv_tr_hra ~ "Rainier Valley",
+                                            .$GEOID %in% wc_tr_hra ~ "White Center",
+                                            .$GEOID %in% stc_tr_hra ~ "SeaTac/Tukwila")
+                            )
+
+tr_hra <- tr
+
+tr_hra@data %<>% mutate(HRA_COO_SITE = case_when(.$GEOID %in% rv_tr_hra ~ "Rainier Valley",
+                                            .$GEOID %in% wc_tr_hra ~ "White Center",
+                                            .$GEOID %in% stc_tr_hra ~ "SeaTac/Tukwila")
+                            )
+tr_hra %<>% subset(!is.na(HRA_COO_SITE))
+
+
+if(!file.exists("./tr_coo_sites.html")){
+        leaflet() %>%
+                addProviderTiles(providers$CartoDB.Positron) %>% 
+                addPolygons(data = tr_trim_sp,
+                            smoothFactor = 0,
+                            color = col2hex("white"),
+                            weight = .5,
+                            opacity = 1,
+                            fillColor = ~pal(COO_SITE),
+                            fillOpacity = .65,
+                            group = "COO Sites - Guess") %>% 
+                addPolygons(data = hra_coo,
+                            smoothFactor = 0,
+                            color = ~pal(HRA_ID),
+                            weight = 2.5,
+                            opacity = 1,
+                            fillOpacity = 0,
+                            popup = popup_hra,
+                            group = "HRA Boundaries") %>% 
+                addPolygons(data = tr_hra,
+                            smoothFactor = 0,
+                            color = col2hex("white"),
+                            weight = .5,
+                            opacity = 1,
+                            fillColor = ~pal(HRA_COO_SITE),
+                            fillOpacity = .65,
+                            group = "COO Sites - HRA") %>%
+                addPolygons(data = tr,
+                            smoothFactor = 0,
+                            weight = .75,
+                            color = col2hex("grey50"),
+                            opacity = .75,
+                            fillOpacity = 0,
+                            group = "All Tracts", popup = popups) %>%
+                # addPolygons(data = hra,
+                #             smoothFactor = 0,
+                #             color = col2hex("white"),
+                #             weight = .5,
+                #             opacity = 1,
+                #             fillColor = ~pal(COO_SITE),
+                #             fillOpacity = .65,
+                #             group = "HRA") %>% 
+                setView(cntr$x,cntr$y,zoom = 11) %>% 
+                addLayersControl(overlayGroups = c("COO Sites - HRA",
+                                                   "COO Sites - Guess",
+                                                   "HRA Boundaries",
+                                                   "All Tracts")) %>% 
+                addLegend(title = "COO Sites",
+                          position = "topright",
+                          pal = pal,
+                          values = tr_trim_sp$COO_SITE) %>% 
+                saveWidget(file = "tr_coo_sites.html",selfcontained = FALSE,libdir = "./html_support_files")
+}
 
 ```
 
-####Links to Fullscreen Maps
-* [All three sites]()
-* [Rainier Valley]()
-* [White Center]()
-* [SeaTac/Tukwila]()
+
 
 
