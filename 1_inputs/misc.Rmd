@@ -97,10 +97,12 @@ blue <- miscgis::miscgis_pals$tableau_cat[["blue"]]
 
 myLfltGrey() %>% addPolygons(data = wtr_sp,color = blue, opacity = 1, weight = .5, fillColor = blue,fillOpacity = .5)
 
-
-writeOGR(obj = wtr_sp, dsn = "./2_intermediate/wtr_sp.gpkg", 
+if(!file.exists("./2_intermediate/wtr_sp.gpkg")){
+        writeOGR(obj = wtr_sp, dsn = "./2_intermediate/wtr_sp.gpkg", 
           layer = "wtr_sp", driver = "GPKG", verbose = FALSE, 
           overwrite_layer = TRUE)
+}
+
 
 
 ```

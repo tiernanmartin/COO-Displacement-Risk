@@ -1,0 +1,9 @@
+# Data Methods
+
+## Census Tracts
+
+`r knitr::knit_child('./1_inputs/tracts.nb.html')`
+
+## People of Color (ACS)
+
+## Miscellaneous

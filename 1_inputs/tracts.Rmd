@@ -1,12 +1,9 @@
 ---
-title: "_Dataset_ | Census Tracts"
-author: "Tiernan Martin, [Futurewise](http://www.futurewisewa.org/)"
 df_print: tibble
 output:
   html_notebook: default
   pdf_document:
     keep_tex: yes
-subtitle: Communities of Opportunity Displacement Risk Assessment
 always_allow_html: yes
 ---
 
@@ -62,6 +59,7 @@ library(ggmap)
 library(rgeos)
 library(sp)
 library(magrittr)
+library(rgdal)
 
 
 tr <- tigris::tracts(state = "WA",county = "King", year = 2014) %>% spTransform(CRSobj = crs_proj)
@@ -147,9 +145,8 @@ stc_map
 Left to right: Rainier Valley, White Center, SeaTac/Tukwila
 <br></br>
 
-```{r, echo=FALSE,message=FALSE,fig.height=1.25, fig.width=1,  fig.show='hold', dpi=150,fig.cap='Rainier Valley, White Center, and SeaTac/Tukwila'}
+```{r, echo=FALSE,message=FALSE,warning = FALSE,fig.height=1.25, fig.width=1,  fig.show='hold', dpi=150,fig.cap='Rainier Valley, White Center, and SeaTac/Tukwila'}
 
-library(rgdal)
 library(magrittr)
 library(shiny)
 
