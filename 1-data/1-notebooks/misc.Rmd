@@ -1,0 +1,151 @@
+---
+df_print: tibble
+output:
+  html_notebook:
+    code_folding: hide
+  pdf_document:
+    keep_tex: yes
+always_allow_html: yes
+---
+
+```{r misc-setup, echo = FALSE, warning=FALSE,message=FALSE}
+library(knitr)
+library(rprojroot)
+library(tidyverse)
+library(rgdal)
+library(sp)
+library(rgeos)
+library(miscgis)
+library(tigris)
+library(leaflet)
+library(ggthemes)
+library(magrittr)
+library(stringr)
+root <- rprojroot::is_rstudio_project
+root_file <- root$make_fix_file()
+opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
+```
+
+###Seattle Boundary
+
+```{r misc-sea-bound}
+
+if(!file.exists(root_file('1-data/3-external/seattle.gpkg'))){
+        tigris::places(state = "WA") %>%
+        tigris::filter_place(place = "Seattle") %>%
+        spTransform(CRSobj = crs_proj) %>% 
+        writeOGR(dsn = root_file('1-data/3-external/seattle.gpkg'),
+                 layer = "seattle", driver = "GPKG", verbose = FALSE, 
+                 overwrite_layer = TRUE)
+}
+
+sea <- readOGR(dsn = root_file('1-data/3-external/seattle.gpkg'),layer = "seattle",verbose = FALSE)
+
+green <- miscgis::miscgis_pals$tableau_cat[["green"]]
+
+myLfltGrey() %>% addPolygons(data = sea,color = green,opacity = 1,fillColor = green,fillOpacity = .5)
+
+```
+
+###King County Subdivision Boundary
+
+```{r misc-sea-ccd}
+
+if(!file.exists(root_file('1-data/3-external/seattle_ccd.gpkg'))){
+        tigris::county_subdivisions(state = "53",county = "033") %>% 
+                subset(NAME == "Seattle") %>% 
+                spTransform(CRSobj = crs_proj) %>% 
+                writeOGR(dsn = root_file('1-data/3-external/seattle_ccd.gpkg'),
+                         layer = "seattle", driver = "GPKG", verbose = FALSE, 
+                         overwrite_layer = TRUE)
+}
+
+sea_ccd <- readOGR(dsn = root_file('1-data/3-external/seattle_ccd.gpkg'),layer = "seattle",verbose = FALSE)
+
+orange <- miscgis::miscgis_pals$tableau_cat[["orange"]]
+
+myLfltGrey() %>% addPolygons(data = sea_ccd,color = orange,opacity = 1,fillColor = orange,fillOpacity = .5)
+
+```
+
+### Tracts in Seattle CCD
+
+In the absence of a straight-forward method for identifying all the census tracts in the Seattle CCD subdivision of King County, it is possible to extract this information from [American Factfinder](https://factfinder.census.gov/faces/nav/jsf/pages/index.xhtml). This [tutorial](https://ask.census.gov/faq.php?id=5000&faqId=1605) describes how to use the American Factfinder interface to extract a list of all "all tracts within (or partially within) a census place"; substituting "county subdivision" for "place" will retrieve the desired results.
+
+```{r misc-tracts-ccd}
+if(!file.exists(root_file('1-data/4-interim/tr-ccd-sp.gpkg'))){
+        tr_ccd_geoid <- 
+        read_csv(
+                root_file('1-data/3-external/DEC_10_SF1_H10_tr_sea_ccd/DEC_10_SF1_H10_with_ann.csv'), 
+                col_types = cols(Id2 = col_character()), 
+                skip = 1) %>% 
+        mutate(NEW_GEOID1 = str_sub(Id2,1,5),
+               NEW_GEOID2 = str_sub(Id2,16,21),
+               GEOID = paste0(NEW_GEOID1,NEW_GEOID2)) %>% 
+        select(GEOID) %>% unlist(use.names = F)
+tr_ccd_sp <- subset(tr, GEOID %in% tr_ccd_geoid)
+
+writeOGR(obj = tr_ccd_sp,
+         dsn = root_file('1-data/4-interim/tr-ccd-sp.gpkg'),
+         layer = 'tr_ccd_sp',
+         driver = 'GPKG',
+         verbose = FALSE,
+         overwrite_layer = TRUE)
+}
+
+tr_ccd_sp <- readOGR(dsn = root_file('1-data/4-interim/tr-ccd-sp.gpkg'),
+                     layer = 'tr_ccd_sp',
+                     verbose = FALSE)
+show_tr_ccd_sp <- function(){
+        myLfltGrey() %>% 
+        addPolygons(data = tr_ccd,weight = .5,color = blue,opacity = 1,fillColor = blue,fillOpacity = .5) %>% 
+        addPolygons(data = sea_ccd,color = orange,opacity = 1,fillOpacity = 0)
+}
+# show_tr_ccd_sp()
+```
+
+###Puget Sound Waterbodies
+
+These are useful for "clipping" census geographies whose boundaries extend into waterbodies.
+
+```{r misc-wtr}
+library(downloader)
+
+fp_wtr <- root_file('1-data/3-external/NHDMajor.gdb')
+
+# check if the file already exists, if not then download it
+if(!file.exists(fp_wtr)){
+        
+        url <- "ftp://www.ecy.wa.gov/gis_a/inlandWaters/NHD/NHDmajor.gdb.zip" # save the URL for the waterbodies data
+        
+        temp <- tempfile() # create a temporary file to hold the compressed download
+        
+        download(url, dest = temp, mode="wb") # download the file
+        
+        unzip (temp, exdir = root_file('1-data/3-external/')) # extract the ESRI geodatabase file to a project folder
+}
+
+wtr_sp <-
+        readOGR(dsn = fp_wtr,      # create a waterbodies shape
+                layer = "NHD_MajorWaterbodies") %>%
+        gBuffer(byid=TRUE, width=0) %>% # clean up self-intersecting polygons
+        spTransform(CRSobj = crs_proj) # transform the projection to match the project projection
+
+intersect <- gIntersects(sea_ccd,wtr_sp,byid = TRUE) %>% as.vector()
+
+wtr_sp <- wtr_sp[intersect,] %>%
+        spTransform(CRSobj = crs_proj)
+
+blue <- miscgis::miscgis_pals$tableau_cat[["blue"]]
+
+myLfltGrey() %>% addPolygons(data = wtr_sp,color = blue, opacity = 1, weight = .5, fillColor = blue,fillOpacity = .5)
+
+if(!file.exists(root_file('1-data/4-interim/wtr_sp.gpkg'))){
+        writeOGR(obj = wtr_sp, dsn = root_file('1-data/4-interim/wtr_sp.gpkg'), 
+          layer = "wtr_sp", driver = "GPKG", verbose = FALSE, 
+          overwrite_layer = TRUE)
+}
+
+
+
+```

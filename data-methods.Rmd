@@ -1,9 +1,41 @@
+# (APPENDIX) Appendices {-}
+
+```{r data-methods-setup, echo=FALSE, warning=FALSE, message=FALSE}
+library(knitr)
+library(rprojroot)
+library(tidyverse)
+root <- rprojroot::is_rstudio_project
+root_file <- root$make_fix_file()
+opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
+options("readr.num_columns" = 0)
+```
+
 # Data Methods
+
+## Miscellaneous
+```{r data-methods-misc}
+misc_fp <- root_file('1-data/1-notebooks/misc.Rmd')
+```
+
+`r knit_child(misc_fp)`
 
 ## Census Tracts
 
-`r knitr::knit_child('./1_inputs/tracts.nb.html')`
+```{r data-methods-tracts}
+tracts_fp <- root_file('1-data/1-notebooks/tracts.Rmd')
+```
+
+`r knit_child(tracts_fp)`
+
+## King County Parcels
+
+```{r data-methods-kc-parcels}
+kc_parcels_fp <- root_file('1-data/1-notebooks/kc-parcels.Rmd')
+```
+
+`r knit_child(kc_parcels_fp)`
+
 
 ## People of Color (ACS)
 
-## Miscellaneous
+

@@ -1,0 +1,175 @@
+---
+df_print: tibble
+output:
+  html_notebook:
+    code_folding: hide
+  pdf_document:
+    keep_tex: yes
+always_allow_html: yes
+---
+
+```{r kc-parcels-setup, echo = FALSE, warning=FALSE,message=FALSE}
+library(knitr)
+library(rprojroot)
+library(tidyverse)
+library(rgdal)
+library(sp)
+library(rgeos)
+library(miscgis)
+library(tigris)
+library(leaflet)
+library(ggthemes)
+library(magrittr)
+library(downloader)
+root <- rprojroot::is_rstudio_project
+root_file <- root$make_fix_file()
+opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
+options("readr.num_columns" = 0)
+```
+
+### Introduction
+
+Tax parcels are the pieces of land associated with property value. King County appraises parcels in order to determine an estimate of the fair market value, which is then used in the process of determening taxation amounts. For the purposes of this assessment, parcels are the geographic unit of the indicator of housing market conditions: residential property value. 
+
+More information about the parcel dataset is available at the King County GIS Center:
+
+  * [KCGIS Center](http://www.kingcounty.gov/operations/GIS/GISData.aspx)
+  * [Parcel Shapefile Metadata](http://www5.kingcounty.gov/sdc/Metadata.aspx?Layer=parcel)
+
+### Parcels in Seattle CCD
+
+The entire dataset of King County parcels contains 602,803 records, which makes it challenging to work with because of the file size. The methodology of this project is to compare communities to the Seattle subdivision of King County, so the first step is to extract only the parcels in that geography.
+
+The unique identifier for each parcel is called a `PIN`, and it is a combination of two numeric codes: a six-digit `MAJOR` (e.g., 092503) and a four-digit `MINOR` (e.g., 5891). After creating the `PIN` the `PropType` variable from the [KC assessor's parcel dataset](http://info.kingcounty.gov/Assessor/DataDownload/default.aspx) is joined to the spatial dataset from the KCGIS Center.
+
+The spatial dataset's size is reduced by converting the polygon into points using the `rgeos::gCentroid` function. `sp::over` is then used to determine which parcels are overlayed by the Seattle CCD polygon (see this [excellent tutorial](https://cran.r-project.org/web/packages/sp/vignettes/over.pdf) for more details on `sp::over`). The subset is exported, retaining its `SpatialPointsDataFrame` class.
+
+
+```{r kc-parcels-main, echo = TRUE, eval=FALSE}
+# Seattle subdivision of King County, WA (Seattle CCD)
+sea_ccd <- readOGR(dsn = root_file('1-data/3-external/seattle_ccd.gpkg'),layer = "seattle",verbose = FALSE)
+
+# Parcels (tabular data only)
+if(!file.exists(root_file('1-data/3-external/EXTR_Parcel.csv'))){
+        url <- 'http://aqua.kingcounty.gov/extranet/assessor/Parcel.zip' # direct URL to the file download
+        
+        temp <- tempfile() # create a temporary file to hold the compressed download
+        
+        download(url, dest = temp, mode='wb') # download the file
+        
+        unzip (temp, exdir = root_file('1-data/3-external/')) # extract the file to the project folder
+}
+
+prcl_all_df <- 
+        read_csv(root_file('1-data/3-external/EXTR_Parcel.csv'),progress = FALSE) %>% 
+        mutate(PIN = paste0(Major,Minor)) %>% 
+        select(PIN, PropType,CurrentZoning,CurrentUseDesignation)
+
+colnames(prcl_all_df) %<>% toupper() 
+
+# Parcels (sp): 2012
+
+if(!file.exists(root_file('1-data/3-external/parcel/parcel.shp'))){
+        url <- 'ftp://ftp.kingcounty.gov/gis-web/web/GISData/parcel_SHP.zip' # direct URL to the file download
+        
+        temp <- tempfile() # create a temporary file to hold the compressed download
+        
+        download(url, dest = temp, mode='wb') # download the file
+        
+        unzip (temp, exdir = root_file('1-data/3-external/')) # extract the file to the project folder
+}
+
+# Load the parcel file
+# WARNING: large file with long load time
+
+# Make the data
+if(!file.exists(root_file('1-data/4-interim/prcl-ccd-ptdf-sp.gpkg'))){
+        prcl_all_sp <- readOGR(dsn = root_file('1-data/3-external/parcel/'),layer = 'parcel',verbose = FALSE) 
+        prcl_all_sp@data %<>% mutate(PIN = as.character(PIN))
+        
+        # prcl_all_sp %<>% spTransform(crs_proj)   # this reprojection is prohibively slow 
+        
+        join_df <- prcl_all_sp@data %>% as.data.frame() %>% left_join(.,prcl_all_df, by = "PIN")
+        
+        
+        # Collect the centroids of all the KC parcels (and transform their CRS to match the project CRS)
+        prcl_all_pt_sp <- prcl_all_sp %>% rgeos::gCentroid(byid = T) %>% spTransform(crs_proj)
+        
+        
+        
+        prcl_all_ptdf_sp <- SpatialPointsDataFrame(prcl_all_pt_sp,join_df,match.ID = FALSE)
+        
+        sea_ccd_poly <- SpatialPolygons(Srl = sea_ccd@polygons,proj4string = crs_proj) 
+        
+        # Using the sp::over 
+        pts_over <- prcl_all_pt_sp %>% sp::over(sea_ccd_poly) 
+        # prcl_ccd_sp <- prcl_all_sp[which(!is.na(pts_over)),] %>% spTransform(crs_proj) # slow
+        prcl_ccd_pt_sp <- prcl_all_pt_sp[which(!is.na(pts_over)),]
+        prcl_ccd_ptdf_sp <- prcl_all_ptdf_sp[which(!is.na(pts_over)),]
+        
+        prcl_ccd_ptdf_sp %>% 
+                writeOGR(dsn = root_file('1-data/4-interim/prcl-ccd-ptdf-sp.gpkg'),
+                         layer = 'prcl_ccd_ptdf_sp',driver = 'GPKG',
+                         verbose = FALSE,
+                         overwrite_layer = TRUE)
+        
+        
+        rm(prcl_all_sp)
+}
+
+# Load the data
+if(!exists('prcl_ccd_ptdf_sp')){
+        prcl_ccd_ptdf_sp <- 
+        readOGR(dsn = root_file('1-data/4-interim/prcl-ccd-ptdf-sp.gpkg'),
+                layer = 'prcl_ccd_ptdf_sp',
+                verbose = FALSE
+        )
+}
+
+
+```
+
+### Assigning Census Tracts to Parcels
+
+The `sp::over` function is used again, but this time to pass the unique identifier from the census tracts (`GEOID`) to each parcel that it overlay. This method resolves the issue of parcels that are overlayed by multiple tracts because it uses the centroid of the parcel instead of the polygon. Where the centroid is overlayed by two contiguous tract polygon boundaries only the first tract `GEOID` will be passed on.
+
+```{r kc-parcels-to-tracts, echo = TRUE, eval=FALSE}
+
+# Make the data
+if(!file.exists(root_file('1-data/4-interim/prcl-ccd-tr-sp.gpkg'))){
+        # Seattle CCD tracts
+        if(!exists('tr_ccd_sp')){
+                tr_ccd_sp <- readOGR(dsn = root_file('1-data/4-interim/tr-ccd-sp.gpkg'),
+                                     layer = 'tr_ccd_sp',
+                                     verbose = FALSE)
+        }
+        
+        # Trim the data to just the GEOID variable
+        tr_ccd_geoid_sp <- SpatialPolygonsDataFrame(tr_ccd_sp,tr_ccd_sp@data['GEOID'])
+        
+        # Extract the census tract GEOID using a spatial overlay
+        prcl_ccd_tr_sp <- SpatialPointsDataFrame(prcl_ccd_ptdf_sp@coords,
+                                                 cbind(prcl_ccd_ptdf_sp@data,
+                                                       sp::over(prcl_ccd_ptdf_sp,tr_ccd_geoid_sp)))
+        prcl_ccd_tr_sp@data %<>% 
+                mutate(GEOID = as.character(GEOID)) %>% 
+                select(GEOID,everything())
+        
+        writeOGR(obj = prcl_ccd_tr_sp,
+                 dsn = root_file('1-data/4-interim/prcl-ccd-tr-sp.gpkg'),
+                 layer = 'prcl_ccd_tr_sp',
+                 driver = 'GPKG',
+                 verbose = FALSE,
+                 overwrite_layer = TRUE)
+}
+
+# Load the data
+if(!exists('prcl_ccd_tr_sp')){
+        prcl_ccd_tr_sp <- 
+                readOGR(dsn = root_file('1-data/4-interim/prcl-ccd-tr-sp.gpkg'),
+                        layer = 'prcl_ccd_tr_sp',
+                        verbose = FALSE)
+}
+
+```
+

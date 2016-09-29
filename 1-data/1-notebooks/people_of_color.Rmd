@@ -1,0 +1,138 @@
+---
+title: "_Dataset_ | People of Color"
+author: "Tiernan Martin, [Futurewise](http://www.futurewisewa.org/)"
+output:
+  html_notebook: default
+  pdf_document: default
+  word_document: default
+subtitle: Communities of Opportunity Displacement Risk Assessment
+df_print: tibble
+---
+
+###Introduction
+This datset comes from the [American Community Survey](https://www.census.gov/programs-surveys/acs/). General information about the structure of this dataset can be found [here](https://factfinder.census.gov/faces/affhelp/jsf/pages/metadata.xhtml?lang=en&type=table&id=table.en.ACS_14_5YR_B03002#main_content).
+
+This dataset is used to create the indicator "Percent People of Color", which is defined as the percentage of the population that is a race other than non-Hispanic White.
+
+###Metadata
+
+```{r, echo = FALSE, results="asis", warning=FALSE,message=FALSE}
+library(knitr)
+library(magrittr)
+library(tidyverse)
+
+
+df <- tibble(
+        "Program" = "American Community Survey",
+        "Data Set" = "2010-2014 American Community Survey 5-Year Estimates",
+        "Table" = "B03002 - HISPANIC OR LATINO ORIGIN BY RACE"
+           )
+
+
+knitr::kable(df)
+
+```
+
+```{r, echo = FALSE, results= "asis",warning=FALSE,message=FALSE}
+library(acs)
+library(readr)
+
+
+tbl <- "B03002"  # census table code
+geog <- geo.make(state = "WA",county = "King",tract = "*")
+
+#Coded column names
+acs.fetch(endyear = "2014",
+          span = 5,
+          geography = geog,
+          table.number = tbl,
+          col.names = "pretty") %>% readr::write_rds("./1_raw/poc_pretty.rds")
+
+# "Pretty" column names
+acs.fetch(endyear = "2014",
+          span = 5,
+          geography = geog,
+          table.number = tbl,
+          col.names = "pretty") %>% readr::write_rds("./1_raw/poc_pretty.rds")
+
+poc_acs <- read_rds("./1_raw/poc.rds")
+poc_prty_acs <- read_rds("./1_raw/poc_pretty.rds")
+
+knitr::kable(tibble("Abbr." = acs.colnames(poc_acs),
+                    "Full Column Name" = acs.colnames(poc_prty_acs)),
+             row.names = 1:ncol(poc_acs))
+```
+
+
+###Raw Data
+The data is structured in a special format that retains important metadata about the variable, including the standard error values needed to calculate confidence intervals.
+```{r,echo= FALSE}
+head(poc_prty_acs[,1])
+```
+
+
+
+
+###New Column: People of Color
+```{r}
+poc_acs2 <- poc_acs[, "B03002_001"] - poc_acs[, "B03002_003"]
+                                
+acs.colnames(poc_acs2) <- "POC"
+
+poc_acs2 %<>% cbind(poc_acs, .)
+
+poc_acs3 <- 
+        apply(
+                X = poc_acs2[, 22],
+                MARGIN = 1,
+                FUN = divide.acs,
+                denominator = poc_acs2[, 1],
+                method = "proportion",
+                verbose = FALSE
+        )
+
+acs.colnames(poc_acs3) <- "POC_PCT"
+
+readr::write_rds(poc_acs3,"./2_intermediate/poc_acs.rds")
+
+head(poc_acs3[])
+
+```
+
+###Conversion to a Dataframe
+
+```{r}
+
+poc_acs <- readr::read_rds("./2_intermediate/poc_acs.rds")
+
+poc_df <- 
+        data.frame(
+                geography(poc_acs)["tract"], 
+                estimate(poc_acs), 
+                1.645 * standard.error(poc_acs)) %>% 
+        `colnames<-`(., c("GEOID6", "POC_PCT_EST","POC_PCT_MOE")) %>% 
+        mutate(UPPER = POC_PCT_EST + POC_PCT_MOE, 
+               LOWER = POC_PCT_EST - POC_PCT_MOE, 
+               UPPER = if_else(UPPER > 1, 1, UPPER), 
+               LOWER = if_else(LOWER < 0, 0, LOWER))
+
+readr::write_rds(poc_df,"./2_intermediate/poc_df.rds")
+as_tibble(poc_df)
+
+```
+
+###Mapping
+
+```{r, echo=FALSE,message=FALSE,fig.height=1.25, fig.width=1,  fig.show='hold', dpi=150,fig.cap='Rainier Valley, White Center, and SeaTac/Tukwila'}
+
+
+
+
+```
+
+
+
+
+
+
+
