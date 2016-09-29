@@ -85,13 +85,13 @@ Hash: 67d0775189fd0041d95abca618c5c07e
 
 Package: bookdown
 Source: github
-Version: 0.1.9
-Hash: 66d784a02d55c76dd3c18afceb9ed52a
+Version: 0.1.10
+Hash: b6a1f14c3f29a12f08225396c8877634
 Requires: htmltools, knitr, miniUI, rmarkdown, rsconnect, yaml
 GithubRepo: bookdown
 GithubUsername: rstudio
 GithubRef: master
-GithubSha1: 52175179e63cebb1e2cc2931bada33a1c84b95e1
+GithubSha1: 99c39517cdf98df20f7cea95a2f36caa041a5a3d
 
 Package: broom
 Source: CRAN
@@ -155,6 +155,11 @@ Source: CRAN
 Version: 0.1.1
 Hash: 7f93e560ba45f278e1d66df743747d2a
 Requires: magrittr, tibble
+
+Package: foreign
+Source: CRAN
+Version: 0.8-67
+Hash: 34615798e8a5c7bb2f69f4efc3e17b71
 
 Package: formatR
 Source: CRAN
@@ -265,13 +270,13 @@ Hash: 86d4b85b84421a4815f1bb4872e30ef4
 
 Package: knitr
 Source: github
-Version: 1.14.4
-Hash: 41b86147f03b1f40d9f89a9941a020ab
+Version: 1.14.6
+Hash: a751ef6b01bbe578962d109313997aa6
 Requires: digest, evaluate, formatR, highr, markdown, stringr, yaml
 GithubRepo: knitr
 GithubUsername: yihui
 GithubRef: master
-GithubSha1: 54ea64f4430e6f2bdd33e2902fbdb814a7083f5e
+GithubSha1: ad1c261e676f4f30f24f20d264d04957deebc632
 
 Package: labeling
 Source: CRAN
@@ -320,7 +325,7 @@ Package: maptools
 Source: CRAN
 Version: 0.8-39
 Hash: f88d489894305e514eacb380f4cb2008
-Requires: sp
+Requires: foreign, sp
 
 Package: markdown
 Source: CRAN
@@ -347,13 +352,13 @@ Requires: htmltools, shiny
 
 Package: miscgis
 Source: github
-Version: 0.1.0
-Hash: 6d21911f25c689933105ad69d1a5aa3a
+Version: 0.1.1
+Hash: d1af3611a133481e59fb9619050222e4
 Requires: dplyr, leaflet, miniUI, shinydashboard, sp, tigris
 GithubRepo: miscgis
 GithubUsername: tiernanmartin
 GithubRef: master
-GithubSha1: 05cda0188d7954022d411c0897c75dd8c1e0afe6
+GithubSha1: fa4dc397b6c54babd6750893ede28409d7cdc97d
 
 Package: mnormt
 Source: CRAN
@@ -412,7 +417,7 @@ Package: psych
 Source: CRAN
 Version: 1.6.9
 Hash: 663c0ab3af51e3b685a10d7d12d7078f
-Requires: mnormt
+Requires: foreign, mnormt
 
 Package: purrr
 Source: CRAN
@@ -468,14 +473,23 @@ Hash: def074f38d0cff3b597649ee6f976128
 
 Package: rmarkdown
 Source: github
-Version: 1.0.9001
-Hash: 698abea2b83cc0df3ebf4f7ebbc6eccf
+Version: 1.0.9015
+Hash: 27ac82c2920a03b08b9330961631fb76
 Requires: base64enc, caTools, evaluate, htmltools, jsonlite, knitr,
-    yaml
+    tibble, yaml
 GithubRepo: rmarkdown
 GithubUsername: rstudio
 GithubRef: master
-GithubSha1: 776934284e902cebe00f7a5f1b3fde2c7713f988
+GithubSha1: 4ff4ee1edf421e0a122247f15a0edbeb03e3a1f9
+
+Package: rprojroot
+Source: github
+Version: 1.0-4
+Hash: 308cbc2abbbf59784e7d26fda93b0e51
+GithubRepo: rprojroot
+GithubUsername: krlmlr
+GithubRef: master
+GithubSha1: e0009ebec4a9cc19ed1eec6468c5178d036b2c00
 
 Package: rsconnect
 Source: CRAN
@@ -524,10 +538,14 @@ Requires: R6, digest, htmltools, httpuv, jsonlite, mime, sourcetools,
     xtable
 
 Package: shinydashboard
-Source: CRAN
-Version: 0.5.2
-Hash: 93bf1db29d6103dda1833e0668186a32
+Source: github
+Version: 0.5.3
+Hash: b532286725b10c54da15c7bfb543338c
 Requires: htmltools, shiny
+GithubRepo: shinydashboard
+GithubUsername: rstudio
+GithubRef: master
+GithubSha1: 44bf7c5154afe1d054de3386696d888602cf2b5e
 
 Package: sourcetools
 Source: CRAN
