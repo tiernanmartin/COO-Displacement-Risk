@@ -1,0 +1,96 @@
+---
+df_print: tibble
+output:
+  html_notebook: default
+  pdf_document:
+    keep_tex: yes
+always_allow_html: yes
+---
+
+```{r res-val-setup, echo = FALSE, warning=FALSE,message=FALSE}
+library(knitr)
+library(rprojroot)
+library(tidyverse)
+library(rgdal)
+library(sp)
+library(rgeos)
+library(miscgis)
+library(tigris)
+library(leaflet)
+library(ggthemes)
+library(magrittr)
+library(downloader)
+root <- rprojroot::is_rstudio_project
+root_file <- root$make_fix_file()
+opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
+```
+
+### Introduduction
+
+This dataset is a collection of property and building appraised values.
+
+```{r res-val-dl, cache=TRUE}
+library(downloader)
+
+if(!file.exists(root_file('1-data/3-external/EXTR_RealPropApplHist_V.csv'))){
+        
+        # direct URL to the file download
+        url <- 'http://aqua.kingcounty.gov/extranet/assessor/Real%20Property%20Appraisal%20History.zip' 
+        
+        temp <- tempfile() # create a temporary file to hold the compressed download
+        
+        download(url, dest = temp, mode='wb') # download the file (~260MB)
+        
+        unzip (temp, exdir = root_file('1-data/3-external/')) # extract the file to the project folder
+}
+
+res_val_csv <- read_csv("~/Documents/FW/COO/COO-Displacement-Risk/1-data/3-external/EXTR_RealPropApplHist_V.csv",
+                    col_types = cols(PostDate = col_datetime(format = "%Y-%m-%d %H:%M:%S"),
+                                     RollYr = col_date(format = "%Y"),
+                                     SelectDate = col_datetime(format = "%Y-%m-%d %H:%M:%S"),
+                                     UpdateDate = col_datetime(format = "%Y-%m-%d %H:%M:%S")),
+                    progress = FALSE)
+
+res_val_csv
+
+```
+
+### Data Transformation
+The following data transformations need to be completed in order to for this data to be useful for this project:
+
+  * exclude parcels outside the Seattle CCD
+  * exclude non-residential parcels
+  * exclude years that are not either 2005, 2010, or 2015
+  * exclude columns with information not relevant to this project (e.g., `SelectMethod`)
+  * combine the values of the land and the structure(s) on the land (`LandVal` and `ImprsVal`, respectively)
+  * adjust dollar amount for inflation based on 2016 US Dollar value
+  * associate parcels with census tracts so that summary statistics can be calculated (e.g. median)
+
+
+```{r res-val-rds}
+
+# Given the size of this dataset (~13M records, 1.8GB), it's useful to perform the simplest 
+# filters first, then save and reload the reduced-size subset (~2M records, 89MB).
+
+res_val_orig <- res_val_csv
+
+colnames(res_val_orig) %<>% toupper()
+
+if(!file.exists(root_file('1-data/4-interim/res-val-sub1.Rds'))){
+        res_val_orig %>% 
+        select(MAJOR:NEWDOLLARS,-REVALORMAINT) %>% 
+        filter(ROLLYR %in% lubridate::as_date(c("2005-01-01","2010-01-01","2015-01-01"))) %>% 
+        write_rds(root_file('1-data/4-interim/res-val-sub1.Rds'))
+}
+
+res_val_sub1 <- read_rds(path = root_file('1-data/4-interim/res-val-sub1.Rds'))
+
+res_val_sub2 <- 
+        res_val_sub1 %>% 
+        mutate(PIN = paste0(MAJOR,MINOR)) %>% 
+        select(PIN,everything())
+
+```
+
+
+

@@ -1,0 +1,351 @@
+---
+df_print: tibble
+output:
+  html_notebook:
+    code_folding: hide
+  pdf_document:
+    keep_tex: yes
+always_allow_html: yes
+---
+
+### Introduction
+The primary geographic unit of this assessment is the [census tract](https://www.census.gov/geo/reference/gtc/gtc_ct.html). As is the case with many communities, the census geographies do not coincide exactly with the formal geographic boundary of the study's three sites, and should be considered as _spatial approximations_ of these communities.
+
+Listed below are the geographic identifiers of the census tracts that approximate each site.
+
+```{r, echo = FALSE, warning=FALSE,message=FALSE}
+library(knitr)
+library(rprojroot)
+library(tidyverse)
+root <- rprojroot::is_rstudio_project
+root_file <- root$make_fix_file()
+opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
+options("readr.num_columns" = 0)
+```
+
+
+```{r, echo = FALSE, results="asis", warning=FALSE,message=FALSE}
+library(webshot)
+library(tigris)
+library(miscgis)
+
+# Rainier Valley
+rv <- c("53033010001", "53033010300", "53033010401", "53033011001", "53033011002", "53033011101","53033011102", "53033011700", "53033011800", "53033011900")
+
+# White Center
+wc <- c("53033026600","53033026700","53033026500","53033026801","53033026802","53033027000")
+
+# SeaTac/Tukwila
+
+stc_hus <- read_csv(root_file("1-data/3-external/seatac_hus/DEC_10_SF1_H1_with_ann.csv"), 
+                    col_types = cols(Id2 = col_character()), skip = 1)
+
+stc <-  paste(substr(x = stc_hus$Id2,1,2),substr(x = stc_hus$Id2,8,16),sep = "")
+
+df <- miscgis::cbind_fill(rv,wc,stc) %>% 
+        as_tibble() %>% 
+        `colnames<-`(c("Rainier Valley",
+                       "White Center",
+                       "SeaTac/Tukwila"))
+
+knitr::kable(df,caption = "Census Tract GEOIDs")
+```
+
+###Spatial Polygons
+
+####With Waterbodies
+Left to right: Rainier Valley, White Center, SeaTac/Tukwila
+<br></br>
+
+```{r, echo=FALSE,message=FALSE,fig.height=1.25, fig.width=1,  fig.show='hold', dpi=150,fig.cap='Rainier Valley, White Center, and SeaTac/Tukwila'}
+
+library(htmltools)
+library(htmlwidgets)
+library(leaflet)
+library(gplots)
+library(ggmap)
+library(rgeos)
+library(sp)
+library(magrittr)
+library(rgdal)
+
+
+tr <- tigris::tracts(state = "WA",county = "King", year = 2014) %>% spTransform(CRSobj = crs_proj)
+
+tr_sel <- tr[tr$GEOID %in% c(rv,wc,stc),] %>% spTransform(CRSobj = crs_proj)
+
+tr_sp <- tr_sel
+
+tr_sp@data %<>% mutate(COO_SITE = case_when(.$GEOID %in% rv ~ "Rainier Valley",
+                                            .$GEOID %in% wc ~ "White Center",
+                                            .$GEOID %in% stc ~ "SeaTac/Tukwila"))
+
+if(!file.exists(root_file("1-data/4-interim/tr_sp_withwater.gpkg"))){
+writeOGR(obj = tr_sp,
+         dsn = root_file("1-data/4-interim/tr_sp_withwater.gpkg"),
+         layer = "tr_sp_withwater",
+         driver =  "GPKG",
+         verbose = FALSE,
+         overwrite_layer = TRUE)
+}
+
+cntr <- tr_sp %>% gCentroid(byid = TRUE) %>% gCentroid()
+
+blue <- miscgis::miscgis_pals$tableau_cat[["blue"]]
+green <- miscgis::miscgis_pals$tableau_cat[["green"]]
+red <- miscgis::miscgis_pals$tableau_cat[["red"]]
+
+
+# Rainier Valley
+        
+rv_map <- miscgis::myLfltGrey() %>%
+        addPolygons(data = tr_sp[tr_sp$COO_SITE == "Rainier Valley",],
+                    smoothFactor = 0,
+                    color = col2hex("white"),
+                    weight = .5,
+                    opacity = 1,
+                    fillColor = blue,
+                    fillOpacity = .65
+        ) %>% 
+        setView(cntr$x,cntr$y,zoom = 9) %>% 
+        miscgis::styleWidget(style = "float:left;margin:1px")
+
+
+
+# White Center
+
+
+wc_map <- miscgis::myLfltGrey() %>%
+        addPolygons(data = tr_sp[tr_sp$COO_SITE == "White Center",],
+                    smoothFactor = 0,
+                    color = col2hex("white"),
+                    weight = .5,
+                    opacity = 1,
+                    fillColor = green,
+                    fillOpacity = .65
+        ) %>% 
+        setView(cntr$x,cntr$y,zoom = 9) %>% 
+        miscgis::styleWidget(style = "float:left;margin:1px")
+
+# SeaTac/Tukwila
+
+stc_map <- miscgis::myLfltGrey() %>%
+        addPolygons(data = tr_sp[tr_sp$COO_SITE == "SeaTac/Tukwila",],
+                    smoothFactor = 0,
+                    color = col2hex("white"),
+                    weight = .5,
+                    opacity = 1,
+                    fillColor = red,
+                    fillOpacity = .65
+        ) %>% 
+        setView(cntr$x,cntr$y,zoom = 9) %>% 
+        miscgis::styleWidget(style = "float:none;margin:1px")
+
+rv_map
+wc_map
+stc_map
+
+
+```
+
+
+####Without Waterbodies
+Left to right: Rainier Valley, White Center, SeaTac/Tukwila
+<br></br>
+
+```{r, echo=FALSE,message=FALSE,warning = FALSE,fig.height=1.25, fig.width=1,  fig.show='hold', dpi=150,fig.cap='Rainier Valley, White Center, and SeaTac/Tukwila'}
+
+library(magrittr)
+library(shiny)
+
+wtr <- readOGR(dsn = root_file('1-data/4-interim/wtr_sp.gpkg'), 
+          layer = "wtr_sp",verbose = FALSE) %>% gUnaryUnion(.) %>% spTransform(CRSobj = crs_proj)
+
+tr_trim_sp <- spClip(tr_sp,wtr)
+
+if(!file.exists(root_file('1-data/4-interim/tr_trim_sp.gpkg'))){
+        writeOGR(obj = tr_trim_sp,
+         dsn = root_file('1-data/4-interim/tr_trim_sp.gpkg'),
+         layer = "tr_trim_sp",driver = "GPKG",
+         verbose = FALSE,
+         overwrite_layer = TRUE)
+}
+
+# Individiaul Maps
+
+rv_trim <- tr_trim_sp %>% subset(COO_SITE == "Rainier Valley")
+
+wc_trim <- tr_trim_sp %>% subset(COO_SITE == "White Center")
+
+stc_trim <- tr_trim_sp %>% subset(COO_SITE == "SeaTac/Tukwila")
+
+
+# Rainier Valley
+        
+rv_trim_map <- miscgis::myLfltGrey() %>%
+        addPolygons(data = rv_trim,
+                    smoothFactor = 0,
+                    color = col2hex("white"),
+                    weight = .5,
+                    opacity = 1,
+                    fillColor = blue,
+                    fillOpacity = .65
+        ) %>% 
+        setView(cntr$x,cntr$y,zoom = 9) %>% 
+        miscgis::styleWidget(style = "float:left;margin:1px")
+
+
+
+# White Center
+
+wc_trim_map <- miscgis::myLfltGrey() %>%
+        addPolygons(data = wc_trim,
+                    smoothFactor = 0,
+                    color = col2hex("white"),
+                    weight = .5,
+                    opacity = 1,
+                    fillColor = green,
+                    fillOpacity = .65
+        ) %>% 
+        setView(cntr$x,cntr$y,zoom = 9) %>% 
+        miscgis::styleWidget(style = "float:left;margin:1px")
+
+# SeaTac/Tukwila
+
+stc_trim_map <- miscgis::myLfltGrey() %>%
+        addPolygons(data = stc_trim,
+                    smoothFactor = 0,
+                    color = col2hex("white"),
+                    weight = .5,
+                    opacity = 1,
+                    fillColor = red,
+                    fillOpacity = .65
+        ) %>% 
+        setView(cntr$x,cntr$y,zoom = 9) %>% 
+        miscgis::styleWidget(style = "float:none;margin:1px")
+
+rv_trim_map
+
+wc_trim_map
+
+stc_trim_map
+
+
+
+```
+
+```{r, echo=FALSE,message=FALSE, dpi = 150}
+# Combined map 
+
+pal_rgb <- miscgis_pals$tableau_cat[c("blue","green","red")] %>% unlist %>% palette()
+
+pal <- colorFactor(pal_rgb,domain = factor(tr_trim_sp$COO_SITE,levels = c("Rainier Valley",
+                                                                          "White Center",
+                                                                          "SeaTac/Tukwila")))
+pts <- gCentroid(tr,byid = TRUE) %>% spTransform(crs_proj) %>% 
+        SpatialPointsDataFrame(data = tr@data,match.ID = FALSE)
+
+popups <- paste0(tr_trim_sp@data$GEOID)
+
+hra <- readOGR(dsn = root_file('1-data/3-external/HRA_2010Block_Clip/'),
+               layer = "HRA_2010Block_Clip",verbose = FALSE) %>% spTransform(crs_proj)
+
+rv_hra_id <- c("SE Seattle")
+
+wc_hra_id <- c("Beacon/Gtown/S.Park",
+               "North Highline")
+
+stc_hra_id <- c("SeaTac/Tukwila")
+
+
+hra@data %<>% mutate(HRA_ID = case_when(.$HRA2010v2_ %in% rv_hra_id ~ "Rainier Valley",
+                                        .$HRA2010v2_ %in% wc_hra_id ~ "White Center",
+                                        .$HRA2010v2_ %in% stc_hra_id ~ "SeaTac/Tukwila")
+                     )
+
+hra_coo <- hra %>% subset(!is.na(HRA_ID))
+
+popup_hra <- paste0(hra_coo$HRA2010v2_)
+
+rv_tr_hra <- c(53033010100,53033010300,53033010200,53033011102,53033011101,53033011800,53033011900,53033026001) %>% as.character()
+
+wc_tr_hra <- c(53033009300,53033010002,53033010001,53033010402,53033010401,53033011002,53033011001,53033010900,53033011200,53033011700,53033026400,53033026500,53033026600,53033026700,53033027000,53033026802,53033026801) %>% as.character()
+
+stc_tr_hra <- c(53033026300,53033026400,53033027200,53033027100,53033026200,53033028200,53033028100,53033027300,53033028000,53033028500,53033028402,53033028300,53033028403,53033028802,53033028700,53033028801,53033028500,53033029101) %>% 
+        as.character()
+
+tr_trim_sp@data %<>% mutate(HRA_COO_SITE = case_when(.$GEOID %in% rv_tr_hra ~ "Rainier Valley",
+                                            .$GEOID %in% wc_tr_hra ~ "White Center",
+                                            .$GEOID %in% stc_tr_hra ~ "SeaTac/Tukwila")
+                            )
+
+tr_hra <- tr
+
+tr_hra@data %<>% mutate(HRA_COO_SITE = case_when(.$GEOID %in% rv_tr_hra ~ "Rainier Valley",
+                                            .$GEOID %in% wc_tr_hra ~ "White Center",
+                                            .$GEOID %in% stc_tr_hra ~ "SeaTac/Tukwila")
+                            )
+tr_hra %<>% subset(!is.na(HRA_COO_SITE))
+
+
+if(!file.exists(root_file('3-commmunication/others/html/tr_coo_sites.html'))){
+        leaflet() %>%
+                addProviderTiles(providers$CartoDB.Positron) %>% 
+                addPolygons(data = tr_trim_sp,
+                            smoothFactor = 0,
+                            color = col2hex("white"),
+                            weight = .5,
+                            opacity = 1,
+                            fillColor = ~pal(COO_SITE),
+                            fillOpacity = .65,
+                            group = "COO Sites - Guess") %>% 
+                addPolygons(data = hra_coo,
+                            smoothFactor = 0,
+                            color = ~pal(HRA_ID),
+                            weight = 2.5,
+                            opacity = 1,
+                            fillOpacity = 0,
+                            popup = popup_hra,
+                            group = "HRA Boundaries") %>% 
+                addPolygons(data = tr_hra,
+                            smoothFactor = 0,
+                            color = col2hex("white"),
+                            weight = .5,
+                            opacity = 1,
+                            fillColor = ~pal(HRA_COO_SITE),
+                            fillOpacity = .65,
+                            group = "COO Sites - HRA") %>%
+                addPolygons(data = tr,
+                            smoothFactor = 0,
+                            weight = .75,
+                            color = col2hex("grey50"),
+                            opacity = .75,
+                            fillOpacity = 0,
+                            group = "All Tracts", popup = popups) %>%
+                # addPolygons(data = hra,
+                #             smoothFactor = 0,
+                #             color = col2hex("white"),
+                #             weight = .5,
+                #             opacity = 1,
+                #             fillColor = ~pal(COO_SITE),
+                #             fillOpacity = .65,
+                #             group = "HRA") %>% 
+                setView(cntr$x,cntr$y,zoom = 11) %>% 
+                addLayersControl(overlayGroups = c("COO Sites - HRA",
+                                                   "COO Sites - Guess",
+                                                   "HRA Boundaries",
+                                                   "All Tracts")) %>% 
+                addLegend(title = "COO Sites",
+                          position = "topright",
+                          pal = pal,
+                          values = tr_trim_sp$COO_SITE) %>% 
+                saveWidget(file = root_file('3-communication/others/html/tr_coo_sites.html'),
+                           selfcontained = FALSE,
+                           libdir = root_file('3-communication/others/html/html_support_files'))
+}
+
+```
+
+
+
+
