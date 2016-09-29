@@ -1,1 +1,1 @@
-rmd_files: ["index.Rmd", "appendix.Rmd","data-methods.Rmd"]
+rmd_files: ["index.Rmd", "data-methods.Rmd"]

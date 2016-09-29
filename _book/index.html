@@ -48,9 +48,56 @@
 
 
 
+<script src="libs/htmlwidgets-0.7/htmlwidgets.js"></script>
+<link href="libs/leaflet-0.7.3/leaflet.css" rel="stylesheet" />
+<script src="libs/leaflet-0.7.3/leaflet.js"></script>
+<link href="libs/leafletfix-1.0.0/leafletfix.css" rel="stylesheet" />
+<link href="libs/leaflet-label-0.2.2/leaflet.label.css" rel="stylesheet" />
+<script src="libs/leaflet-label-0.2.2/leaflet.label.js"></script>
+<script src="libs/leaflet-binding-1.0.2.9000/leaflet.js"></script>
+<script src="libs/leaflet-providers-1.0.27/leaflet-providers.js"></script>
+<script src="libs/leaflet-providers-plugin-1.0.2.9000/leaflet-providers-plugin.js"></script>
 
 
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
 
+<link rel="stylesheet" href="style.css" type="text/css" />
 </head>
 
 <body>
@@ -63,11 +110,24 @@
 
 <ul class="summary">
 <li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>Preface</a></li>
-<li class="appendix"><span><b>Appendix</b></span></li>
+<li class="appendix"><span><b>Appendices</b></span></li>
 <li class="chapter" data-level="A" data-path="data-methods.html"><a href="data-methods.html"><i class="fa fa-check"></i><b>A</b> Data Methods</a><ul>
-<li class="chapter" data-level="A.1" data-path="data-methods.html"><a href="data-methods.html#census-tracts"><i class="fa fa-check"></i><b>A.1</b> Census Tracts</a></li>
-<li class="chapter" data-level="A.2" data-path="data-methods.html"><a href="data-methods.html#people-of-color-acs"><i class="fa fa-check"></i><b>A.2</b> People of Color (ACS)</a></li>
-<li class="chapter" data-level="A.3" data-path="data-methods.html"><a href="data-methods.html#miscellaneous"><i class="fa fa-check"></i><b>A.3</b> Miscellaneous</a></li>
+<li class="chapter" data-level="A.1" data-path="miscellaneous.html"><a href="miscellaneous.html"><i class="fa fa-check"></i><b>A.1</b> Miscellaneous</a><ul>
+<li class="chapter" data-level="A.1.1" data-path="miscellaneous.html"><a href="miscellaneous.html#seattle-boundary"><i class="fa fa-check"></i><b>A.1.1</b> Seattle Boundary</a></li>
+<li class="chapter" data-level="A.1.2" data-path="miscellaneous.html"><a href="miscellaneous.html#king-county-subdivision-boundary"><i class="fa fa-check"></i><b>A.1.2</b> King County Subdivision Boundary</a></li>
+<li class="chapter" data-level="A.1.3" data-path="miscellaneous.html"><a href="miscellaneous.html#tracts-in-seattle-ccd"><i class="fa fa-check"></i><b>A.1.3</b> Tracts in Seattle CCD</a></li>
+<li class="chapter" data-level="A.1.4" data-path="miscellaneous.html"><a href="miscellaneous.html#puget-sound-waterbodies"><i class="fa fa-check"></i><b>A.1.4</b> Puget Sound Waterbodies</a></li>
+</ul></li>
+<li class="chapter" data-level="A.2" data-path="census-tracts.html"><a href="census-tracts.html"><i class="fa fa-check"></i><b>A.2</b> Census Tracts</a><ul>
+<li class="chapter" data-level="A.2.1" data-path="census-tracts.html"><a href="census-tracts.html#introduction"><i class="fa fa-check"></i><b>A.2.1</b> Introduction</a></li>
+<li class="chapter" data-level="A.2.2" data-path="census-tracts.html"><a href="census-tracts.html#spatial-polygons"><i class="fa fa-check"></i><b>A.2.2</b> Spatial Polygons</a></li>
+</ul></li>
+<li class="chapter" data-level="A.3" data-path="king-county-parcels.html"><a href="king-county-parcels.html"><i class="fa fa-check"></i><b>A.3</b> King County Parcels</a><ul>
+<li class="chapter" data-level="A.3.1" data-path="king-county-parcels.html"><a href="king-county-parcels.html#introduction-1"><i class="fa fa-check"></i><b>A.3.1</b> Introduction</a></li>
+<li class="chapter" data-level="A.3.2" data-path="king-county-parcels.html"><a href="king-county-parcels.html#parcels-in-seattle-ccd"><i class="fa fa-check"></i><b>A.3.2</b> Parcels in Seattle CCD</a></li>
+<li class="chapter" data-level="A.3.3" data-path="king-county-parcels.html"><a href="king-county-parcels.html#assigning-census-tracts-to-parcels"><i class="fa fa-check"></i><b>A.3.3</b> Assigning Census Tracts to Parcels</a></li>
+</ul></li>
+<li class="chapter" data-level="A.4" data-path="people-of-color-acs.html"><a href="people-of-color-acs.html"><i class="fa fa-check"></i><b>A.4</b> People of Color (ACS)</a></li>
 </ul></li>
 </ul>
 
@@ -100,7 +160,6 @@
 
 
 
-</div>
             </section>
 
           </div>
