@@ -13,6 +13,12 @@ Source: CRAN
 Version: 0.5-1
 Hash: 375869004db963f9915f2b8a49b4a718
 
+Package: DT
+Source: CRAN
+Version: 0.2
+Hash: 36b032203797956fedad5a25055016a9
+Requires: magrittr, htmltools, htmlwidgets
+
 Package: GISTools
 Source: CRAN
 Version: 0.7-4
@@ -244,7 +250,7 @@ Package: htmlwidgets
 Source: CRAN
 Version: 0.7
 Hash: f60506850a2d752dff69fc2a31c5a339
-Requires: htmltools, jsonlite, yaml
+Requires: jsonlite, yaml, htmltools
 
 Package: httpuv
 Source: CRAN
