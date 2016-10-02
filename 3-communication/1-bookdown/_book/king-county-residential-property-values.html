@@ -8,7 +8,7 @@
   <title>Communities of Opportunity Displacement Risk Assessment</title>
   <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
   <meta name="description" content="This is a report.">
-  <meta name="generator" content="bookdown 0.1.14 and GitBook 2.6.7">
+  <meta name="generator" content="bookdown 0.1.10 and GitBook 2.6.7">
 
   <meta property="og:title" content="Communities of Opportunity Displacement Risk Assessment" />
   <meta property="og:type" content="book" />
@@ -50,16 +50,14 @@
 
 
 <script src="libs/htmlwidgets-0.7/htmlwidgets.js"></script>
-<link href="libs/leaflet-0.7.7/leaflet.css" rel="stylesheet" />
-<script src="libs/leaflet-0.7.7/leaflet.js"></script>
+<link href="libs/leaflet-0.7.3/leaflet.css" rel="stylesheet" />
+<script src="libs/leaflet-0.7.3/leaflet.js"></script>
 <link href="libs/leafletfix-1.0.0/leafletfix.css" rel="stylesheet" />
 <link href="libs/leaflet-label-0.2.2/leaflet.label.css" rel="stylesheet" />
 <script src="libs/leaflet-label-0.2.2/leaflet.label.js"></script>
-<script src="libs/Proj4Leaflet-0.7.2/proj4-compressed.js"></script>
-<script src="libs/Proj4Leaflet-0.7.2/proj4leaflet.js"></script>
-<script src="libs/leaflet-binding-1.0.2.9002/leaflet.js"></script>
+<script src="libs/leaflet-binding-1.0.2.9000/leaflet.js"></script>
 <script src="libs/leaflet-providers-1.0.27/leaflet-providers.js"></script>
-<script src="libs/leaflet-providers-plugin-1.0.2.9002/leaflet-providers-plugin.js"></script>
+<script src="libs/leaflet-providers-plugin-1.0.2.9000/leaflet-providers-plugin.js"></script>
 
 
 <style type="text/css">
@@ -130,7 +128,10 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li class="chapter" data-level="A.3.2" data-path="king-county-parcels.html"><a href="king-county-parcels.html#parcels-in-seattle-ccd"><i class="fa fa-check"></i><b>A.3.2</b> Parcels in Seattle CCD</a></li>
 <li class="chapter" data-level="A.3.3" data-path="king-county-parcels.html"><a href="king-county-parcels.html#assigning-census-tracts-to-parcels"><i class="fa fa-check"></i><b>A.3.3</b> Assigning Census Tracts to Parcels</a></li>
 </ul></li>
-<li class="chapter" data-level="A.4" data-path="king-county-residential-property-values.html"><a href="king-county-residential-property-values.html"><i class="fa fa-check"></i><b>A.4</b> King County Residential Property Values</a></li>
+<li class="chapter" data-level="A.4" data-path="king-county-residential-property-values.html"><a href="king-county-residential-property-values.html"><i class="fa fa-check"></i><b>A.4</b> King County Residential Property Values</a><ul>
+<li class="chapter" data-level="A.4.1" data-path="king-county-residential-property-values.html"><a href="king-county-residential-property-values.html#introduduction"><i class="fa fa-check"></i><b>A.4.1</b> Introduduction</a></li>
+<li class="chapter" data-level="A.4.2" data-path="king-county-residential-property-values.html"><a href="king-county-residential-property-values.html#data-transformation"><i class="fa fa-check"></i><b>A.4.2</b> Data Transformation</a></li>
+</ul></li>
 <li class="chapter" data-level="A.5" data-path="people-of-color-acs.html"><a href="people-of-color-acs.html"><i class="fa fa-check"></i><b>A.5</b> People of Color (ACS)</a></li>
 </ul></li>
 </ul>
@@ -152,7 +153,84 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
             <section class="normal" id="section-">
 <div id="king-county-residential-property-values" class="section level2">
 <h2><span class="header-section-number">A.4</span> King County Residential Property Values</h2>
-<p>`r knit_child(res_val_fp)’</p>
+<div id="introduduction" class="section level3">
+<h3><span class="header-section-number">A.4.1</span> Introduduction</h3>
+<p>This dataset is a collection of property and building appraised values.</p>
+</div>
+<div id="data-transformation" class="section level3">
+<h3><span class="header-section-number">A.4.2</span> Data Transformation</h3>
+<p>The following data transformations need to be completed in order to for this data to be useful for this project:</p>
+<ul>
+<li>exclude parcels outside the Seattle CCD</li>
+<li>exclude non-residential parcels</li>
+<li>exclude years outside the observations periods (2005, 2010, and 2015)</li>
+<li>exclude columns with information not relevant to this project (e.g., <code>SelectMethod</code>)</li>
+<li>combine the values of the land and the structure(s) on the land (<code>LandVal</code> and <code>ImprsVal</code>, respectively)</li>
+<li>adjust dollar amount for inflation based on 2016 US Dollar value</li>
+<li>associate parcels with census tracts so that summary statistics can be calculated (e.g. median)</li>
+</ul>
+<table>
+<caption><span id="tab:res-val-rds">TABLE A.2: </span>Parcel dataset attributes (5 randomly selected rows)</caption>
+<thead>
+<tr class="header">
+<th align="left">PIN</th>
+<th align="left">MAJOR</th>
+<th align="left">MINOR</th>
+<th align="left">ROLLYR</th>
+<th align="right">LANDVAL</th>
+<th align="right">IMPSVAL</th>
+<th align="right">NEWDOLLARS</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">4302201210</td>
+<td align="left">430220</td>
+<td align="left">1210</td>
+<td align="left">2005-01-01</td>
+<td align="right">107500</td>
+<td align="right">187500</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">1318300195</td>
+<td align="left">131830</td>
+<td align="left">0195</td>
+<td align="left">2010-01-01</td>
+<td align="right">379800</td>
+<td align="right">1000</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">3221049058</td>
+<td align="left">322104</td>
+<td align="left">9058</td>
+<td align="left">2005-01-01</td>
+<td align="right">56000</td>
+<td align="right">105000</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">0222049064</td>
+<td align="left">022204</td>
+<td align="left">9064</td>
+<td align="left">2010-01-01</td>
+<td align="right">4728900</td>
+<td align="right">13749600</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">3577600110</td>
+<td align="left">357760</td>
+<td align="left">0110</td>
+<td align="left">2010-01-01</td>
+<td align="right">357000</td>
+<td align="right">141000</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
             </section>
 

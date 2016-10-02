@@ -30,7 +30,7 @@ options("readr.num_columns" = 0)
 
 This dataset is a collection of property and building appraised values.
 
-```{r res-val-dl}
+```{r res-val-dl, eval=FALSE}
 
 if(!file.exists(root_file('1-data/3-external/EXTR_RealPropApplHist_V.csv'))){
         
@@ -75,18 +75,19 @@ The following data transformations need to be completed in order to for this dat
 # Given the size of this dataset (~13M records, 1.8GB), it's useful to perform the simplest 
 # filters first, then save and reload the reduced-size subset (~2M records, 89MB).
 
-res_val_orig <- res_val_csv
-
-colnames(res_val_orig) %<>% toupper()
-
 if(!file.exists(root_file('1-data/4-interim/res-val-sub1.Rds'))){
+        
+        res_val_orig <- res_val_csv
+        
+        colnames(res_val_orig) %<>% toupper()
+        
         res_val_orig %>% 
         select(MAJOR:NEWDOLLARS,-REVALORMAINT) %>% 
         filter(ROLLYR %in% lubridate::as_date(c("2005-01-01","2010-01-01","2015-01-01"))) %>% 
         write_rds(root_file('1-data/4-interim/res-val-sub1.Rds'))
 }
 
-res_val_sub1 <- read_rds(path = root_file('1-data/4-interim/res-val-sub1.Rds'))
+if(!exists('res_val_sub1')){res_val_sub1 <- read_rds(path = root_file('1-data/4-interim/res-val-sub1.Rds'))}
 
 res_val_sub2 <- 
         res_val_sub1 %>% 
@@ -94,7 +95,9 @@ res_val_sub2 <-
         select(PIN,everything())
 
 set.seed(1)
-res_val_sub2 %>% sample_n(5) %>% kable(caption = 'Parcel dataset attributes (5 randomly selected rows)',booktabs = TRUE)
+res_val_sub2 %>% sample_n(5) %>% knitr::kable(caption = 'Parcel dataset attributes (5 randomly selected rows)',booktabs = TRUE)
+
+
 
 ```
 
