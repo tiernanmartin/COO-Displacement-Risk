@@ -23,7 +23,7 @@ library(magrittr)
 library(downloader)
 root <- rprojroot::is_rstudio_project
 root_file <- root$make_fix_file()
-opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
+opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment = FALSE)
 options("readr.num_columns" = 0)
 ```
 
@@ -47,7 +47,7 @@ The spatial dataset's size is reduced by converting the polygon into points usin
 
 ```{r kc-parcels-main, echo = TRUE, eval=FALSE}
 # Seattle subdivision of King County, WA (Seattle CCD)
-sea_ccd <- readOGR(dsn = root_file('1-data/3-external/seattle_ccd.gpkg'),layer = "seattle",verbose = FALSE)
+sea_ccd <- readOGR(dsn = root_file('1-data/4-interim/seattle_ccd.gpkg'),layer = "seattle",verbose = FALSE) %>% spTransform(crs_proj)
 
 # Parcels (tabular data only)
 if(!file.exists(root_file('1-data/3-external/EXTR_Parcel.csv'))){

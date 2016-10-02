@@ -31,16 +31,16 @@ opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
 
 ```{r misc-sea-bound}
 
-if(!file.exists(root_file('1-data/3-external/seattle.gpkg'))){
+if(!file.exists(root_file('1-data/4-interim/seattle.gpkg'))){
         tigris::places(state = "WA") %>%
         tigris::filter_place(place = "Seattle") %>%
         spTransform(CRSobj = crs_proj) %>% 
-        writeOGR(dsn = root_file('1-data/3-external/seattle.gpkg'),
+        writeOGR(dsn = root_file('1-data/4-interim/seattle.gpkg'),
                  layer = "seattle", driver = "GPKG", verbose = FALSE, 
                  overwrite_layer = TRUE)
 }
 
-sea <- readOGR(dsn = root_file('1-data/3-external/seattle.gpkg'),layer = "seattle",verbose = FALSE)
+sea <- readOGR(dsn = root_file('1-data/4-interim/seattle.gpkg'),layer = "seattle",verbose = FALSE)
 
 green <- miscgis::miscgis_pals$tableau_cat[["green"]]
 
@@ -52,16 +52,16 @@ myLfltGrey() %>% addPolygons(data = sea,color = green,opacity = 1,fillColor = gr
 
 ```{r misc-sea-ccd}
 
-if(!file.exists(root_file('1-data/3-external/seattle_ccd.gpkg'))){
+if(!file.exists(root_file('1-data/4-interim/seattle_ccd.gpkg'))){
         tigris::county_subdivisions(state = "53",county = "033") %>% 
                 subset(NAME == "Seattle") %>% 
                 spTransform(CRSobj = crs_proj) %>% 
-                writeOGR(dsn = root_file('1-data/3-external/seattle_ccd.gpkg'),
+                writeOGR(dsn = root_file('1-data/4-interim/seattle_ccd.gpkg'),
                          layer = "seattle", driver = "GPKG", verbose = FALSE, 
                          overwrite_layer = TRUE)
 }
 
-sea_ccd <- readOGR(dsn = root_file('1-data/3-external/seattle_ccd.gpkg'),layer = "seattle",verbose = FALSE) %>% spTransform(crs_proj)
+sea_ccd <- readOGR(dsn = root_file('1-data/4-interim/seattle_ccd.gpkg'),layer = "seattle",verbose = FALSE) %>% spTransform(crs_proj)
 
 orange <- miscgis::miscgis_pals$tableau_cat[["orange"]]
 
