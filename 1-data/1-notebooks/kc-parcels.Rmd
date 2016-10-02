@@ -85,6 +85,7 @@ if(!file.exists(root_file('1-data/3-external/parcel/parcel.shp'))){
 # Make the data
 if(!file.exists(root_file('1-data/4-interim/prcl-ccd-ptdf-sp.gpkg'))){
         prcl_all_sp <- readOGR(dsn = root_file('1-data/3-external/parcel/'),layer = 'parcel',verbose = FALSE) 
+        
         prcl_all_sp@data %<>% mutate(PIN = as.character(PIN))
         
         # prcl_all_sp %<>% spTransform(crs_proj)   # this reprojection is prohibively slow 
@@ -145,12 +146,13 @@ if(!file.exists(root_file('1-data/4-interim/prcl-ccd-tr-sp.gpkg'))){
         }
         
         # Trim the data to just the GEOID variable
-        tr_ccd_geoid_sp <- SpatialPolygonsDataFrame(tr_ccd_sp,tr_ccd_sp@data['GEOID'])
+        tr_ccd_geoid_sp <- SpatialPolygonsDataFrame(tr_ccd_sp,tr_ccd_sp@data['GEOID']) %>% 
+                spTransform(crs_proj)
         
         # Extract the census tract GEOID using a spatial overlay
         prcl_ccd_tr_sp <- SpatialPointsDataFrame(prcl_ccd_ptdf_sp@coords,
                                                  cbind(prcl_ccd_ptdf_sp@data,
-                                                       sp::over(prcl_ccd_ptdf_sp,tr_ccd_geoid_sp)))
+                                                      sp::over(prcl_ccd_ptdf_sp,tr_ccd_geoid_sp)))
         prcl_ccd_tr_sp@data %<>% 
                 mutate(GEOID = as.character(GEOID)) %>% 
                 select(GEOID,everything())
