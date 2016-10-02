@@ -17,7 +17,7 @@ Package: DT
 Source: CRAN
 Version: 0.2
 Hash: 36b032203797956fedad5a25055016a9
-Requires: magrittr, htmltools, htmlwidgets
+Requires: htmltools, htmlwidgets, magrittr
 
 Package: GISTools
 Source: CRAN
@@ -250,7 +250,7 @@ Package: htmlwidgets
 Source: CRAN
 Version: 0.7
 Hash: f60506850a2d752dff69fc2a31c5a339
-Requires: jsonlite, yaml, htmltools
+Requires: htmltools, jsonlite, yaml
 
 Package: httpuv
 Source: CRAN
@@ -535,6 +535,12 @@ Source: CRAN
 Version: 0.3-0
 Hash: 405f00513f6b52d170ddd713d12e9ab9
 Requires: stringr
+
+Package: servr
+Source: CRAN
+Version: 0.4
+Hash: 0c8802e6b42b01a1320ef70752564f99
+Requires: httpuv, jsonlite, mime
 
 Package: shiny
 Source: CRAN
