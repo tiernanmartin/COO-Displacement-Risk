@@ -8,7 +8,7 @@
   <title>Communities of Opportunity Displacement Risk Assessment</title>
   <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
   <meta name="description" content="This is a report.">
-  <meta name="generator" content="bookdown 0.1.9 and GitBook 2.6.7">
+  <meta name="generator" content="bookdown 0.1.14 and GitBook 2.6.7">
 
   <meta property="og:title" content="Communities of Opportunity Displacement Risk Assessment" />
   <meta property="og:type" content="book" />
@@ -25,6 +25,7 @@
 
 <meta name="author" content="Tiernan Martin, Futurewise">
 
+  
 
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -49,14 +50,16 @@
 
 
 <script src="libs/htmlwidgets-0.7/htmlwidgets.js"></script>
-<link href="libs/leaflet-0.7.3/leaflet.css" rel="stylesheet" />
-<script src="libs/leaflet-0.7.3/leaflet.js"></script>
+<link href="libs/leaflet-0.7.7/leaflet.css" rel="stylesheet" />
+<script src="libs/leaflet-0.7.7/leaflet.js"></script>
 <link href="libs/leafletfix-1.0.0/leafletfix.css" rel="stylesheet" />
 <link href="libs/leaflet-label-0.2.2/leaflet.label.css" rel="stylesheet" />
 <script src="libs/leaflet-label-0.2.2/leaflet.label.js"></script>
-<script src="libs/leaflet-binding-1.0.2.9000/leaflet.js"></script>
+<script src="libs/Proj4Leaflet-0.7.2/proj4-compressed.js"></script>
+<script src="libs/Proj4Leaflet-0.7.2/proj4leaflet.js"></script>
+<script src="libs/leaflet-binding-1.0.2.9002/leaflet.js"></script>
 <script src="libs/leaflet-providers-1.0.27/leaflet-providers.js"></script>
-<script src="libs/leaflet-providers-plugin-1.0.2.9000/leaflet-providers-plugin.js"></script>
+<script src="libs/leaflet-providers-plugin-1.0.2.9002/leaflet-providers-plugin.js"></script>
 
 
 <style type="text/css">
@@ -97,7 +100,7 @@ code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* Com
 code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
 </style>
 
-<link rel="stylesheet" href="style.css" type="text/css" />
+<link rel="stylesheet" href="css/style.css" type="text/css" />
 </head>
 
 <body>
@@ -163,7 +166,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>The unique identifier for each parcel is called a <code>PIN</code>, and it is a combination of two numeric codes: a six-digit <code>MAJOR</code> (e.g., 092503) and a four-digit <code>MINOR</code> (e.g., 5891). After creating the <code>PIN</code> the <code>PropType</code> variable from the <a href="http://info.kingcounty.gov/Assessor/DataDownload/default.aspx">KC assessor’s parcel dataset</a> is joined to the spatial dataset from the KCGIS Center.</p>
 <p>The spatial dataset’s size is reduced by converting the polygon into points using the <code>rgeos::gCentroid</code> function. <code>sp::over</code> is then used to determine which parcels are overlayed by the Seattle CCD polygon (see this <a href="https://cran.r-project.org/web/packages/sp/vignettes/over.pdf">excellent tutorial</a> for more details on <code>sp::over</code>). The subset is exported, retaining its <code>SpatialPointsDataFrame</code> class.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Seattle subdivision of King County, WA (Seattle CCD)</span>
-sea_ccd &lt;-<span class="st"> </span><span class="kw">readOGR</span>(<span class="dt">dsn =</span> <span class="kw">root_file</span>(<span class="st">&#39;1-data/3-external/seattle_ccd.gpkg&#39;</span>),<span class="dt">layer =</span> <span class="st">&quot;seattle&quot;</span>,<span class="dt">verbose =</span> <span class="ot">FALSE</span>)
+sea_ccd &lt;-<span class="st"> </span><span class="kw">readOGR</span>(<span class="dt">dsn =</span> <span class="kw">root_file</span>(<span class="st">&#39;1-data/4-interim/seattle_ccd.gpkg&#39;</span>),<span class="dt">layer =</span> <span class="st">&quot;seattle&quot;</span>,<span class="dt">verbose =</span> <span class="ot">FALSE</span>) %&gt;%<span class="st"> </span><span class="kw">spTransform</span>(crs_proj)
 
 <span class="co"># Parcels (tabular data only)</span>
 if(!<span class="kw">file.exists</span>(<span class="kw">root_file</span>(<span class="st">&#39;1-data/3-external/EXTR_Parcel.csv&#39;</span>))){
@@ -201,6 +204,7 @@ if(!<span class="kw">file.exists</span>(<span class="kw">root_file</span>(<span 
 <span class="co"># Make the data</span>
 if(!<span class="kw">file.exists</span>(<span class="kw">root_file</span>(<span class="st">&#39;1-data/4-interim/prcl-ccd-ptdf-sp.gpkg&#39;</span>))){
         prcl_all_sp &lt;-<span class="st"> </span><span class="kw">readOGR</span>(<span class="dt">dsn =</span> <span class="kw">root_file</span>(<span class="st">&#39;1-data/3-external/parcel/&#39;</span>),<span class="dt">layer =</span> <span class="st">&#39;parcel&#39;</span>,<span class="dt">verbose =</span> <span class="ot">FALSE</span>) 
+        
         prcl_all_sp@data %&lt;&gt;%<span class="st"> </span><span class="kw">mutate</span>(<span class="dt">PIN =</span> <span class="kw">as.character</span>(PIN))
         
         <span class="co"># prcl_all_sp %&lt;&gt;% spTransform(crs_proj)   # this reprojection is prohibively slow </span>
@@ -255,12 +259,13 @@ if(!<span class="kw">file.exists</span>(<span class="kw">root_file</span>(<span 
         }
         
         <span class="co"># Trim the data to just the GEOID variable</span>
-        tr_ccd_geoid_sp &lt;-<span class="st"> </span><span class="kw">SpatialPolygonsDataFrame</span>(tr_ccd_sp,tr_ccd_sp@data[<span class="st">&#39;GEOID&#39;</span>])
+        tr_ccd_geoid_sp &lt;-<span class="st"> </span><span class="kw">SpatialPolygonsDataFrame</span>(tr_ccd_sp,tr_ccd_sp@data[<span class="st">&#39;GEOID&#39;</span>]) %&gt;%<span class="st"> </span>
+<span class="st">                </span><span class="kw">spTransform</span>(crs_proj)
         
         <span class="co"># Extract the census tract GEOID using a spatial overlay</span>
         prcl_ccd_tr_sp &lt;-<span class="st"> </span><span class="kw">SpatialPointsDataFrame</span>(prcl_ccd_ptdf_sp@coords,
                                                  <span class="kw">cbind</span>(prcl_ccd_ptdf_sp@data,
-                                                       sp::<span class="kw">over</span>(prcl_ccd_ptdf_sp,tr_ccd_geoid_sp)))
+                                                      sp::<span class="kw">over</span>(prcl_ccd_ptdf_sp,tr_ccd_geoid_sp)))
         prcl_ccd_tr_sp@data %&lt;&gt;%<span class="st"> </span>
 <span class="st">                </span><span class="kw">mutate</span>(<span class="dt">GEOID =</span> <span class="kw">as.character</span>(GEOID)) %&gt;%<span class="st"> </span>
 <span class="st">                </span><span class="kw">select</span>(GEOID,<span class="kw">everything</span>())
