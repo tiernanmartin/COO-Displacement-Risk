@@ -22,15 +22,15 @@ library(magrittr)
 library(downloader)
 root <- rprojroot::is_rstudio_project
 root_file <- root$make_fix_file()
-opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
+opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment = FALSE)
+options("readr.num_columns" = 0)
 ```
 
 ### Introduduction
 
 This dataset is a collection of property and building appraised values.
 
-```{r res-val-dl, cache=TRUE}
-library(downloader)
+```{r res-val-dl}
 
 if(!file.exists(root_file('1-data/3-external/EXTR_RealPropApplHist_V.csv'))){
         
@@ -44,14 +44,17 @@ if(!file.exists(root_file('1-data/3-external/EXTR_RealPropApplHist_V.csv'))){
         unzip (temp, exdir = root_file('1-data/3-external/')) # extract the file to the project folder
 }
 
-res_val_csv <- read_csv("~/Documents/FW/COO/COO-Displacement-Risk/1-data/3-external/EXTR_RealPropApplHist_V.csv",
-                    col_types = cols(PostDate = col_datetime(format = "%Y-%m-%d %H:%M:%S"),
-                                     RollYr = col_date(format = "%Y"),
-                                     SelectDate = col_datetime(format = "%Y-%m-%d %H:%M:%S"),
-                                     UpdateDate = col_datetime(format = "%Y-%m-%d %H:%M:%S")),
-                    progress = FALSE)
+if(!exists('res_val_csv')){
+        res_val_csv <- read_csv(
+        root_file("1-data/3-external/EXTR_RealPropApplHist_V.csv"),
+        col_types = cols(PostDate = col_datetime(format = "%Y-%m-%d %H:%M:%S"),
+                         RollYr = col_date(format = "%Y"),
+                         SelectDate = col_datetime(format = "%Y-%m-%d %H:%M:%S"),
+                         UpdateDate = col_datetime(format = "%Y-%m-%d %H:%M:%S")),
+        progress = FALSE)
+}
 
-res_val_csv
+# res_val_csv %>% head %>% as_tibble()
 
 ```
 
@@ -60,14 +63,14 @@ The following data transformations need to be completed in order to for this dat
 
   * exclude parcels outside the Seattle CCD
   * exclude non-residential parcels
-  * exclude years that are not either 2005, 2010, or 2015
+  * exclude years outside the observations periods (2005, 2010, and 2015)
   * exclude columns with information not relevant to this project (e.g., `SelectMethod`)
   * combine the values of the land and the structure(s) on the land (`LandVal` and `ImprsVal`, respectively)
   * adjust dollar amount for inflation based on 2016 US Dollar value
   * associate parcels with census tracts so that summary statistics can be calculated (e.g. median)
 
 
-```{r res-val-rds}
+```{r res-val-rds, fig.cap='Parcel dataset attributes (5 randomly selected rows)'}
 
 # Given the size of this dataset (~13M records, 1.8GB), it's useful to perform the simplest 
 # filters first, then save and reload the reduced-size subset (~2M records, 89MB).
@@ -89,6 +92,9 @@ res_val_sub2 <-
         res_val_sub1 %>% 
         mutate(PIN = paste0(MAJOR,MINOR)) %>% 
         select(PIN,everything())
+
+set.seed(1)
+res_val_sub2 %>% sample_n(5) %>% kable(caption = 'Parcel dataset attributes (5 randomly selected rows)',booktabs = TRUE)
 
 ```
 

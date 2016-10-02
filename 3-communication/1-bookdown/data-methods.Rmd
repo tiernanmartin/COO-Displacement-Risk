@@ -36,6 +36,15 @@ kc_parcels_fp <- root_file('1-data/1-notebooks/kc-parcels.Rmd')
 `r knit_child(kc_parcels_fp)`
 
 
+## King County Residential Property Values
+
+```{r data-methods-res-val}
+res_val_fp <- root_file('1-data/1-notebooks/res-val.Rmd')
+```
+
+`r knit_child(res_val_fp)'
+
+
 ## People of Color (ACS)
 
 
