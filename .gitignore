@@ -2,16 +2,11 @@
 .Rhistory
 .RData
 .Ruserdata
-<<<<<<< HEAD
 1-data/1-notebooks/*cache
 1-data/2-raw/**
 1-data/3-external/**
 1-data/3-external/!manual
 1-data/4-interim/**
-=======
-1-data/2-raw/
-1-data/3-external/
-1-data/4-interim/
->>>>>>> a553457d8ba2659fe15b9e317718ed97d4001fe5
+tree.txt
 packrat/lib*/
 packrat/src/
