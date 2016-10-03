@@ -54,7 +54,6 @@ In an effort to make this project as easy to reproduce as possible, the project 
 
 ##### Downloading Datasets Too Large for Github
 Due to Github's [file size limitations](https://help.github.com/categories/managing-large-files/), some of the raw datasets are not included in the repo. Running the package for the first time on a local clone will trigger the download of these large files, which will be a time-consuming operation (perhaps prohibitively slow, depending on the user's internet connection speed). It is recommended that users step through each of the rmarkdown files (`*.Rmd`) in `1-data/1-notebooks/`, running each code chunk and allowing the downloads to take place as necessary.
-  * 
 
 ##### Using the `acs` R Package
 Several of the datasets used in this project were collected using an `R` package named [`acs`](https://cran.r-project.org/web/packages/acs/acs.pdf). This package accesses data collected by the [American Community Survey](https://www.census.gov/programs-surveys/acs/) using the [Census Data API](http://www.census.gov/data/developers/data-sets.html), which requires its users to obtain a key before using. Any users interested in reproducing these datasets **must** obtain their own personal API key (<http://api.census.gov/data/key_signup.html>) and install it using the `acs::api.key.install` command. Several of the `acs` functions will not work until this key is installed.
