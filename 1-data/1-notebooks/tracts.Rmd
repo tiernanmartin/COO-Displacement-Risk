@@ -73,9 +73,9 @@ df <- miscgis::cbind_fill(rv,wc,stctuk) %>%
 knitr::kable(df,caption = "Census Tract GEOIDs")
 ```
 
-###Spatial Polygons
+### Spatial Polygons
 
-####With Waterbodies
+#### With Waterbodies
 Left to right: Rainier Valley, White Center, SeaTac/Tukwila
 <br></br>
 
@@ -91,9 +91,24 @@ Left to right: Rainier Valley, White Center, SeaTac/Tukwila
 # library(magrittr)
 # library(rgdal)
 
+if(!file.exists(root_file('1-data/3-external/tr_kc.gpkg'))){
+        tigris::tracts(state = "WA",county = "King", year = 2014) %>% 
+        spTransform(CRSobj = crs_proj) %>% 
+        writeOGR(dsn = root_file('1-data/3-external/tr_kc.gpkg'),
+                 layer = 'tr_kc_sp',
+                 driver = 'GPKG',
+                 verbose = FALSE,  
+                 overwrite_layer = TRUE)
+}
 
-tr <- tigris::tracts(state = "WA",county = "King", year = 2014) %>% spTransform(CRSobj = crs_proj)
+tr <- readOGR(dsn = root_file('1-data/3-external/tr_kc.gpkg'),
+              layer = 'tr_kc_sp',
+              verbose = FALSE,
+              stringsAsFactors = FALSE) %>% spTransform(crs_proj)
 
+
+if(!file.exists(root_file("1-data/4-interim/tr_sp_withwater.gpkg"))){
+        
 tr_sel <- tr[tr$GEOID %in% c(rv,wc,stctuk),] %>% spTransform(CRSobj = crs_proj)
 
 tr_sp <- tr_sel
@@ -101,8 +116,7 @@ tr_sp <- tr_sel
 tr_sp@data %<>% mutate(COO_SITE = case_when(.$GEOID %in% rv ~ "Rainier Valley",
                                             .$GEOID %in% wc ~ "White Center",
                                             .$GEOID %in% stctuk ~ "SeaTac/Tukwila"))
-
-if(!file.exists(root_file("1-data/4-interim/tr_sp_withwater.gpkg"))){
+        
 writeOGR(obj = tr_sp,
          dsn = root_file("1-data/4-interim/tr_sp_withwater.gpkg"),
          layer = "tr_sp_withwater",
@@ -110,6 +124,12 @@ writeOGR(obj = tr_sp,
          verbose = FALSE,
          overwrite_layer = TRUE)
 }
+
+tr_sp <- readOGR(dsn = root_file("1-data/4-interim/tr_sp_withwater.gpkg"),
+         layer = "tr_sp_withwater",
+         stringsAsFactors = FALSE,
+         verbose = FALSE)
+
 
 cntr <- tr_sp %>% gCentroid(byid = TRUE) %>% gCentroid()
 
@@ -171,24 +191,31 @@ stctuk_map
 ```
 
 
-####Without Waterbodies
+#### Without Waterbodies
 Left to right: Rainier Valley, White Center, SeaTac/Tukwila
 <br></br>
 
 ```{r tracts-wo-wtr, fig.height=1.25, fig.width=1,  fig.show='hold', dpi=150,fig.cap='Rainier Valley, White Center, and SeaTac/Tukwila'}
 
-wtr <- readOGR(dsn = root_file('1-data/4-interim/wtr_sp.gpkg'), 
+
+if(!file.exists(root_file('1-data/4-interim/tr_trim_sp.gpkg'))){
+        
+        wtr <- readOGR(dsn = root_file('1-data/4-interim/wtr_sp.gpkg'), 
           layer = "wtr_sp",verbose = FALSE) %>% gUnaryUnion(.) %>% spTransform(CRSobj = crs_proj)
 
 tr_trim_sp <- spClip(tr_sp,wtr)
-
-if(!file.exists(root_file('1-data/4-interim/tr_trim_sp.gpkg'))){
+        
         writeOGR(obj = tr_trim_sp,
          dsn = root_file('1-data/4-interim/tr_trim_sp.gpkg'),
          layer = "tr_trim_sp",driver = "GPKG",
          verbose = FALSE,
          overwrite_layer = TRUE)
 }
+
+tr_trim_sp <- readOGR(dsn = root_file('1-data/4-interim/tr_trim_sp.gpkg'),
+         layer = "tr_trim_sp",
+         verbose = FALSE,
+         stringsAsFactors = FALSE)
 
 # Individiaul Maps
 
@@ -253,7 +280,9 @@ stctuk_trim_map
 
 ```
 
-```{r tracts-combined, echo=FALSE,message=FALSE, dpi = 150}
+
+#### Health Reporting Areas (Disaggregated by Tract)
+```{r tracts-combined, dpi = 150}
 # Combined map 
 
 pal_rgb <- miscgis_pals$tableau_cat[c("blue","green","red")] %>% unlist %>% palette()
@@ -270,12 +299,12 @@ pts <- gCentroid(tr,byid = TRUE) %>% spTransform(crs_proj) %>%
 popups <- paste0(tr_trim_sp@data$GEOID)
 
 hra <- readOGR(dsn = root_file('1-data/3-external/manual/HRA_2010Block_Clip/'),
-               layer = "HRA_2010Block_Clip",verbose = FALSE) %>% spTransform(crs_proj)
+               layer = "HRA_2010Block_Clip",stringsAsFactors = FALSE,verbose = FALSE) %>% spTransform(crs_proj)
 
-rv_hra_id <- c("SE Seattle")
+rv_hra_id <- c("SE Seattle",
+               "Beacon/Gtown/S.Park")
 
-wc_hra_id <- c("Beacon/Gtown/S.Park",
-               "North Highline")
+wc_hra_id <- c("North Highline")
 
 stctuk_hra_id <- c("SeaTac/Tukwila")
 
@@ -289,24 +318,44 @@ hra_coo <- hra %>% subset(!is.na(HRA_ID))
 
 popup_hra <- paste0(hra_coo$HRA2010v2_)
 
-rv_tr_hra <- c(53033010100,53033010300,53033010200,53033011102,53033011101,53033011800,53033011900,53033026001) %>% as.character()
+# rv_tr_hra <- c(53033010100,53033010300,53033010200,53033011102,53033011101,53033011800,53033011900,53033026001) %>% as.character()
+# 
+# wc_tr_hra <- c(53033009300,53033010002,53033010001,53033010402,53033010401,53033011002,53033011001,53033010900,53033011200,53033011700,53033026400,53033026500,53033026600,53033026700,53033027000,53033026802,53033026801) %>% as.character()
+# 
+# stctuk_tr_hra <- c(53033026300,53033026400,53033027200,53033027100,53033026200,53033028200,53033028100,53033027300,53033028000,53033028500,53033028402,53033028300,53033028403,53033028802,53033028700,53033028801,53033028500,53033029101) %>% 
+#         as.character()
 
-wc_tr_hra <- c(53033009300,53033010002,53033010001,53033010402,53033010401,53033011002,53033011001,53033010900,53033011200,53033011700,53033026400,53033026500,53033026600,53033026700,53033027000,53033026802,53033026801) %>% as.character()
+site_hra_tr <- read_excel(root_file('/1-data/3-external/manual/Definition_GeographicUnit_COO_20160913-tm-edit.xlsx'), 
+                          col_types = c("text", "text", "numeric", "text", "text", "text", "text"))
+colnames(site_hra_tr) %<>% toupper()
 
-stctuk_tr_hra <- c(53033026300,53033026400,53033027200,53033027100,53033026200,53033028200,53033028100,53033027300,53033028000,53033028500,53033028402,53033028300,53033028403,53033028802,53033028700,53033028801,53033028500,53033029101) %>% 
-        as.character()
+site_names <- factor(site_hra_tr$SITES,
+                     levels = c("Rainier Valley",
+                                              "White Center",
+                                              "SeaTac/Tukwila")) %>% levels() %>% as.character()
 
-tr_trim_sp@data %<>% mutate(HRA_COO_SITE = case_when(.$GEOID %in% rv_tr_hra ~ "Rainier Valley",
-                                            .$GEOID %in% wc_tr_hra ~ "White Center",
-                                            .$GEOID %in% stctuk_tr_hra ~ "SeaTac/Tukwila")
+hra_geoids_lst <- split(site_hra_tr, as.factor(site_hra_tr$SITES)) %>% 
+        map(.f = ~.['GEOID']) %>% flatten() %>% 
+        `names<-`(c(
+                "Rainier Valley",
+                "SeaTac/Tukwila",
+                "White Center"))
+
+tr_trim_sp@data %<>% mutate(HRA_COO_SITE = case_when(.$GEOID %in% unlist(hra_geoids_lst["Rainier Valley"],
+                                                                         use.names = FALSE) ~ "Rainier Valley",
+                                            .$GEOID %in% unlist(hra_geoids_lst["White Center"],
+                                                                use.names = FALSE) ~ "White Center",
+                                            .$GEOID %in% unlist(hra_geoids_lst["SeaTac/Tukwila"],
+                                                                use.names = FALSE) ~ "SeaTac/Tukwila")
                             )
 
 tr_hra <- tr
 
-tr_hra@data %<>% mutate(HRA_COO_SITE = case_when(.$GEOID %in% rv_tr_hra ~ "Rainier Valley",
-                                            .$GEOID %in% wc_tr_hra ~ "White Center",
-                                            .$GEOID %in% stctuk_tr_hra ~ "SeaTac/Tukwila")
+tr_hra@data %<>% mutate(HRA_COO_SITE = case_when(.$GEOID %in% unlist(hra_geoids_lst["Rainier Valley"],use.names = FALSE) ~ "Rainier Valley",
+                                            .$GEOID %in% unlist(hra_geoids_lst["White Center"],use.names = FALSE) ~ "White Center",
+                                            .$GEOID %in% unlist(hra_geoids_lst["SeaTac/Tukwila"],use.names = FALSE) ~ "SeaTac/Tukwila")
                             )
+                            
 tr_hra %<>% subset(!is.na(HRA_COO_SITE))
 
 
