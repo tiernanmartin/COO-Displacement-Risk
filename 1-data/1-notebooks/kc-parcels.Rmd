@@ -42,7 +42,7 @@ The entire dataset of King County parcels contains 602,803 records, which makes 
 
 The unique identifier for each parcel is called a `PIN`, and it is a combination of two numeric codes: a six-digit `MAJOR` (e.g., 092503) and a four-digit `MINOR` (e.g., 5891). After creating the `PIN` the `PropType` variable from the [KC assessor's parcel dataset](http://info.kingcounty.gov/Assessor/DataDownload/default.aspx) is joined to the spatial dataset from the KCGIS Center.
 
-The spatial dataset's size is reduced by converting the polygon into points using the `rgeos::gCentroid` function. `sp::over` is then used to determine which parcels are overlayed by the Seattle CCD polygon (see this [excellent tutorial](https://cran.r-project.org/web/packages/sp/vignettes/over.pdf) for more details on `sp::over`). The subset is exported, retaining its `SpatialPointsDataFrame` class.
+The spatial dataset's size is reduced by converting the polygon into points using the `rgeos::gCentroid()` function. `sp::over()` is then used to determine which parcels are overlayed by the Seattle CCD polygon (see this [excellent tutorial](https://cran.r-project.org/web/packages/sp/vignettes/over.pdf) for more details on `sp::over()`). The subset is exported, retaining its `SpatialPointsDataFrame` class.
 
 
 ```{r kc-parcels-main, echo = TRUE, eval=FALSE}
@@ -132,7 +132,7 @@ if(!exists('prcl_ccd_ptdf_sp')){
 
 ### Assigning Census Tracts to Parcels
 
-The `sp::over` function is used again, but this time to pass the unique identifier from the census tracts (`GEOID`) to each parcel that it overlay. This method resolves the issue of parcels that are overlayed by multiple tracts because it uses the centroid of the parcel instead of the polygon. Where the centroid is overlayed by two contiguous tract polygon boundaries only the first tract `GEOID` will be passed on.
+The `sp::over()` function is used again, but this time to pass the unique identifier from the census tracts (`GEOID`) to each parcel that it overlay. This method resolves the issue of parcels that are overlayed by multiple tracts because it uses the centroid of the parcel instead of the polygon. Where the centroid is overlayed by two contiguous tract polygon boundaries only the first tract `GEOID` will be passed on.
 
 ```{r kc-parcels-to-tracts, echo = TRUE, eval=FALSE}
 
