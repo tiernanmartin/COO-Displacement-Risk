@@ -1,11 +1,12 @@
 ---
+always_allow_html: yes
 df_print: tibble
 output:
   html_notebook:
     code_folding: hide
+  html_document: default
   pdf_document:
     keep_tex: yes
-always_allow_html: yes
 ---
 
 ```{r kc-parcels-setup, echo = FALSE, warning=FALSE,message=FALSE}
