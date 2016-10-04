@@ -28,6 +28,7 @@ library(gplots)
 library(ggmap)
 library(shiny)
 library(htmlwidgets)
+library(readxl)
 root <- rprojroot::is_rstudio_project
 root_file <- root$make_fix_file()
 opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
@@ -136,6 +137,8 @@ cntr <- tr_sp %>% gCentroid(byid = TRUE) %>% gCentroid()
 blue <- miscgis::miscgis_pals$tableau_cat[["blue"]]
 green <- miscgis::miscgis_pals$tableau_cat[["green"]]
 red <- miscgis::miscgis_pals$tableau_cat[["red"]]
+teal <- miscgis::miscgis_pals$tableau_cat[["teal"]]
+brown <- miscgis::miscgis_pals$tableau_cat[["brown"]]
 
 
 # Rainier Valley
@@ -203,10 +206,9 @@ if(!file.exists(root_file('1-data/4-interim/tr_trim_sp.gpkg'))){
         wtr <- readOGR(dsn = root_file('1-data/4-interim/wtr_sp.gpkg'), 
           layer = "wtr_sp",verbose = FALSE) %>% gUnaryUnion(.) %>% spTransform(CRSobj = crs_proj)
 
-tr_trim_sp <- spClip(tr_sp,wtr)
-        
-        writeOGR(obj = tr_trim_sp,
-         dsn = root_file('1-data/4-interim/tr_trim_sp.gpkg'),
+spClip(tr_sp,wtr) %>% 
+        subset(!duplicated(GEOID)) %>% 
+        writeOGR(dsn = root_file('1-data/4-interim/tr_trim_sp.gpkg'),
          layer = "tr_trim_sp",driver = "GPKG",
          verbose = FALSE,
          overwrite_layer = TRUE)
@@ -285,14 +287,6 @@ stctuk_trim_map
 ```{r tracts-combined, dpi = 150}
 # Combined map 
 
-pal_rgb <- miscgis_pals$tableau_cat[c("blue","green","red")] %>% unlist %>% palette()
-
-pal <- colorFactor(pal_rgb,
-                   domain = factor(tr_trim_sp$COO_SITE,
-                                   levels = c("Rainier Valley",
-                                              "White Center",
-                                              "SeaTac/Tukwila")))
-
 pts <- gCentroid(tr,byid = TRUE) %>% spTransform(crs_proj) %>% 
         SpatialPointsDataFrame(data = tr@data,match.ID = FALSE)
 
@@ -311,7 +305,11 @@ stctuk_hra_id <- c("SeaTac/Tukwila")
 
 hra@data %<>% mutate(HRA_ID = case_when(.$HRA2010v2_ %in% rv_hra_id ~ "Rainier Valley",
                                         .$HRA2010v2_ %in% wc_hra_id ~ "White Center",
-                                        .$HRA2010v2_ %in% stctuk_hra_id ~ "SeaTac/Tukwila")
+                                        .$HRA2010v2_ %in% stctuk_hra_id ~ "SeaTac/Tukwila"),
+                     HRA_ID_FCT = factor(HRA_ID,
+                                   levels = c("Rainier Valley",
+                                "White Center",
+                                "SeaTac/Tukwila"),ordered = TRUE)
                      )
 
 hra_coo <- hra %>% subset(!is.na(HRA_ID))
@@ -329,34 +327,70 @@ site_hra_tr <- read_excel(root_file('/1-data/3-external/manual/Definition_Geogra
                           col_types = c("text", "text", "numeric", "text", "text", "text", "text"))
 colnames(site_hra_tr) %<>% toupper()
 
-site_names <- factor(site_hra_tr$SITES,
+site_hra_tr %<>% 
+        select(GEOID,SITES) %>% 
+        mutate(SITES2 = SITES) %>% 
+        group_by(GEOID) %>% 
+        mutate(SITES2 = nth(SITES,2),
+               SITES2 = ifelse(SITES == SITES2,NA_character_,SITES2)) %>% 
+        transmute(SITES = ifelse(is.na(SITES2),SITES,paste(SITES,SITES2,sep = ":")),
+                  SITES_FCT = factor(SITES,
                      levels = c("Rainier Valley",
-                                              "White Center",
-                                              "SeaTac/Tukwila")) %>% levels() %>% as.character()
+                                "Rainier Valley:SeaTac/Tukwila",
+                                "White Center",
+                                "White Center:SeaTac/Tukwila",
+                                "SeaTac/Tukwila"),ordered = TRUE))
 
-hra_geoids_lst <- split(site_hra_tr, as.factor(site_hra_tr$SITES)) %>% 
+
+site_names <- site_hra_tr$SITES_FCT %>% levels() %>% as.character()
+
+hra_geoids_lst <- split(site_hra_tr, site_hra_tr$SITES_FCT) %>% 
         map(.f = ~.['GEOID']) %>% flatten() %>% 
-        `names<-`(c(
-                "Rainier Valley",
-                "SeaTac/Tukwila",
-                "White Center"))
+        `names<-`(site_names)
 
-tr_trim_sp@data %<>% mutate(HRA_COO_SITE = case_when(.$GEOID %in% unlist(hra_geoids_lst["Rainier Valley"],
-                                                                         use.names = FALSE) ~ "Rainier Valley",
-                                            .$GEOID %in% unlist(hra_geoids_lst["White Center"],
-                                                                use.names = FALSE) ~ "White Center",
-                                            .$GEOID %in% unlist(hra_geoids_lst["SeaTac/Tukwila"],
-                                                                use.names = FALSE) ~ "SeaTac/Tukwila")
+tr_trim_sp@data %<>% mutate(HRA_COO_SITE = case_when(
+        .$GEOID %in% unlist(hra_geoids_lst["Rainier Valley"], use.names = FALSE) ~ "Rainier Valley",
+        .$GEOID %in% unlist(hra_geoids_lst["Rainier Valley:SeaTac/Tukwila"], use.names = FALSE) ~ "Rainier Valley:SeaTac/Tukwila",
+        .$GEOID %in% unlist(hra_geoids_lst["White Center"], use.names = FALSE) ~ "White Center",
+        .$GEOID %in% unlist(hra_geoids_lst["White Center:SeaTac/Tukwila"], use.names = FALSE) ~ "White Center:SeaTac/Tukwila",
+        .$GEOID %in% unlist(hra_geoids_lst["SeaTac/Tukwila"], use.names = FALSE) ~ "SeaTac/Tukwila"),
+        HRA_COO_SITE_FCT = factor(HRA_COO_SITE,
+                     levels = c("Rainier Valley",
+                                "Rainier Valley:SeaTac/Tukwila",
+                                "White Center",
+                                "White Center:SeaTac/Tukwila",
+                                "SeaTac/Tukwila"),ordered = TRUE)
                             )
 
 tr_hra <- tr
 
-tr_hra@data %<>% mutate(HRA_COO_SITE = case_when(.$GEOID %in% unlist(hra_geoids_lst["Rainier Valley"],use.names = FALSE) ~ "Rainier Valley",
-                                            .$GEOID %in% unlist(hra_geoids_lst["White Center"],use.names = FALSE) ~ "White Center",
-                                            .$GEOID %in% unlist(hra_geoids_lst["SeaTac/Tukwila"],use.names = FALSE) ~ "SeaTac/Tukwila")
+tr_hra@data %<>% mutate(HRA_COO_SITE = case_when(
+        .$GEOID %in% unlist(hra_geoids_lst["Rainier Valley"], use.names = FALSE) ~ "Rainier Valley",
+        .$GEOID %in% unlist(hra_geoids_lst["Rainier Valley:SeaTac/Tukwila"], use.names = FALSE) ~ "Rainier Valley:SeaTac/Tukwila",
+        .$GEOID %in% unlist(hra_geoids_lst["White Center"], use.names = FALSE) ~ "White Center",
+        .$GEOID %in% unlist(hra_geoids_lst["White Center:SeaTac/Tukwila"], use.names = FALSE) ~ "White Center:SeaTac/Tukwila",
+        .$GEOID %in% unlist(hra_geoids_lst["SeaTac/Tukwila"], use.names = FALSE) ~ "SeaTac/Tukwila"),
+        HRA_COO_SITE_FCT = factor(HRA_COO_SITE,
+                     levels = c("Rainier Valley",
+                                "Rainier Valley:SeaTac/Tukwila",
+                                "White Center",
+                                "White Center:SeaTac/Tukwila",
+                                "SeaTac/Tukwila"),ordered = TRUE)
                             )
                             
-tr_hra %<>% subset(!is.na(HRA_COO_SITE))
+tr_hra %<>% subset(!is.na(HRA_COO_SITE)) %>% spClip(wtr)
+
+# Color palettes
+
+pal_rgb_3 <- miscgis_pals$tableau_cat[c("blue","green","red")] %>% unlist %>% palette()
+pal_rgb_5 <- miscgis_pals$tableau_cat[c("blue","teal","green","brown","red")] %>% unlist %>% palette()
+
+pal_3 <- colorFactor(pal_rgb_3,
+                   domain = factor(tr_trim_sp$COO_SITE,
+                                   levels = c("Rainier Valley",
+                                "White Center",
+                                "SeaTac/Tukwila"),ordered = TRUE))
+pal_5 <- colorFactor(pal_rgb_5,domain = tr_hra$HRA_COO_SITE_FCT)
 
 
 if(!file.exists(root_file('3-commmunication/others/html/tr_coo_sites.html'))){
@@ -367,12 +401,12 @@ if(!file.exists(root_file('3-commmunication/others/html/tr_coo_sites.html'))){
                             color = col2hex("white"),
                             weight = .5,
                             opacity = 1,
-                            fillColor = ~pal(COO_SITE),
+                            fillColor = ~pal_3(COO_SITE),
                             fillOpacity = .65,
                             group = "COO Sites - Guess") %>% 
                 addPolygons(data = hra_coo,
                             smoothFactor = 0,
-                            color = ~pal(HRA_ID),
+                            color = ~pal_3(HRA_ID_FCT),
                             weight = 2.5,
                             opacity = 1,
                             fillOpacity = 0,
@@ -383,7 +417,7 @@ if(!file.exists(root_file('3-commmunication/others/html/tr_coo_sites.html'))){
                             color = col2hex("white"),
                             weight = .5,
                             opacity = 1,
-                            fillColor = ~pal(HRA_COO_SITE),
+                            fillColor = ~pal_5(HRA_COO_SITE_FCT),
                             fillOpacity = .65,
                             group = "COO Sites - HRA") %>%
                 addPolygons(data = tr,
@@ -408,8 +442,8 @@ if(!file.exists(root_file('3-commmunication/others/html/tr_coo_sites.html'))){
                                                    "All Tracts")) %>% 
                 addLegend(title = "COO Sites",
                           position = "topright",
-                          pal = pal,
-                          values = tr_trim_sp$COO_SITE) %>% 
+                          pal = pal_5,
+                          values = tr_trim_sp$HRA_COO_SITE_FCT) %>% 
                 saveWidget(file = root_file('3-communication/others/html/tr_coo_sites.html'),
                            selfcontained = FALSE,
                            libdir = root_file('3-communication/others/html/html_support_files'))
