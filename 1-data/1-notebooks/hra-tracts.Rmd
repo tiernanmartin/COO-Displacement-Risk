@@ -1,0 +1,120 @@
+---
+df_print: tibble
+output:
+  html_notebook:
+    code_folding: hide
+  pdf_document:
+    keep_tex: yes
+always_allow_html: yes
+---
+
+```{r hra-tr-setup, echo = FALSE, warning=FALSE,message=FALSE,comment=FALSE}
+library(knitr)
+library(rprojroot)
+library(tidyverse)
+library(rgdal)
+library(sp)
+library(rgeos)
+library(miscgis)
+library(tigris)
+library(leaflet)
+library(ggthemes)
+library(magrittr)
+library(stringr)
+library(downloader)
+library(webshot)
+library(htmltools)
+library(gplots)
+library(ggmap)
+library(shiny)
+library(htmlwidgets)
+library(readxl)
+root <- rprojroot::is_rstudio_project
+root_file <- root$make_fix_file()
+opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
+```
+
+### Introduction
+Resolving geographic units that do not neatly coincide is a common problem in spatial data analysis. This method attempts to conflate King County Health Reporting Areas (HRAs) to US Census tracts. In the cases where a given tract with entirely within a HRA, that tract receives the HRA's ID. Where a given tract overlaps multiple HRAs block-level census data is used to determine which HRA ID to assign to the tract. 
+
+
+### Census Block Counts
+This method provides three alternatives of block-level counts that can be used:
+
+  * Population
+  * Housing Units
+  * Population in Housing Units
+  
+
+```{r hra-tr-blks}
+
+if(!file.exists(root_file('1-data/4-interim/kc-blk-sp.gpkg'))){
+        pop <- read_csv(root_file('1-data/3-external/manual/wa-blk/DEC_10_SF1_P1/DEC_10_SF1_P1_with_ann.csv'), 
+                        col_types = cols(Id2 = col_character()), 
+                        skip = 1) %>% 
+                mutate(GEO_ID_BLK = Id2,
+                       GEOID_TR = substr(Id2,start = 1,stop = 11),
+                       POP = Total) %>% 
+                select(GEO_ID_BLK,GEOID_TR,POP)
+        
+        hu <- read_csv(root_file('1-data/3-external/manual/wa-blk/DEC_10_SF1_H1/DEC_10_SF1_H1_with_ann.csv'), 
+                       col_types = cols(Id2 = col_character()), 
+                       skip = 1) %>% 
+                mutate(GEO_ID_BLK = Id2,
+                       HU = Total) %>% 
+                select(GEO_ID_BLK,HU)
+        
+        pophu <- read_csv(root_file('1-data/3-external/manual/wa-blk/DEC_10_SF1_H10/DEC_10_SF1_H10_with_ann.csv'), 
+                          col_types = cols(Id2 = col_character()), 
+                          skip = 1) %>% 
+                mutate(GEO_ID_BLK = Id2,
+                       POPHU = Total) %>% 
+                select(GEO_ID_BLK,POPHU)
+        
+        cnts <- left_join(pop,hu,by = 'GEO_ID_BLK') %>% 
+                left_join(pophu,by = 'GEO_ID_BLK')
+        
+        # Source for KC Blocks spatial data
+        if(!file.exists(root_file('1-data/3-external/wa-blk/blocks10/blocks10.shp'))){
+                url <- 'ftp://ftp.kingcounty.gov/gis-web/web/GISData/blocks10_SHP.zip' # direct URL to the file download
+                
+                temp <- tempfile() # create a temporary file to hold the compressed download
+                
+                download(url, dest = temp, mode='wb') # download the file
+                
+                unzip (temp, exdir = root_file('1-data/3-external/wa-blk')) # extract the file to the project folder
+        }
+        
+        kc_blk <- readOGR(dsn = root_file('1-data/3-external/wa-blk/blocks10/'),
+                          layer = 'blocks10',
+                          verbose = FALSE,
+                          stringsAsFactors = FALSE)
+        
+        kc_blk@data %<>% left_join(cnts, by = 'GEO_ID_BLK') %>% 
+                select(GEOID_BLK = GEO_ID_BLK,
+                       GEOID_TR:POPHU)
+        
+        kc_blk %>% writeOGR(dsn = root_file('1-data/4-interim/kc-blk-sp.gpkg'),
+                            layer = 'kc_blk_sp',
+                            driver = 'GPKG',
+                            overwrite_layer = TRUE,verbose = FALSE)
+}
+
+kc_blk_sp <- readOGR(dsn = root_file('1-data/4-interim/kc-blk-sp.gpkg'),
+                            layer = 'kc_blk_sp',
+                  stringsAsFactors = FALSE,
+                  verbose = FALSE)
+
+
+
+```
+
+
+### The Algorithm 
+The following actions are performed in this method:
+
+  1. Centroids of the census block polygons are calculated (`class = SpatialPointsDataFrame`)
+  2. HRA IDs are passed to the block centroid using a spatial overlay method (`sp::over()`)
+  3. Blocks are aggregated into tracts and the count variables (`POP`,`HU`,`POPHU`) are summed
+  4. For each count variable, the HRA ID with the highest sum is assigned to each tract
+  

@@ -102,11 +102,11 @@ if(!file.exists(root_file('1-data/3-external/tr_kc.gpkg'))){
                  overwrite_layer = TRUE)
 }
 
+
 tr <- readOGR(dsn = root_file('1-data/3-external/tr_kc.gpkg'),
               layer = 'tr_kc_sp',
               verbose = FALSE,
               stringsAsFactors = FALSE) %>% spTransform(crs_proj)
-
 
 if(!file.exists(root_file("1-data/4-interim/tr_sp_withwater.gpkg"))){
         
@@ -451,6 +451,71 @@ if(!file.exists(root_file('3-commmunication/others/html/tr_coo_sites.html'))){
 
 ```
 
+### Using Block-Level Counts to Assign Tracts to Sites
 
+This method uses block-level counts (e.g., population, housing units) to resolve the site-tract relationship where tracts exist in multiple sites. Census blocks are the smallest geography provided by the census. The method proceeds in the following steps:
+
+  1. Census blocks are assigned a Site ID by determining which HRA overlaps each block's centroid
+  2. Blocks are aggregated to tracts, summing the count variable by Site ID
+  3. Each tract Site ID is determined by taking the ID with the highest count sum (e.g., the most people)
+
+```{r tracts-block-hra}
+
+# Block-level Population and Housing Unit Counts (2010)
+
+
+sea_ccd_pop_blk_acs <- {
+  if (!exists("sea_ccd_pop_blk_acs")) {
+    if (!file.exists("./2_inputs/2_intermediate/sea_ccd_pop_blk_acs.rds")) {
+      make_sea_ccd_pop_blk_acs <- function() {
+        
+        # DOWNLOAD ACS DATA
+        # -------------------------------------------------------
+        
+        tbl <- "B01003"  # census table code
+        
+        wa_blks <- acs::geo.make(state = 53,county = 330)
+        
+        
+        acs.fetch(endyear = 2014, geography = geoset, 
+          table.number = tbl)
+        
+        # PROCESSING
+        # -------------------------------------------------------
+        
+        # find the column codes acs.fetch(endyear = 2014, geography =
+        # geoset, table.number = tbl,col.names = 'pretty') %>%
+        # acs.colnames() %>% cbind(acs.colnames(col1)) %>% View
+        
+        
+        sea_ccd_pop_blk_acs <- REPLACE_THIS
+        
+        # SAVING
+        # ----------------------------------------------------------
+        
+        saveRDS(sea_ccd_pop_blk_acs, file = "./2_inputs/2_intermediate/sea_ccd_pop_blk_acs.rds")  #save an R data file
+        
+        # PLOTTING
+        # ----------------------------------------------------------
+        
+        # plot(sea_ccd_pop_blk_acs)
+        
+        # LAST LINE
+        # ----------------------------------------------------------
+        
+        sea_ccd_pop_blk_acs
+        
+      }
+      sea_ccd_pop_blk_acs <- make_sea_ccd_pop_blk_acs()
+      rm(make_sea_ccd_pop_blk_acs)
+      sea_ccd_pop_blk_acs
+    } else sea_ccd_pop_blk_acs <- read_rds(path = "./2_inputs/2_intermediate/sea_ccd_pop_blk_acs.rds")
+    
+  } else sea_ccd_pop_blk_acs
+  
+}
+
+
+```
 
 
