@@ -39,17 +39,25 @@ opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
 ```
 
 ### Introduction
-Resolving geographic units that do not neatly coincide is a common problem in spatial data analysis. This method attempts to conflate King County Health Reporting Areas (HRAs) to US Census tracts. In the cases where a given tract with entirely within a HRA, that tract receives the HRA's ID. Where a given tract overlaps multiple HRAs block-level census data is used to determine which HRA ID to assign to the tract. 
-
+Resolving geographic units that do not neatly coincide is a common problem in spatial data analysis. The method outline here attempts to conflate King County Health Reporting Areas (HRAs) to US Census tracts. In the cases where a given tract is entirely within an HRA, that tract receives the HRA's unique identifier (HRA_ID). On the other hand, in cases where a given tract overlaps multiple HRAs, block-level census data is used to determine which HRA ID to assign to the tract. 
 
 ### Census Block Counts
 This method provides three alternatives of block-level counts that can be used:
 
-  * Population
-  * Housing Units
-  * Population in Housing Units
-  
+```{r hra-tr-vartable, fig.cap='Block-level counts'}
+tibble('Count Type' = c('Population',
+                        'Housing Units',
+                        'Population in Housing Units'),
+       'Variable ID' = c('`POP`',
+                         '`HU`',
+                         '`HUPOP`'),
+       'Source' = c('Table P1, U.S. Census Bureau, 2010 Census',
+                    'Table H1, U.S. Census Bureau, 2010 Census',
+                    'Table H10, U.S. Census Bureau, 2010 Census')) %>% 
+        kable()
+```
 
+  
 ```{r hra-tr-blks}
 
 if(!file.exists(root_file('1-data/4-interim/kc-blk-sp.gpkg'))){

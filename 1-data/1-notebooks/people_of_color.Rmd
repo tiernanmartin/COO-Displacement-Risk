@@ -1,13 +1,41 @@
 ---
-title: "_Dataset_ | People of Color"
-author: "Tiernan Martin, [Futurewise](http://www.futurewisewa.org/)"
-output:
-  html_notebook: default
-  pdf_document: default
-  word_document: default
-subtitle: Communities of Opportunity Displacement Risk Assessment
 df_print: tibble
+output:
+  html_notebook:
+    code_folding: hide
+  pdf_document:
+    keep_tex: yes
+always_allow_html: yes
 ---
+
+```{r poc-setup, echo = FALSE, warning=FALSE,message=FALSE,comment=FALSE}
+library(plyr)
+library(knitr)
+library(rprojroot)
+library(tidyverse)
+library(rgdal)
+library(sp)
+library(rgeos)
+library(miscgis)
+library(tigris)
+library(leaflet)
+library(ggthemes)
+library(magrittr)
+library(stringr)
+library(downloader)
+library(webshot)
+library(htmltools)
+library(gplots)
+library(ggmap)
+library(shiny)
+library(htmlwidgets)
+library(readxl)
+library(acs)
+library(RColorBrewer)
+root <- rprojroot::is_rstudio_project
+root_file <- root$make_fix_file()
+opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
+```
 
 ###Introduction
 This datset comes from the [American Community Survey](https://www.census.gov/programs-surveys/acs/). General information about the structure of this dataset can be found [here](https://factfinder.census.gov/faces/affhelp/jsf/pages/metadata.xhtml?lang=en&type=table&id=table.en.ACS_14_5YR_B03002#main_content).
@@ -16,44 +44,36 @@ This dataset is used to create the indicator "Percent People of Color", which is
 
 ###Metadata
 
-```{r, echo = FALSE, results="asis", warning=FALSE,message=FALSE}
-library(knitr)
-library(magrittr)
-library(tidyverse)
+```{r poc-metadata, fig.cap='Metadata | People of Color'}
 
-
-df <- tibble(
+tibble(
         "Program" = "American Community Survey",
         "Data Set" = "2010-2014 American Community Survey 5-Year Estimates",
         "Table" = "B03002 - HISPANIC OR LATINO ORIGIN BY RACE"
-           )
-
-
-knitr::kable(df)
+           ) %>% knitr::kable(caption = 'Metadata | People of Color')
 
 ```
 
-```{r, echo = FALSE, results= "asis",warning=FALSE,message=FALSE}
-library(acs)
-library(readr)
+```{r poc-colnames}
 
+if(!file.exists(root_file('./1-data/3-external/poc-pretty20.rds'))){
+        tbl <- "B03002"  # census table code
+        geog <- geo.make(state = "WA",county = "King",tract = "*")
+        
+        #Coded column names
+        acs.fetch(endyear = "2014",
+                  span = 5,
+                  geography = geog,
+                  table.number = tbl) %>% readr::write_rds(root_file('./1-data/3-external/poc-2014.rds'))
+        
+        # "Pretty" column names
+        acs.fetch(endyear = "2014",
+                  span = 5,
+                  geography = geog,
+                  table.number = tbl,
+                  col.names = "pretty") %>% readr::write_rds("./1_raw/poc_pretty.rds")
+}
 
-tbl <- "B03002"  # census table code
-geog <- geo.make(state = "WA",county = "King",tract = "*")
-
-#Coded column names
-acs.fetch(endyear = "2014",
-          span = 5,
-          geography = geog,
-          table.number = tbl,
-          col.names = "pretty") %>% readr::write_rds("./1_raw/poc_pretty.rds")
-
-# "Pretty" column names
-acs.fetch(endyear = "2014",
-          span = 5,
-          geography = geog,
-          table.number = tbl,
-          col.names = "pretty") %>% readr::write_rds("./1_raw/poc_pretty.rds")
 
 poc_acs <- read_rds("./1_raw/poc.rds")
 poc_prty_acs <- read_rds("./1_raw/poc_pretty.rds")
