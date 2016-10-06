@@ -263,7 +263,7 @@ kc_hra_tr_sp <-
 
 ```
 
-After running the assignment algorithm, it is clear that the `POP` and `POPHU` variables result in the same HRA assignments. `HU` differs from the other two variables in three of the tracts:
+After running the assignment algorithm, it is clear that the `POP` and `POPHU` variables result in the same HRA assignments. `HU` differs from the other two variables in only 3 of the 398 tracts:
 
 ```{r hra-assign-results, fig.cap='Difference between the methods'}
 
