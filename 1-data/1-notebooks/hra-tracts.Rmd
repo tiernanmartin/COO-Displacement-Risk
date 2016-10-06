@@ -9,6 +9,7 @@ always_allow_html: yes
 ---
 
 ```{r hra-tr-setup, echo = FALSE, warning=FALSE,message=FALSE,comment=FALSE}
+library(plyr)
 library(knitr)
 library(rprojroot)
 library(tidyverse)
@@ -29,6 +30,8 @@ library(ggmap)
 library(shiny)
 library(htmlwidgets)
 library(readxl)
+library(acs)
+library(RColorBrewer)
 root <- rprojroot::is_rstudio_project
 root_file <- root$make_fix_file()
 opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
@@ -118,3 +121,227 @@ The following actions are performed in this method:
   3. Blocks are aggregated into tracts and the count variables (`POP`,`HU`,`POPHU`) are summed
   4. For each count variable, the HRA ID with the highest sum is assigned to each tract
   
+```{r hra-assign}
+
+# Pass HRA IDs to the block centroids
+hra <- readOGR(dsn = root_file('1-data/3-external/manual/HRA_2010Block_Clip/'),layer = 'HRA_2010Block_Clip',
+               verbose = FALSE,stringsAsFactors = FALSE)
+
+kc_blk_cnt_sp <- SpatialPointsDataFrame(coords = rgeos::gCentroid(kc_blk_sp,byid = TRUE),
+                               data = as.data.frame(kc_blk_sp@data),
+                               match.ID = FALSE)
+
+kc_blk_cnt_sp$HRA_ID <- sp::over(kc_blk_cnt_sp,hra[,'HRA2010v2_']) %>% unlist
+
+kc_blk_cnt_sp@data %<>% mutate(HRA_ID = ifelse(is.na(HRA_ID),'None',HRA_ID))
+
+
+# Assign HRAs to tracts
+ 
+if(!file.exists(root_file('1-data/4-interim/kc-hra-tr-sp.gpkg'))){
+        if(!file.exists(root_file('1-data/3-external/kc-tr/tracts10_shore/tracts10_shore.shp'))){
+                
+                url <- 'ftp://ftp.kingcounty.gov/gis-web/web/GISData/tracts10_shore_SHP.zip' # direct URL to the file download
+                
+                temp <- tempfile() # create a temporary file to hold the compressed download
+                
+                download(url, dest = temp, mode='wb') # download the file
+                
+                unzip (temp, exdir = root_file('1-data/3-external/kc-tr')) # extract the file to the project folder
+                
+                
+        }
+         
+        kc_tr_sp <- readOGR(dsn = root_file('1-data/3-external/kc-tr/tracts10_shore/'),
+                            layer = 'tracts10_shore',
+                            verbose = FALSE,
+                            stringsAsFactors = FALSE)
+        kc_tr_sp@data %<>% select(GEOID_TR = GEO_ID_TRT)
+        
+        first_notNA <- function(x){first(x[!is.na(x)])}
+        
+        tr_hra_ids <- 
+                kc_blk_cnt_sp@data %>% 
+                as.data.frame() %>% 
+                gather('VAR','COUNT',POP:POPHU) %>% 
+                group_by(GEOID_TR,VAR,HRA_ID) %>% 
+                summarise(SUM = sum(COUNT)) %>% 
+                arrange(desc(SUM)) %>% 
+                slice(1) %>% 
+                spread(VAR,HRA_ID) %>% 
+                mutate(HU_CNT = ifelse(!is.na(HU),SUM,NA_integer_),
+                       POP_CNT = ifelse(!is.na(POP),SUM,NA_integer_),
+                       POPHU_CNT = ifelse(!is.na(POPHU),SUM,NA_integer_)) %>% 
+                select(-SUM) %>% 
+                group_by(GEOID_TR) %>% 
+                summarise_all(funs(first_notNA)) %>% 
+                ungroup() %>% 
+                select(GEOID_TR,
+                       POP = POP_CNT,
+                       HU = HU_CNT,
+                       POPHU = POPHU_CNT,
+                       HRA_POP = POP,
+                       HRA_HU = HU,
+                       HRA_POPHU = POPHU)
+        
+        tr_hra_ids2 <- 
+                tr_hra_ids %>% 
+                select(GEOID_TR,matches('HRA')) %>% 
+                gather("VAR","HRA",matches('HRA')) %>%  
+                group_by(GEOID_TR) %>% 
+                summarise(ALLEQ = length(unique(HRA))==1) %>%
+                left_join(tr_hra_ids,.,by = 'GEOID_TR') 
+        
+        # Get the percentage for each count variable
+        
+        pop_tr <- 
+                read_csv(root_file("1-data/3-external/manual/kc-tr/DEC_10_SF1_P1/DEC_10_SF1_P1_with_ann.csv"), 
+                         col_types = cols(GEO.id2 = col_character(), 
+                                          Geography = col_skip(), 
+                                          Id = col_skip(), 
+                                          Id2 = col_character()), 
+                         skip = 1) %>% 
+                select(GEOID_TR = Id2,
+                       POP_TR = Total)
+        
+        hu_tr <- 
+                read_csv(root_file('1-data/3-external/manual/kc-tr/DEC_10_SF1_H1/DEC_10_SF1_H1_with_ann.csv'), 
+                         col_types = cols(GEO.id2 = col_character(), 
+                                          Geography = col_skip(), 
+                                          Id = col_skip(), 
+                                          Id2 = col_character()), 
+                         skip = 1)%>% 
+                select(GEOID_TR = Id2,
+                       HU_TR = Total)
+        
+        pophu_tr <- 
+                read_csv(root_file('1-data/3-external/manual/kc-tr/DEC_10_SF1_H10/DEC_10_SF1_H10_with_ann.csv'), 
+                         col_types = cols(GEO.id2 = col_character(), 
+                                          Geography = col_skip(), 
+                                          Id = col_skip(), 
+                                          Id2 = col_character()), 
+                         skip = 1) %>% 
+                select(GEOID_TR = Id2,
+                       POPHU_TR = Total)
+        
+        kc_tr_sp@data %<>%
+                left_join(.,tr_hra_ids2,by = 'GEOID_TR') %>% 
+                left_join(.,pop_tr,by = 'GEOID_TR') %>% 
+                left_join(.,hu_tr,by = 'GEOID_TR') %>% 
+                left_join(.,pophu_tr,by = 'GEOID_TR') %>% 
+                mutate(POP_PCT = round_any(POP/POP_TR,accuracy = .01),
+                       HU_PCT = round_any(HU/HU_TR,accuracy = .01),
+                       POPHU_PCT = round_any(POPHU/POPHU_TR,accuracy = .01)) %>% 
+                select(GEOID_TR,
+                       POP,POP_PCT,
+                       HU, HU_PCT,
+                       POPHU, POPHU_PCT,everything())
+        
+        kc_tr_sp %>% 
+                writeOGR(dsn = root_file('1-data/4-interim/kc-hra-tr-sp.gpkg'),
+                         layer = 'kc_hra_tr_sp',
+                         driver = 'GPKG',
+                         verbose = FALSE,
+                         overwrite_layer = TRUE)
+        
+}
+
+kc_hra_tr_sp <- 
+        readOGR(dsn = root_file('1-data/4-interim/kc-hra-tr-sp.gpkg'),
+                layer = 'kc_hra_tr_sp',
+                verbose = FALSE) %>% 
+        spTransform(crs_proj)
+
+```
+
+### Maps
+
+
+```{r hra-maps}
+
+mypal <- RColorBrewer::brewer.pal(8,name = 'Set2')[-8]
+
+shuffled_hra <- fct_shuffle(kc_hra_tr_sp$HRA_POP) %>% factor(ordered = T)
+
+pal <- colorFactor(palette = mypal,domain = shuffled_hra)
+
+hra %<>% spTransform(crs_proj)
+
+hra_popup <- paste0(kc_hra_tr_sp$HRA_POP)
+
+show_hra_tr <- function(){
+        myLfltGrey(bumpLabels = FALSE,hideControls = FALSE) %>%
+        addProviderTiles(providers$CartoDB) %>% 
+        addPolygons(data = kc_hra_tr_sp,
+                    smoothFactor = 0,
+                    weight = 1,
+                    color = col2hex("white"),
+                    opacity = .85,
+                    fillColor = ~pal(shuffled_hra),
+                    fillOpacity = .5,
+                    group = 'HRA Tract by Pop.',
+                    popup = ~paste0(kc_hra_tr_sp$GEOID_TR)) %>% 
+        addPolygons(data = hra,
+                    smoothFactor = 0,
+                    fillOpacity = 0,
+                    weight = 2,
+                    color = ~pal(factor(hra$HRA2010v2_,levels = levels(shuffled_hra),ordered = TRUE)),
+                    opacity = 1,
+                    group = 'HRAs',
+                    popup = ~paste0(hra$HRA2010v2_)) %>% 
+        addLayersControl(overlayGroups = c('HRA Tract by Pop.',
+                                           'HRAs'),
+                         position = 'topright',options = layersControlOptions(FALSE))
+}
+
+# Save an HTML version of the map
+
+if(!file.exists(root_file('3-communication/others/html/hra-tracts.html'))){
+        show_hra_tr() %>% 
+        saveWidget(file = root_file('3-communication/others/html/hra-tracts.html'),
+                           selfcontained = FALSE,
+                           libdir = root_file('3-communication/others/html/html_support_files'))
+}
+
+show_hra_tr()
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
