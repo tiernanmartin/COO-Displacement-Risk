@@ -254,22 +254,37 @@ kc_hra_tr_sp <-
 
 ```
 
+After running the assignment algorithm, it is clear that the `POP` and `POPHU` variables result in the same HRA assignments. `HU` differs from the other two variables in three of the tracts:
+
+```{r hra-assign-results, fig.cap='Difference between the methods'}
+
+kc_hra_tr_sp@data %>% 
+        mutate(ALLEQ = as.logical(ALLEQ)) %>% 
+        filter(ALLEQ == FALSE) %>% 
+        select(GEOID_TR,HRA_POP,HRA_POPHU,HRA_HU) %>% 
+        kable()
+
+```
+
+
 ### Maps
 
 
-```{r hra-maps}
+```{r hra-make-maps}
 
 mypal <- RColorBrewer::brewer.pal(8,name = 'Set2')[-8]
 
-shuffled_hra <- forcats::fct_shuffle(kc_hra_tr_sp$HRA_POP) %>% factor(ordered = T)
+shuffled_hra_pop <- forcats::fct_shuffle(kc_hra_tr_sp$HRA_POP) %>% factor(ordered = T)
+shuffled_hra_hu <- forcats::fct_shuffle(kc_hra_tr_sp$HRA_HU) %>% factor(ordered = T)
+shuffled_hra_pophu <- forcats::fct_shuffle(kc_hra_tr_sp$HRA_POPHU) %>% factor(ordered = T)
 
-pal <- colorFactor(palette = mypal,domain = shuffled_hra)
+pal_pop <- colorFactor(palette = mypal,domain = shuffled_hra_pop)
+pal_hu <- colorFactor(palette = mypal,domain = shuffled_hra_hu)
+pal_pophu <- colorFactor(palette = mypal,domain = shuffled_hra_pophu)
 
 hra %<>% spTransform(crs_proj)
 
-hra_popup <- paste0(kc_hra_tr_sp$HRA_POP)
-
-show_hra_tr <- function(){
+show_hra_tr_pop <- function(){
         myLfltGrey(bumpLabels = FALSE,hideControls = FALSE) %>%
         addProviderTiles(providers$CartoDB) %>% 
         addPolygons(data = kc_hra_tr_sp,
@@ -277,7 +292,7 @@ show_hra_tr <- function(){
                     weight = 1,
                     color = col2hex("white"),
                     opacity = .85,
-                    fillColor = ~pal(shuffled_hra),
+                    fillColor = ~pal_pop(shuffled_hra_pop),
                     fillOpacity = .5,
                     group = 'HRA Tract by Pop.',
                     popup = ~paste0(kc_hra_tr_sp$GEOID_TR)) %>% 
@@ -285,7 +300,7 @@ show_hra_tr <- function(){
                     smoothFactor = 0,
                     fillOpacity = 0,
                     weight = 2,
-                    color = ~pal(factor(hra$HRA2010v2_,levels = levels(shuffled_hra),ordered = TRUE)),
+                    color = ~pal_pop(factor(hra$HRA2010v2_,levels = levels(shuffled_hra_pop),ordered = TRUE)),
                     opacity = 1,
                     group = 'HRAs',
                     popup = ~paste0(hra$HRA2010v2_)) %>% 
@@ -294,25 +309,97 @@ show_hra_tr <- function(){
                          position = 'topright',options = layersControlOptions(FALSE))
 }
 
-# Save an HTML version of the map
+show_hra_tr_hu <- function(){
+        myLfltGrey(bumpLabels = FALSE,hideControls = FALSE) %>%
+        addProviderTiles(providers$CartoDB) %>% 
+        addPolygons(data = kc_hra_tr_sp,
+                    smoothFactor = 0,
+                    weight = 1,
+                    color = col2hex("white"),
+                    opacity = .85,
+                    fillColor = ~pal_hu(shuffled_hra_hu),
+                    fillOpacity = .5,
+                    group = 'HRA Tract by HU.',
+                    popup = ~paste0(kc_hra_tr_sp$GEOID_TR)) %>% 
+        addPolygons(data = hra,
+                    smoothFactor = 0,
+                    fillOpacity = 0,
+                    weight = 2,
+                    color = ~pal_hu(factor(hra$HRA2010v2_,levels = levels(shuffled_hra_hu),ordered = TRUE)),
+                    opacity = 1,
+                    group = 'HRAs',
+                    popup = ~paste0(hra$HRA2010v2_)) %>% 
+        addLayersControl(overlayGroups = c('HRA Tract by HU.',
+                                           'HRAs'),
+                         position = 'topright',options = layersControlOptions(FALSE))
+}
 
-if(!file.exists(root_file('3-communication/others/html/hra-tracts.html'))){
-        show_hra_tr() %>% 
-        saveWidget(file = root_file('3-communication/others/html/hra-tracts.html'),
+show_hra_tr_pophu <- function(){
+        myLfltGrey(bumpLabels = FALSE,hideControls = FALSE) %>%
+        addProviderTiles(providers$CartoDB) %>% 
+        addPolygons(data = kc_hra_tr_sp,
+                    smoothFactor = 0,
+                    weight = 1,
+                    color = col2hex("white"),
+                    opacity = .85,
+                    fillColor = ~pal_pophu(shuffled_hra_pophu),
+                    fillOpacity = .5,
+                    group = 'HRA Tract by Pop. in HU',
+                    popup = ~paste0(kc_hra_tr_sp$GEOID_TR)) %>% 
+        addPolygons(data = hra,
+                    smoothFactor = 0,
+                    fillOpacity = 0,
+                    weight = 2,
+                    color = ~pal_pophu(factor(hra$HRA2010v2_,levels = levels(shuffled_hra_pophu),ordered = TRUE)),
+                    opacity = 1,
+                    group = 'HRAs',
+                    popup = ~paste0(hra$HRA2010v2_)) %>% 
+        addLayersControl(overlayGroups = c('HRA Tract by Pop. in HU',
+                                           'HRAs'),
+                         position = 'topright',options = layersControlOptions(FALSE))
+}
+
+# Save the maps as HTML documents
+
+if(!file.exists(root_file('3-communication/others/html/hra-tracts-pop.html'))){
+        show_hra_tr_pop() %>% 
+        saveWidget(file = root_file('3-communication/others/html/hra-tracts-pop.html'),
                            selfcontained = FALSE,
                            libdir = root_file('3-communication/others/html/html_support_files'))
 }
 
-show_hra_tr()
+if(!file.exists(root_file('3-communication/others/html/hra-tracts-hu.html'))){
+        show_hra_tr_pop() %>% 
+        saveWidget(file = root_file('3-communication/others/html/hra-tracts-hu.html'),
+                           selfcontained = FALSE,
+                           libdir = root_file('3-communication/others/html/html_support_files'))
+}
+
+if(!file.exists(root_file('3-communication/others/html/hra-tracts-pophu.html'))){
+        show_hra_tr_pop() %>% 
+        saveWidget(file = root_file('3-communication/others/html/hra-tracts-pophu.html'),
+                           selfcontained = FALSE,
+                           libdir = root_file('3-communication/others/html/html_support_files'))
+}
 
 
 ```
 
 
+```{r hra-show-pop, fig.cap='HRA Census Tracts (by Population)'}
+show_hra_tr_pop()
 
+```
 
+```{r hra-show-hu, fig.cap='HRA Census Tracts (by Housing Units)'}
+show_hra_tr_hu()
 
+```
 
+```{r hra-show-pophu, fig.cap='HRA Census Tracts (by Population in Housing Units)'}
+show_hra_tr_pophu()
+
+```
 
 
 
