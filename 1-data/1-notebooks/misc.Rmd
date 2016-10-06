@@ -29,7 +29,7 @@ opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
 
 ###Seattle Boundary
 
-```{r misc-sea-bound}
+```{r misc-sea-bound, fig.cap='Seattle\'s geographic boundary'}
 
 if(!file.exists(root_file('1-data/4-interim/seattle.gpkg'))){
         tigris::places(state = "WA") %>%
@@ -50,7 +50,7 @@ myLfltGrey() %>% addPolygons(data = sea,color = green,opacity = 1,fillColor = gr
 
 ###King County Subdivision Boundary
 
-```{r misc-sea-ccd}
+```{r misc-sea-ccd, fig.cap='Seattle Subdivision of King County\'s geographic boundary'}
 
 if(!file.exists(root_file('1-data/4-interim/seattle_ccd.gpkg'))){
         tigris::county_subdivisions(state = "53",county = "033") %>% 
@@ -116,7 +116,7 @@ show_tr_ccd_sp <- function(){
 
 These are useful for "clipping" census geographies whose boundaries extend into waterbodies.
 
-```{r misc-wtr}
+```{r misc-wtr, fig.cap='Puget Sound waterbodies'}
 
 fp_wtr <- root_file('1-data/3-external/NHDMajor.gdb')
 
