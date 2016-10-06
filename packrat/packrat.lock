@@ -91,13 +91,13 @@ Hash: 67d0775189fd0041d95abca618c5c07e
 
 Package: bookdown
 Source: github
-Version: 0.1.10
-Hash: b6a1f14c3f29a12f08225396c8877634
+Version: 0.1.16
+Hash: f1b0c214a155e5e4c60e7ce9bdaf2fea
 Requires: htmltools, knitr, miniUI, rmarkdown, rsconnect, yaml
 GithubRepo: bookdown
 GithubUsername: rstudio
 GithubRef: master
-GithubSha1: 99c39517cdf98df20f7cea95a2f36caa041a5a3d
+GithubSha1: 1254a81864c7d0e1d165eda58d9fb08fe3a9bc71
 
 Package: broom
 Source: CRAN
@@ -276,13 +276,13 @@ Hash: 86d4b85b84421a4815f1bb4872e30ef4
 
 Package: knitr
 Source: github
-Version: 1.14.6
-Hash: a751ef6b01bbe578962d109313997aa6
+Version: 1.14.9
+Hash: 9d94700afd8fecc020640dc968c549b7
 Requires: digest, evaluate, formatR, highr, markdown, stringr, yaml
 GithubRepo: knitr
 GithubUsername: yihui
 GithubRef: master
-GithubSha1: ad1c261e676f4f30f24f20d264d04957deebc632
+GithubSha1: 63407ab837644741706076e910d4393fb763186b
 
 Package: labeling
 Source: CRAN
@@ -479,14 +479,14 @@ Hash: def074f38d0cff3b597649ee6f976128
 
 Package: rmarkdown
 Source: github
-Version: 1.0.9015
-Hash: 27ac82c2920a03b08b9330961631fb76
+Version: 1.0.9016
+Hash: fb28c91ac1ec6c7f249b88a1938dc6c8
 Requires: base64enc, caTools, evaluate, htmltools, jsonlite, knitr,
     tibble, yaml
 GithubRepo: rmarkdown
 GithubUsername: rstudio
 GithubRef: master
-GithubSha1: 4ff4ee1edf421e0a122247f15a0edbeb03e3a1f9
+GithubSha1: c8489eb83b7afcd2c0a9f18d883d59d1fd2163e8
 
 Package: rprojroot
 Source: github

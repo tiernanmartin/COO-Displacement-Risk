@@ -1,11 +1,12 @@
 ---
+always_allow_html: yes
 df_print: tibble
 output:
   html_notebook:
     code_folding: hide
+  html_document: default
   pdf_document:
     keep_tex: yes
-always_allow_html: yes
 ---
 
 ```{r hra-tr-setup, echo = FALSE, warning=FALSE,message=FALSE,comment=FALSE}
@@ -262,7 +263,7 @@ kc_hra_tr_sp@data %>%
         mutate(ALLEQ = as.logical(ALLEQ)) %>% 
         filter(ALLEQ == FALSE) %>% 
         select(GEOID_TR,HRA_POP,HRA_POPHU,HRA_HU) %>% 
-        kable()
+        kable(caption = 'Difference between the methods')
 
 ```
 
