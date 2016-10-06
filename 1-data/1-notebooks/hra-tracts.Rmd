@@ -261,7 +261,7 @@ kc_hra_tr_sp <-
 
 mypal <- RColorBrewer::brewer.pal(8,name = 'Set2')[-8]
 
-shuffled_hra <- fct_shuffle(kc_hra_tr_sp$HRA_POP) %>% factor(ordered = T)
+shuffled_hra <- forcats::fct_shuffle(kc_hra_tr_sp$HRA_POP) %>% factor(ordered = T)
 
 pal <- colorFactor(palette = mypal,domain = shuffled_hra)
 

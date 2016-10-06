@@ -287,235 +287,182 @@ stctuk_trim_map
 ```{r tracts-combined, dpi = 150}
 # Combined map 
 
-pts <- gCentroid(tr,byid = TRUE) %>% spTransform(crs_proj) %>% 
-        SpatialPointsDataFrame(data = tr@data,match.ID = FALSE)
-
-popups <- paste0(tr_trim_sp@data$GEOID)
-
-hra <- readOGR(dsn = root_file('1-data/3-external/manual/HRA_2010Block_Clip/'),
-               layer = "HRA_2010Block_Clip",stringsAsFactors = FALSE,verbose = FALSE) %>% spTransform(crs_proj)
-
-rv_hra_id <- c("SE Seattle",
-               "Beacon/Gtown/S.Park")
-
-wc_hra_id <- c("North Highline")
-
-stctuk_hra_id <- c("SeaTac/Tukwila")
-
-
-hra@data %<>% mutate(HRA_ID = case_when(.$HRA2010v2_ %in% rv_hra_id ~ "Rainier Valley",
-                                        .$HRA2010v2_ %in% wc_hra_id ~ "White Center",
-                                        .$HRA2010v2_ %in% stctuk_hra_id ~ "SeaTac/Tukwila"),
-                     HRA_ID_FCT = factor(HRA_ID,
-                                   levels = c("Rainier Valley",
-                                "White Center",
-                                "SeaTac/Tukwila"),ordered = TRUE)
-                     )
-
-hra_coo <- hra %>% subset(!is.na(HRA_ID))
-
-popup_hra <- paste0(hra_coo$HRA2010v2_)
-
-# rv_tr_hra <- c(53033010100,53033010300,53033010200,53033011102,53033011101,53033011800,53033011900,53033026001) %>% as.character()
+# if(!exists('tr')){
+#         tr <- readOGR(dsn = root_file('1-data/3-external/tr_kc.gpkg'),
+#               layer = 'tr_kc_sp',
+#               verbose = FALSE,
+#               stringsAsFactors = FALSE) %>% spTransform(crs_proj)
+# }
 # 
-# wc_tr_hra <- c(53033009300,53033010002,53033010001,53033010402,53033010401,53033011002,53033011001,53033010900,53033011200,53033011700,53033026400,53033026500,53033026600,53033026700,53033027000,53033026802,53033026801) %>% as.character()
+# pts <- gCentroid(tr,byid = TRUE) %>% spTransform(crs_proj) %>% 
+#         SpatialPointsDataFrame(data = tr@data,match.ID = FALSE)
 # 
-# stctuk_tr_hra <- c(53033026300,53033026400,53033027200,53033027100,53033026200,53033028200,53033028100,53033027300,53033028000,53033028500,53033028402,53033028300,53033028403,53033028802,53033028700,53033028801,53033028500,53033029101) %>% 
-#         as.character()
-
-site_hra_tr <- read_excel(root_file('/1-data/3-external/manual/Definition_GeographicUnit_COO_20160913-tm-edit.xlsx'), 
-                          col_types = c("text", "text", "numeric", "text", "text", "text", "text"))
-colnames(site_hra_tr) %<>% toupper()
-
-site_hra_tr %<>% 
-        select(GEOID,SITES) %>% 
-        mutate(SITES2 = SITES) %>% 
-        group_by(GEOID) %>% 
-        mutate(SITES2 = nth(SITES,2),
-               SITES2 = ifelse(SITES == SITES2,NA_character_,SITES2)) %>% 
-        transmute(SITES = ifelse(is.na(SITES2),SITES,paste(SITES,SITES2,sep = ":")),
-                  SITES_FCT = factor(SITES,
-                     levels = c("Rainier Valley",
-                                "Rainier Valley:SeaTac/Tukwila",
-                                "White Center",
-                                "White Center:SeaTac/Tukwila",
-                                "SeaTac/Tukwila"),ordered = TRUE))
-
-
-site_names <- site_hra_tr$SITES_FCT %>% levels() %>% as.character()
-
-hra_geoids_lst <- split(site_hra_tr, site_hra_tr$SITES_FCT) %>% 
-        map(.f = ~.['GEOID']) %>% flatten() %>% 
-        `names<-`(site_names)
-
-tr_trim_sp@data %<>% mutate(HRA_COO_SITE = case_when(
-        .$GEOID %in% unlist(hra_geoids_lst["Rainier Valley"], use.names = FALSE) ~ "Rainier Valley",
-        .$GEOID %in% unlist(hra_geoids_lst["Rainier Valley:SeaTac/Tukwila"], use.names = FALSE) ~ "Rainier Valley:SeaTac/Tukwila",
-        .$GEOID %in% unlist(hra_geoids_lst["White Center"], use.names = FALSE) ~ "White Center",
-        .$GEOID %in% unlist(hra_geoids_lst["White Center:SeaTac/Tukwila"], use.names = FALSE) ~ "White Center:SeaTac/Tukwila",
-        .$GEOID %in% unlist(hra_geoids_lst["SeaTac/Tukwila"], use.names = FALSE) ~ "SeaTac/Tukwila"),
-        HRA_COO_SITE_FCT = factor(HRA_COO_SITE,
-                     levels = c("Rainier Valley",
-                                "Rainier Valley:SeaTac/Tukwila",
-                                "White Center",
-                                "White Center:SeaTac/Tukwila",
-                                "SeaTac/Tukwila"),ordered = TRUE)
-                            )
-
-tr_hra <- tr
-
-tr_hra@data %<>% mutate(HRA_COO_SITE = case_when(
-        .$GEOID %in% unlist(hra_geoids_lst["Rainier Valley"], use.names = FALSE) ~ "Rainier Valley",
-        .$GEOID %in% unlist(hra_geoids_lst["Rainier Valley:SeaTac/Tukwila"], use.names = FALSE) ~ "Rainier Valley:SeaTac/Tukwila",
-        .$GEOID %in% unlist(hra_geoids_lst["White Center"], use.names = FALSE) ~ "White Center",
-        .$GEOID %in% unlist(hra_geoids_lst["White Center:SeaTac/Tukwila"], use.names = FALSE) ~ "White Center:SeaTac/Tukwila",
-        .$GEOID %in% unlist(hra_geoids_lst["SeaTac/Tukwila"], use.names = FALSE) ~ "SeaTac/Tukwila"),
-        HRA_COO_SITE_FCT = factor(HRA_COO_SITE,
-                     levels = c("Rainier Valley",
-                                "Rainier Valley:SeaTac/Tukwila",
-                                "White Center",
-                                "White Center:SeaTac/Tukwila",
-                                "SeaTac/Tukwila"),ordered = TRUE)
-                            )
-                            
-tr_hra %<>% subset(!is.na(HRA_COO_SITE)) %>% spClip(wtr)
-
-# Color palettes
-
-pal_rgb_3 <- miscgis_pals$tableau_cat[c("blue","green","red")] %>% unlist %>% palette()
-pal_rgb_5 <- miscgis_pals$tableau_cat[c("blue","teal","green","brown","red")] %>% unlist %>% palette()
-
-pal_3 <- colorFactor(pal_rgb_3,
-                   domain = factor(tr_trim_sp$COO_SITE,
-                                   levels = c("Rainier Valley",
-                                "White Center",
-                                "SeaTac/Tukwila"),ordered = TRUE))
-pal_5 <- colorFactor(pal_rgb_5,domain = tr_hra$HRA_COO_SITE_FCT)
-
-
-if(!file.exists(root_file('3-commmunication/others/html/tr_coo_sites.html'))){
-        leaflet() %>%
-                addProviderTiles(providers$CartoDB.Positron) %>% 
-                addPolygons(data = tr_trim_sp,
-                            smoothFactor = 0,
-                            color = col2hex("white"),
-                            weight = .5,
-                            opacity = 1,
-                            fillColor = ~pal_3(COO_SITE),
-                            fillOpacity = .65,
-                            group = "COO Sites - Guess") %>% 
-                addPolygons(data = hra_coo,
-                            smoothFactor = 0,
-                            color = ~pal_3(HRA_ID_FCT),
-                            weight = 2.5,
-                            opacity = 1,
-                            fillOpacity = 0,
-                            popup = popup_hra,
-                            group = "HRA Boundaries") %>% 
-                addPolygons(data = tr_hra,
-                            smoothFactor = 0,
-                            color = col2hex("white"),
-                            weight = .5,
-                            opacity = 1,
-                            fillColor = ~pal_5(HRA_COO_SITE_FCT),
-                            fillOpacity = .65,
-                            group = "COO Sites - HRA") %>%
-                addPolygons(data = tr,
-                            smoothFactor = 0,
-                            weight = .75,
-                            color = col2hex("grey50"),
-                            opacity = .75,
-                            fillOpacity = 0,
-                            group = "All Tracts", popup = popups) %>%
-                # addPolygons(data = hra,
-                #             smoothFactor = 0,
-                #             color = col2hex("white"),
-                #             weight = .5,
-                #             opacity = 1,
-                #             fillColor = ~pal(COO_SITE),
-                #             fillOpacity = .65,
-                #             group = "HRA") %>% 
-                setView(cntr$x,cntr$y,zoom = 11) %>% 
-                addLayersControl(overlayGroups = c("COO Sites - HRA",
-                                                   "COO Sites - Guess",
-                                                   "HRA Boundaries",
-                                                   "All Tracts")) %>% 
-                addLegend(title = "COO Sites",
-                          position = "topright",
-                          pal = pal_5,
-                          values = tr_trim_sp$HRA_COO_SITE_FCT) %>% 
-                saveWidget(file = root_file('3-communication/others/html/tr_coo_sites.html'),
-                           selfcontained = FALSE,
-                           libdir = root_file('3-communication/others/html/html_support_files'))
-}
+# if(!exists('tr_trim_sp')){
+# tr_trim_sp <- readOGR(dsn = root_file('1-data/4-interim/tr_trim_sp.gpkg'),layer = 'tr_trim_sp',verbose = FALSE,stringsAsFactors = FALSE)
+# }
+# 
+# popups <- paste0(tr_trim_sp@data$GEOID)
+# 
+# hra <- readOGR(dsn = root_file('1-data/3-external/manual/HRA_2010Block_Clip/'),
+#                layer = "HRA_2010Block_Clip",stringsAsFactors = FALSE,verbose = FALSE) %>% spTransform(crs_proj)
+# 
+# rv_hra_id <- c("SE Seattle",
+#                "Beacon/Gtown/S.Park")
+# 
+# wc_hra_id <- c("North Highline")
+# 
+# stctuk_hra_id <- c("SeaTac/Tukwila")
+# 
+# 
+# hra@data %<>% mutate(HRA_ID = case_when(.$HRA2010v2_ %in% rv_hra_id ~ "Rainier Valley",
+#                                         .$HRA2010v2_ %in% wc_hra_id ~ "White Center",
+#                                         .$HRA2010v2_ %in% stctuk_hra_id ~ "SeaTac/Tukwila"),
+#                      HRA_ID_FCT = factor(HRA_ID,
+#                                    levels = c("Rainier Valley",
+#                                 "White Center",
+#                                 "SeaTac/Tukwila"),ordered = TRUE)
+#                      )
+# 
+# hra_coo <- hra %>% subset(!is.na(HRA_ID))
+# 
+# popup_hra <- paste0(hra_coo$HRA2010v2_)
+# 
+# # rv_tr_hra <- c(53033010100,53033010300,53033010200,53033011102,53033011101,53033011800,53033011900,53033026001) %>% as.character()
+# # 
+# # wc_tr_hra <- c(53033009300,53033010002,53033010001,53033010402,53033010401,53033011002,53033011001,53033010900,53033011200,53033011700,53033026400,53033026500,53033026600,53033026700,53033027000,53033026802,53033026801) %>% as.character()
+# # 
+# # stctuk_tr_hra <- c(53033026300,53033026400,53033027200,53033027100,53033026200,53033028200,53033028100,53033027300,53033028000,53033028500,53033028402,53033028300,53033028403,53033028802,53033028700,53033028801,53033028500,53033029101) %>% 
+# #         as.character()
+# 
+# site_hra_tr <- read_excel(root_file('/1-data/3-external/manual/Definition_GeographicUnit_COO_20160913-tm-edit.xlsx'), 
+#                           col_types = c("text", "text", "numeric", "text", "text", "text", "text"))
+# colnames(site_hra_tr) %<>% toupper()
+# 
+# site_hra_tr %<>% 
+#         select(GEOID,SITES) %>% 
+#         mutate(SITES2 = SITES) %>% 
+#         group_by(GEOID) %>% 
+#         mutate(SITES2 = nth(SITES,2),
+#                SITES2 = ifelse(SITES == SITES2,NA_character_,SITES2)) %>% 
+#         transmute(SITES = ifelse(is.na(SITES2),SITES,paste(SITES,SITES2,sep = ":")),
+#                   SITES_FCT = factor(SITES,
+#                      levels = c("Rainier Valley",
+#                                 "Rainier Valley:SeaTac/Tukwila",
+#                                 "White Center",
+#                                 "White Center:SeaTac/Tukwila",
+#                                 "SeaTac/Tukwila"),ordered = TRUE))
+# 
+# 
+# site_names <- site_hra_tr$SITES_FCT %>% levels() %>% as.character()
+# 
+# hra_geoids_lst <- split(site_hra_tr, site_hra_tr$SITES_FCT) %>% 
+#         map(.f = ~.['GEOID']) %>% flatten() %>% 
+#         `names<-`(site_names)
+# 
+# tr_trim_sp@data %<>% mutate(HRA_COO_SITE = case_when(
+#         .$GEOID %in% unlist(hra_geoids_lst["Rainier Valley"], use.names = FALSE) ~ "Rainier Valley",
+#         .$GEOID %in% unlist(hra_geoids_lst["Rainier Valley:SeaTac/Tukwila"], use.names = FALSE) ~ "Rainier Valley:SeaTac/Tukwila",
+#         .$GEOID %in% unlist(hra_geoids_lst["White Center"], use.names = FALSE) ~ "White Center",
+#         .$GEOID %in% unlist(hra_geoids_lst["White Center:SeaTac/Tukwila"], use.names = FALSE) ~ "White Center:SeaTac/Tukwila",
+#         .$GEOID %in% unlist(hra_geoids_lst["SeaTac/Tukwila"], use.names = FALSE) ~ "SeaTac/Tukwila"),
+#         HRA_COO_SITE_FCT = factor(HRA_COO_SITE,
+#                      levels = c("Rainier Valley",
+#                                 "Rainier Valley:SeaTac/Tukwila",
+#                                 "White Center",
+#                                 "White Center:SeaTac/Tukwila",
+#                                 "SeaTac/Tukwila"),ordered = TRUE)
+#                             )
+# 
+# tr_hra <- tr
+# 
+# tr_hra@data %<>% mutate(HRA_COO_SITE = case_when(
+#         .$GEOID %in% unlist(hra_geoids_lst["Rainier Valley"], use.names = FALSE) ~ "Rainier Valley",
+#         .$GEOID %in% unlist(hra_geoids_lst["Rainier Valley:SeaTac/Tukwila"], use.names = FALSE) ~ "Rainier Valley:SeaTac/Tukwila",
+#         .$GEOID %in% unlist(hra_geoids_lst["White Center"], use.names = FALSE) ~ "White Center",
+#         .$GEOID %in% unlist(hra_geoids_lst["White Center:SeaTac/Tukwila"], use.names = FALSE) ~ "White Center:SeaTac/Tukwila",
+#         .$GEOID %in% unlist(hra_geoids_lst["SeaTac/Tukwila"], use.names = FALSE) ~ "SeaTac/Tukwila"),
+#         HRA_COO_SITE_FCT = factor(HRA_COO_SITE,
+#                      levels = c("Rainier Valley",
+#                                 "Rainier Valley:SeaTac/Tukwila",
+#                                 "White Center",
+#                                 "White Center:SeaTac/Tukwila",
+#                                 "SeaTac/Tukwila"),ordered = TRUE)
+#                             )
+# 
+# if(!exists('wtr_sp')){
+# wtr_sp <- readOGR(dsn = root_file('1-data/4-interim/wtr_sp.gpkg'),layer = 'wtr_sp',verbose = FALSE,stringsAsFactors = FALSE) %>% spTransform(crs_proj)
+# }
+# 
+# tr_hra %<>% subset(!is.na(HRA_COO_SITE)) %>% spClip(wtr_sp)
+# 
+# # Color palettes
+# 
+# pal_rgb_3 <- miscgis_pals$tableau_cat[c("blue","green","red")] %>% unlist %>% palette()
+# pal_rgb_5 <- miscgis_pals$tableau_cat[c("blue","teal","green","brown","red")] %>% unlist %>% palette()
+# 
+# pal_3 <- colorFactor(pal_rgb_3,
+#                    domain = factor(tr_trim_sp$COO_SITE,
+#                                    levels = c("Rainier Valley",
+#                                 "White Center",
+#                                 "SeaTac/Tukwila"),ordered = TRUE))
+# pal_5 <- colorFactor(pal_rgb_5,domain = tr_hra$HRA_COO_SITE_FCT)
+# 
+# 
+# if(!file.exists(root_file('3-commmunication/others/html/tr_coo_sites.html'))){
+#         leaflet() %>%
+#                 addProviderTiles(providers$CartoDB.Positron) %>% 
+#                 addPolygons(data = tr_trim_sp,
+#                             smoothFactor = 0,
+#                             color = col2hex("white"),
+#                             weight = .5,
+#                             opacity = 1,
+#                             fillColor = ~pal_3(COO_SITE),
+#                             fillOpacity = .65,
+#                             group = "COO Sites - Guess") %>% 
+#                 addPolygons(data = hra_coo,
+#                             smoothFactor = 0,
+#                             color = ~pal_3(HRA_ID_FCT),
+#                             weight = 2.5,
+#                             opacity = 1,
+#                             fillOpacity = 0,
+#                             popup = popup_hra,
+#                             group = "HRA Boundaries") %>% 
+#                 addPolygons(data = tr_hra,
+#                             smoothFactor = 0,
+#                             color = col2hex("white"),
+#                             weight = .5,
+#                             opacity = 1,
+#                             fillColor = ~pal_5(HRA_COO_SITE_FCT),
+#                             fillOpacity = .65,
+#                             group = "COO Sites - HRA") %>%
+#                 addPolygons(data = tr,
+#                             smoothFactor = 0,
+#                             weight = .75,
+#                             color = col2hex("grey50"),
+#                             opacity = .75,
+#                             fillOpacity = 0,
+#                             group = "All Tracts", popup = popups) %>%
+#                 # addPolygons(data = hra,
+#                 #             smoothFactor = 0,
+#                 #             color = col2hex("white"),
+#                 #             weight = .5,
+#                 #             opacity = 1,
+#                 #             fillColor = ~pal(COO_SITE),
+#                 #             fillOpacity = .65,
+#                 #             group = "HRA") %>% 
+#                 setView(cntr$x,cntr$y,zoom = 11) %>% 
+#                 addLayersControl(overlayGroups = c("COO Sites - HRA",
+#                                                    "COO Sites - Guess",
+#                                                    "HRA Boundaries",
+#                                                    "All Tracts")) %>% 
+#                 addLegend(title = "COO Sites",
+#                           position = "topright",
+#                           pal = pal_5,
+#                           values = tr_trim_sp$HRA_COO_SITE_FCT) %>% 
+#                 saveWidget(file = root_file('3-communication/others/html/tr_coo_sites.html'),
+#                            selfcontained = FALSE,
+#                            libdir = root_file('3-communication/others/html/html_support_files'))
+# }
 
 ```
-
-### Using Block-Level Counts to Assign Tracts to Sites
-
-This method uses block-level counts (e.g., population, housing units) to resolve the site-tract relationship where tracts exist in multiple sites. Census blocks are the smallest geography provided by the census. The method proceeds in the following steps:
-
-  1. Census blocks are assigned a Site ID by determining which HRA overlaps each block's centroid
-  2. Blocks are aggregated to tracts, summing the count variable by Site ID
-  3. Each tract Site ID is determined by taking the ID with the highest count sum (e.g., the most people)
-
-```{r tracts-block-hra}
-
-# Block-level Population and Housing Unit Counts (2010)
-
-
-sea_ccd_pop_blk_acs <- {
-  if (!exists("sea_ccd_pop_blk_acs")) {
-    if (!file.exists("./2_inputs/2_intermediate/sea_ccd_pop_blk_acs.rds")) {
-      make_sea_ccd_pop_blk_acs <- function() {
-        
-        # DOWNLOAD ACS DATA
-        # -------------------------------------------------------
-        
-        tbl <- "B01003"  # census table code
-        
-        wa_blks <- acs::geo.make(state = 53,county = 330)
-        
-        
-        acs.fetch(endyear = 2014, geography = geoset, 
-          table.number = tbl)
-        
-        # PROCESSING
-        # -------------------------------------------------------
-        
-        # find the column codes acs.fetch(endyear = 2014, geography =
-        # geoset, table.number = tbl,col.names = 'pretty') %>%
-        # acs.colnames() %>% cbind(acs.colnames(col1)) %>% View
-        
-        
-        sea_ccd_pop_blk_acs <- REPLACE_THIS
-        
-        # SAVING
-        # ----------------------------------------------------------
-        
-        saveRDS(sea_ccd_pop_blk_acs, file = "./2_inputs/2_intermediate/sea_ccd_pop_blk_acs.rds")  #save an R data file
-        
-        # PLOTTING
-        # ----------------------------------------------------------
-        
-        # plot(sea_ccd_pop_blk_acs)
-        
-        # LAST LINE
-        # ----------------------------------------------------------
-        
-        sea_ccd_pop_blk_acs
-        
-      }
-      sea_ccd_pop_blk_acs <- make_sea_ccd_pop_blk_acs()
-      rm(make_sea_ccd_pop_blk_acs)
-      sea_ccd_pop_blk_acs
-    } else sea_ccd_pop_blk_acs <- read_rds(path = "./2_inputs/2_intermediate/sea_ccd_pop_blk_acs.rds")
-    
-  } else sea_ccd_pop_blk_acs
-  
-}
-
-
-```
-
 
