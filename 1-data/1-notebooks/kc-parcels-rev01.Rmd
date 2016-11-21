@@ -1,0 +1,485 @@
+---
+df_print: tibble
+output:
+  html_notebook:
+    code_folding: hide
+  pdf_document:
+    keep_tex: yes
+always_allow_html: yes
+---
+
+```{r kc-parcels-setup, echo = FALSE, warning=FALSE,message=FALSE,comment=FALSE}
+library(plyr)
+library(operator.tools)
+library(knitr)
+library(rprojroot)
+library(tidyverse)
+library(lubridate)
+library(rgdal)
+library(sp)
+library(rgeos)
+library(miscgis)
+library(tigris)
+library(leaflet)
+library(ggthemes)
+library(magrittr)
+library(stringr)
+library(downloader)
+library(webshot)
+library(htmltools)
+library(gplots)
+library(ggmap)
+library(shiny)
+library(htmlwidgets)
+library(readxl)
+library(acs)
+library(RColorBrewer)
+library(rgrass7)
+library(maptools)
+library(cleangeo)
+root <- rprojroot::is_rstudio_project
+root_file <- root$make_fix_file()
+opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
+```
+
+###Introduction
+
+Tax parcels are the pieces of land associated with property value. King County appraises parcels in order to determine an estimate of their fair market value, which is then used in the process of determening taxation rates. For the purpose of this assessment, parcels are the geographic unit of the indicator of housing market conditions: median residential property value. 
+
+More information about the parcel dataset is available at the King County GIS Center:
+
+  * [KCGIS Center](http://www.kingcounty.gov/operations/GIS/GISData.aspx)
+  * [Parcel Shapefile Metadata](http://www5.kingcounty.gov/sdc/Metadata.aspx?Layer=parcel)
+
+### The Dataset
+
+The King County parcel dataset is a large spatiotemporal dataset comprised of approximately 600,000 annually-updated records. There are several factors worth mentioning about how these data were obtained, what they represent, and how the will be used in this analysis:
+
+#### Sources
+The parcel data is sepatated into a spatial dataset (polygons with minimal metadata) and several sets of tabular metadata that can be joined to each other or the spatial data using the unique Parcel Identification Number (`PIN`). The most current version of these data is made publicly available by King County GIS and the KC Assessor's office (see the links provided above).
+
+This project requires _historical_ property values which are only available by special request to the KC Assessor's office. The complete parcel datasets were obtained for the 2005, 2010, and 2015 tax years, which correspond to the property values in 2004, 2009, and 2014 (respectively). Like the most current dataset, these data are split into one geospatial and several accompanying tabular metadata sets for each year.
+
+#### Temporal Change
+In order to assess property value patterns it is important to be aware of the fact that parcels come and go. More specifically, the county's stock of parcels changes over time as property owners either subdivide or merge their properties. These changes create new `PIN` codes and eliminate old ones, resulting in historically discontinuous records for these parcels. 
+
+Fortuntately, the geographic unit of analysis for this project is the census tract rather than the individual parcels themselves. In order to calculate the median residential property value for each tract, it is only necessary to determine which tract each parcel is within for each observations period; it is not necessary to know the changes of each individual parcel's property value over time.
+
+### Method
+The large size of these datasets present challenges, particularly for computationally expensive GIS operations. The following process makes an effort to reduce the volume of data involved in the geospatial overlay operations while producing the desired summary statistic: median residential property value by tract by year.
+
+#### Process
+
+  1. 2014 Observations
+    1. Reduce geospatial data from polygons to points (`rgeos::gCentroid()`)
+    2. Subset data to include only those parcel within the Seattle CCD of King County
+    3. Pass census tract unique identifier codes (`GEOID`) to parcel points using a spatial overlay (`sp::over()`)
+  2. 2004 & 2009 Observations
+    1. Subset the geospatial data to include only those parcels that are _not_ present in the 2014 data
+    2. Repeat the same same spatial overlay process used in the 2014 observations to transfer GEOIDs to parcels
+  3. Combined Data
+    1. Add a new variable to record the year of the observation to each dataset (`YEAR`)
+    2. Merge the datasets (by `PIN`), using an operation that retains all records (`dplyr::full_join()`)
+
+
+```{r kc-parcels-2014, eval=FALSE}
+
+# Read in original parcel data  -------
+# Figure out which featureclass to load
+
+fp_2014 <- root_file('1-data/3-external/manual/over-size-limit/Year2015.gdb/')
+
+layers <- ogrListLayers(fp_2014)
+
+layers[1:length(layers)]
+
+# It looks like 'parcel_area' is the spatial layer
+
+if(!exists('prcl_ccd_ptdf_2014_sp')){
+        if(!file.exists(root_file('1-data/4-interim/prcl-ccd-2014-ptdf-sp.gpkg'))){
+                # Load the data spatial data
+                
+                prcl_all_2014_sp <- readOGR(dsn = fp_2014,
+                                            layer = 'parcel_area',
+                                            verbose = FALSE,stringsAsFactors = FALSE)
+                # Write it as a shapefile
+                prcl_all_2014_sp %>% writeOGR(dsn = root_file('1-data/4-interim/over-size-limit/'),layer = 'prcl-all-2014-sp',driver = 'ESRI Shapefile',verbose = FALSE)
+                
+                prcl_all_2014_sp <- maptools::readShapePoly(root_file('1-data/4-interim/over-size-limit/prcl-all-2014-sp'))
+                
+                # Clean up the geometries
+                
+                report <- clgeo_CollectionReport(prcl_all_2014_sp[1:10000,])
+                summary <- clgeo_SummaryReport(report)
+                issues <- report[report$valid == FALSE,]
+                nv <- clgeo_SuspiciousFeatures(report)
+                mysp <- prcl_all_2014_sp[nv,]
+                mysp_clean <- clgeo_Clean(mysp,verbose = TRUE)
+                report_clean <- clgeo_CollectionReport(mysp_clean)
+                summary_clean <- clgeo_SummaryReport(report_clean)
+                
+                
+                
+                # Start a GRASS session
+                initGRASS('/usr/local/Cellar/grass-70/7.0.4/grass-7.0.4',home=tempdir())
+                
+                # Import the layer into the GRASS session             
+                
+                # execGRASS(cmd = 'g.remove',type = 'vector', name = 'prcl_all_2014_sp',flags = 'f')
+                
+                execGRASS(cmd = 'v.in.ogr', input = root_file('1-data/4-interim/over-size-limit/prcl-all-2014-sp.gpkg'),
+                          snap = 1e-02,
+                          flags = 'o')
+                
+                # Write a new copy (with the clean-up work performed by GRASS)
+                
+                execGRASS(cmd = 'v.out.ogr', input = 'prcl_all_2014_sp',
+                          output = root_file('1-data/4-interim/over-size-limit/prcl-all-2014-cleaned-sp.gpkg'),
+                          format = 'GPKG')
+                
+                # Read the data back in
+                
+                prcl_all_2014_sp <- readOGR(dsn = root_file('1-data/4-interim/over-size-limit/prcl-all-2014-sp.gpkg'),
+                                            layer = 'prcl_all_2014_sp',
+                                            verbose = FALSE,
+                                            stringsAsFactors = FALSE)
+                
+                
+                # Collect the centroids of all the KC parcels (and transform their CRS to match the project CRS)
+                valids <- prcl_all_2014_sp[1:100,] %>% rgeos::gIsValid(byid = TRUE)
+                prcl_all_pt_2014_sp <- prcl_all_2014_sp %>% rgeos::gCentroid(byid = T) %>% spTransform(crs_proj)
+                
+                # WARNING: this produces the following error, 
+                # which indicates the presence of complex/invalid geometries:
+# Error in TopologyFunc(spgeom, id, byid, "rgeos_getcentroid") : 
+# IllegalArgumentException: Invalid number of points in LinearRing found 3 - must be 0 or >= 4
+                # STEP
+
+                prcl_all_2014_union <- 
+                        prcl_all_2014_sp %>% 
+                        gUnaryUnion()
+                        
+                
+                
+                prcl_all_ptdf_2014_sp <- SpatialPointsDataFrame(coords = prcl_all_pt_2014_sp,data = as.data.frame(prcl_all_2014_sp@data),match.ID = FALSE)
+                
+                # Using the sp::over with Seattle subdivision of King County, WA (Seattle CCD)
+                
+                sea_ccd <- readOGR(dsn = root_file('1-data/4-interim/seattle_ccd.gpkg'),layer = "seattle",verbose = FALSE) %>% spTransform(crs_proj)
+
+                sea_ccd_poly <- SpatialPolygons(Srl = sea_ccd@polygons,proj4string = crs_proj) 
+                
+                pts_over <- prcl_all_pt_2014_sp %>% sp::over(sea_ccd_poly) 
+                
+                prcl_ccd_ptdf_2014_sp <- prcl_all_ptdf_2014_sp[which(!is.na(pts_over)),]
+                
+                # Save the data
+                
+                prcl_ccd_ptdf_2014_sp %>% 
+                        writeOGR(dsn = root_file('1-data/4-interim/prcl-ccd-2014-ptdf-sp.gpkg'),
+                                 layer = 'prcl_ccd_ptdf_2014_sp',driver = 'GPKG',
+                                 verbose = FALSE,
+                                 overwrite_layer = TRUE)
+        }else{
+                prcl_ccd_ptdf_2014_sp <- readOGR(dsn = root_file('1-data/4-interim/prcl-ccd-2014-ptdf-sp.gpkg'),
+                                 layer = 'prcl_ccd_ptdf_2014_sp',
+                                 verbose = FALSE,stringsAsFactors = FALSE)
+        }
+}
+
+
+# BACKUP VERSION
+# if(!exists('prcl_ccd_ptdf_2014_sp')){
+#         if(!file.exists(root_file('1-data/4-interim/prcl-ccd-2014-ptdf-sp.gpkg'))){
+#                 # Load the data spatial data
+#                 prcl_all_2014_sp <- readOGR(dsn = fp_2014,
+#                                             layer = 'parcel_area',
+#                                             verbose = FALSE,stringsAsFactors = FALSE)
+#                 # Write it as a geopackage
+#                 prcl_all_2014_sp %>% writeOGR(dsn = root_file('1-data/4-interim/over-size-limit/prcl-all-2014-sp.gpkg'),layer = 'prcl_all_2014_sp',driver = 'GPKG',verbose = FALSE)
+#                 
+#                 # Start a GRASS session
+#                 initGRASS('/usr/local/Cellar/grass-70/7.0.4/grass-7.0.4',home=tempdir())
+#                 
+#                 # Import the layer into the GRASS session             
+#                 
+#                 # execGRASS(cmd = 'g.remove',type = 'vector', name = 'prcl_all_2014_sp',flags = 'f')
+#                 
+#                 execGRASS(cmd = 'v.in.ogr', input = root_file('1-data/4-interim/over-size-limit/prcl-all-2014-sp.gpkg'),
+#                           snap = 1e-02,
+#                           flags = 'o')
+#                 
+#                 # Write a new copy (with the clean-up work performed by GRASS)
+#                 
+#                 execGRASS(cmd = 'v.out.ogr', input = 'prcl_all_2014_sp',
+#                           output = root_file('1-data/4-interim/over-size-limit/prcl-all-2014-cleaned-sp.gpkg'),
+#                           format = 'GPKG')
+#                 
+#                 # Read the data back in
+#                 
+#                 prcl_all_2014_sp <- readOGR(dsn = root_file('1-data/4-interim/over-size-limit/prcl-all-2014-sp.gpkg'),
+#                                             layer = 'prcl_all_2014_sp',
+#                                             verbose = FALSE,
+#                                             stringsAsFactors = FALSE)
+#                 
+#                 
+#                 # Collect the centroids of all the KC parcels (and transform their CRS to match the project CRS)
+#                 valids <- prcl_all_2014_sp[1:100,] %>% rgeos::gIsValid(byid = TRUE)
+#                 prcl_all_pt_2014_sp <- prcl_all_2014_sp %>% rgeos::gCentroid(byid = T) %>% spTransform(crs_proj)
+#                 
+#                 # WARNING: this produces the following error, 
+#                 # which indicates the presence of complex/invalid geometries:
+# # Error in TopologyFunc(spgeom, id, byid, "rgeos_getcentroid") : 
+# # IllegalArgumentException: Invalid number of points in LinearRing found 3 - must be 0 or >= 4
+#                 # STEP
+# 
+#                 prcl_all_2014_union <- 
+#                         prcl_all_2014_sp %>% 
+#                         gUnaryUnion()
+#                         
+#                 
+#                 
+#                 prcl_all_ptdf_2014_sp <- SpatialPointsDataFrame(coords = prcl_all_pt_2014_sp,data = as.data.frame(prcl_all_2014_sp@data),match.ID = FALSE)
+#                 
+#                 # Using the sp::over with Seattle subdivision of King County, WA (Seattle CCD)
+#                 
+#                 sea_ccd <- readOGR(dsn = root_file('1-data/4-interim/seattle_ccd.gpkg'),layer = "seattle",verbose = FALSE) %>% spTransform(crs_proj)
+# 
+#                 sea_ccd_poly <- SpatialPolygons(Srl = sea_ccd@polygons,proj4string = crs_proj) 
+#                 
+#                 pts_over <- prcl_all_pt_2014_sp %>% sp::over(sea_ccd_poly) 
+#                 
+#                 prcl_ccd_ptdf_2014_sp <- prcl_all_ptdf_2014_sp[which(!is.na(pts_over)),]
+#                 
+#                 # Save the data
+#                 
+#                 prcl_ccd_ptdf_2014_sp %>% 
+#                         writeOGR(dsn = root_file('1-data/4-interim/prcl-ccd-2014-ptdf-sp.gpkg'),
+#                                  layer = 'prcl_ccd_ptdf_2014_sp',driver = 'GPKG',
+#                                  verbose = FALSE,
+#                                  overwrite_layer = TRUE)
+#         }else{
+#                 prcl_ccd_ptdf_2014_sp <- readOGR(dsn = root_file('1-data/4-interim/prcl-ccd-2014-ptdf-sp.gpkg'),
+#                                  layer = 'prcl_ccd_ptdf_2014_sp',
+#                                  verbose = FALSE,stringsAsFactors = FALSE)
+#         }
+# }
+
+
+
+
+
+
+# It looks like 'rpacct_extr' has the appraised values
+if(!file.exists(root_file('./1-data/3-external/manual/over-size-limit/rpacct-extr-2015.csv'))){
+        # Note: this is a workaround method for converting tables in ESRI geodatabases into a file format that can be easily read into R
+        # source: http://stackoverflow.com/questions/36732055/rgdal-read-a-table-within-a-esri-geodatabase-gdb
+        # if `org2org` is not installed locally, users can download it here: https://trac.osgeo.org/gdal/wiki/DownloadSource
+
+system("cd ..; 
+       cd 3-external/manual/over-size-limit/; 
+       ogr2ogr -f CSV rpacct-extr-2015.csv Year2015.gdb rpacct_extr")
+}
+
+appr_2014_df <- read_csv(root_file('./1-data/3-external/manual/over-size-limit/rpacct-extr-2015.csv'), col_types = cols_only(PIN = 'c',BILLYR = 'i',APPRLANDVAL = 'i',APPRIMPSVAL = 'i'),progress = FALSE)
+
+# Clean up the duplicated records
+# 1. Isolate all duplicated PINs,
+#    remove any records where both value variables == 0, 
+#    then for each duplicated PIN select the record with
+#    the highest combined value
+
+fixed_dups_df <- 
+        appr_2014_df %>% 
+        miscgis::subset_duplicated(nm = 'PIN',notin = FALSE) %>% 
+        filter(APPRLANDVAL!=0 | APPRIMPSVAL!=0) %>% 
+        mutate(SUM = APPRLANDVAL + APPRIMPSVAL) %>% 
+        group_by(PIN) %>% 
+        arrange(desc(SUM)) %>% 
+        slice(1) %>% 
+        select(-SUM)
+
+# 2. Join the fixed duplicated data with the non-duplicated data
+
+appr_2014_df_fixed <- 
+        appr_2014_df %>% 
+        subset_duplicated('PIN',notin = TRUE) %>% 
+        bind_rows(fixed_dups_df)
+
+
+# It looks like 'parcel_extr' has the use types
+
+if(!file.exists(root_file('./1-data/3-external/manual/over-size-limit/parcel-extr-2015.csv'))){
+        # Note: this is a workaround method for converting tables in ESRI geodatabases into a file format that can be easily read into R
+        # source: http://stackoverflow.com/questions/36732055/rgdal-read-a-table-within-a-esri-geodatabase-gdb
+        # if `org2org` is not installed locally, users can download it here: https://trac.osgeo.org/gdal/wiki/DownloadSource
+
+system("cd ..; 
+       cd 3-external/manual/over-size-limit/; 
+       ogr2ogr -f CSV parcel-extr-2015.csv Year2015.gdb parcel_extr")
+}
+
+
+# Remove duplicate records and merge the metadata
+
+if(!file.exists(root_file('1-data/4-interim/prcl-ccd-2014-ptdf-rev-sp.gpkg'))){
+
+        prcl_2014_df <- read_csv(file = root_file('./1-data/3-external/manual/over-size-limit/parcel-extr-2015.csv'),
+                         col_types = cols_only(PIN = 'c',PROPTYPE = 'c'),progress = FALSE)
+
+# It appears that there are no duplicated PINs in the `parcel_extr` dataset
+
+   prcl_2014_df %>% subset_duplicated('PIN') %>% nrow()==0     
+# [1] TRUE
+
+# Join dataframes, retaining all records from the revised arraised values data
+# that have matching PINs in the parcel data
+
+# It appears that there are 593,892 records in the parcel dataset 
+# with matching PINs in the value data
+appr_2014_df_fixed[["PIN"]] %in% prcl_2014_df[["PIN"]] %>% which %>% length
+# [1] 593892
+
+# Join the parcel metadata to the geospatial data, removing incomplete records
+
+prcl_meta_df <- 
+        prcl_2014_df %>% 
+        inner_join(appr_2014_df_fixed, by = "PIN")
+
+# Check for duplicate PINs in the geospatial metadata
+
+prcl_ccd_ptdf_2014_sp@data %>% subset_duplicated('PIN') %>% nrow()==0
+# [1] FALSE
+
+# It appears that there are 5803 duplicate records
+prcl_ccd_ptdf_2014_sp@data %>% subset_duplicated('PIN') %>% nrow()
+# [1] 5803
+
+fixed_dups_df <- 
+        prcl_ccd_ptdf_2014_sp@data %>% 
+        subset_duplicated('PIN') %>% 
+        arrange(PIN) %>% 
+        select(PIN,AREA,PARCEL_ID) %>%
+        filter(nchar(PIN) == 10)  %>% 
+        group_by(PIN) %>% 
+        arrange(desc(AREA)) %>% 
+        slice(1) %>% 
+        select(PIN,PARCEL_ID)
+
+prcl_ccd_2014_df_fixed <- 
+        prcl_ccd_ptdf_2014_sp@data %>% 
+        select(PIN,PARCEL_ID) %>% 
+        subset_duplicated('PIN',notin = TRUE) %>% 
+        bind_rows(fixed_dups_df)
+
+p_sp <- prcl_ccd_ptdf_2014_sp 
+p_fix_df <- prcl_ccd_2014_df_fixed
+
+pins_final <- 
+        p_sp@data['PIN'] %>% 
+        inner_join(prcl_2014_df['PIN'], by = 'PIN') %>% 
+        inner_join(appr_2014_df['PIN'], by = 'PIN') %>% 
+        unlist %>% unique()
+
+p_fix_sp <- p_sp[p_sp$PARCEL_ID %in% p_fix_df$PARCEL_ID & 
+                         p_sp$PIN %in% pins_final,
+                 "PIN"]
+proj4string(p_fix_sp) <- proj4string(prcl_ccd_ptdf_2014_sp)
+p_fix_sp@data$ID <- 1:nrow(p_fix_sp@data)
+
+join_tmp <-  
+        p_fix_sp@data %>%
+        as.data.frame() %>% 
+        inner_join(prcl_2014_df, by = "PIN") %>% 
+        inner_join(appr_2014_df[,-2], by = "PIN") 
+
+dup_to_keep <-
+        join_tmp %>%
+        subset_duplicated('PIN') %>% 
+        filter(APPRLANDVAL!=0 | APPRIMPSVAL!=0) %>% 
+        mutate(SUM = APPRLANDVAL + APPRIMPSVAL) %>% 
+        group_by(PIN) %>% 
+        arrange(desc(SUM)) %>% 
+        slice(1) %>%
+        ungroup %>% 
+        select(-SUM)
+
+fixed_df <- 
+        join_tmp %>% 
+        filter(ID %!in% dup_to_keep$ID) %>%
+        bind_rows(dup_to_keep) %>% 
+        arrange(ID)
+
+p_fix_sort_sp <- p_fix_sp[sort(p_fix_sp$ID),]
+
+fixed_sp <- SpatialPointsDataFrame(coords = p_fix_sort_sp@coords,
+                                   data = fixed_df,
+                                   match.ID = FALSE,
+                                   proj4string = CRS(prcl_ccd_ptdf_2014_sp@proj4string@projargs))
+
+
+# Save the SpatialPointsDataFrame with the merged metadata
+
+fixed_sp %>% 
+        writeOGR(dsn = root_file('1-data/4-interim/prcl-ccd-2014-ptdf-rev-sp.gpkg'),
+                 layer = 'fixed_sp',
+                 driver = 'GPKG',
+                 verbose = FALSE)
+}
+
+# Overlay the parcels with the tracts
+if(!file.exists(root_file('1-data/4-interim/prcl-ccd-2014-tr-sp.gpkg'))){
+        # Seattle CCD tracts
+        if(!exists('tr_ccd_sp')){
+                tr_ccd_sp <- readOGR(dsn = root_file('1-data/4-interim/tr-ccd-sp.gpkg'),
+                                     layer = 'tr_ccd_sp',
+                                     verbose = FALSE)
+        }
+        
+        # Load the Seattle CCD parcel spdf
+        
+if(!exists('prcl_ccd_2014_ptdf_rev_sp')){
+        prcl_ccd_2014_ptdf_rev_sp <- readOGR(
+                dsn = root_file('1-data/4-interim/prcl-ccd-2014-ptdf-rev-sp.gpkg'),
+                layer = 'fixed_sp',
+                verbose = FALSE,
+                stringsAsFactors = FALSE) %>% spTransform(crs_proj)
+}        
+        
+        # Trim the data to just the GEOID variable
+        tr_ccd_geoid_sp <-  tr_ccd_sp[,'GEOID'] %>% 
+                spTransform(crs_proj)
+        
+        # Extract the census tract GEOID using a spatial overlay
+        prcl_ccd_2014_tr_sp <- SpatialPointsDataFrame(prcl_ccd_2014_ptdf_rev_sp@coords,
+                                                 cbind(prcl_ccd_2014_ptdf_rev_sp@data,
+                                                      sp::over(prcl_ccd_2014_ptdf_rev_sp,tr_ccd_geoid_sp)))
+        prcl_ccd_tr_sp@data %<>% 
+                mutate(GEOID = as.character(GEOID)) %>% 
+                select(GEOID,everything())
+        
+        writeOGR(obj = prcl_ccd_2014_tr_sp,
+                 dsn = root_file('1-data/4-interim/prcl-ccd-2014-tr-sp.gpkg'),
+                 layer = 'prcl_ccd_2014_tr_sp',
+                 driver = 'GPKG',
+                 verbose = FALSE,
+                 overwrite_layer = TRUE)
+}
+
+```
+
+
+```{r kc-parcels-2009, eval=FALSE}
+
+# Read in original parcel data  -------
+# Figure out which featureclass to load
+
+fp_2009 <- root_file('1-data/3-external/manual/over-size-limit/Year2010.gdb/')
+
+layers <- ogrListLayers(fp_2009)
+
+layers[1:length(layers)]
+
+
+```
+

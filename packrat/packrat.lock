@@ -111,6 +111,16 @@ Version: 1.17.1
 Hash: 97cb6f6293cd18d17df77a6383cc6763
 Requires: bitops
 
+Package: cleangeo
+Source: github
+Version: 0.2-1
+Hash: 10f7fe61d02f78195c509c0dc5c7c589
+Requires: maptools, rgeos, sp
+GithubRepo: cleangeo
+GithubUsername: eblondel
+GithubRef: master
+GithubSha1: 4e12860a807fd095cc9f5b3e2a409fc0a84f8ee1
+
 Package: colorspace
 Source: CRAN
 Version: 1.2-6
@@ -296,14 +306,14 @@ Hash: 3d6e7608e65bbf5cb170dab1e3c9ed8b
 
 Package: leaflet
 Source: github
-Version: 1.0.2.9000
-Hash: 4fbb8998ab076e1f9580e8ffd4ae7b97
+Version: 1.0.2.9003
+Hash: 55202a132f86a2b6a0b27147e8d51fb7
 Requires: RColorBrewer, base64enc, htmltools, htmlwidgets, magrittr,
     markdown, png, raster, scales, sp
 GithubRepo: leaflet
 GithubUsername: rstudio
 GithubRef: master
-GithubSha1: 4370acec91addbf5a54099c09a278cc47590de17
+GithubSha1: fc22f962224965c1e9a33b04b2eeaf8d219d3c59
 
 Package: lubridate
 Source: CRAN
@@ -359,12 +369,13 @@ Requires: htmltools, shiny
 Package: miscgis
 Source: github
 Version: 0.1.1
-Hash: d1af3611a133481e59fb9619050222e4
-Requires: dplyr, leaflet, miniUI, shinydashboard, sp, tigris
+Hash: 00dad215b06417d8fe8fe4224c9e7e76
+Requires: dplyr, leaflet, miniUI, operator.tools, shinydashboard, sp,
+    tigris
 GithubRepo: miscgis
 GithubUsername: tiernanmartin
 GithubRef: master
-GithubSha1: fa4dc397b6c54babd6750893ede28409d7cdc97d
+GithubSha1: be29ce0be911808c0d4a1609ae3dc739a5349b5c
 
 Package: mnormt
 Source: CRAN
@@ -387,6 +398,11 @@ Package: openssl
 Source: CRAN
 Version: 0.9.4
 Hash: 5ceb5d83bba44e8e5a764ac6ad32e9fb
+
+Package: operator.tools
+Source: CRAN
+Version: 1.4.4
+Hash: a436bd9e655cb29a8d6fd7e3509dbd97
 
 Package: packrat
 Source: CRAN
@@ -468,9 +484,15 @@ Requires: sp
 
 Package: rgeos
 Source: CRAN
-Version: 0.3-20
-Hash: 7417d1ed8568664c79fbe987f5745805
+Version: 0.3-21
+Hash: d34cb398be8b8c4936c8afe99f1cea80
 Requires: sp
+
+Package: rgrass7
+Source: CRAN
+Version: 0.1-9
+Hash: 5396855b2e21c1abbe8c85fa6812e49b
+Requires: XML, sp
 
 Package: rjson
 Source: CRAN
@@ -478,15 +500,11 @@ Version: 0.2.15
 Hash: def074f38d0cff3b597649ee6f976128
 
 Package: rmarkdown
-Source: github
-Version: 1.0.9016
-Hash: fb28c91ac1ec6c7f249b88a1938dc6c8
+Source: CRAN
+Version: 1.1
+Hash: d0e9f583d85019c99a171b094979fcb3
 Requires: base64enc, caTools, evaluate, htmltools, jsonlite, knitr,
     tibble, yaml
-GithubRepo: rmarkdown
-GithubUsername: rstudio
-GithubRef: master
-GithubSha1: c8489eb83b7afcd2c0a9f18d883d59d1fd2163e8
 
 Package: rprojroot
 Source: github

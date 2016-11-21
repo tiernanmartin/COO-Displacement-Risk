@@ -1,15 +1,15 @@
 ---
-always_allow_html: yes
 df_print: tibble
 output:
   html_notebook:
     code_folding: hide
-  html_document: default
   pdf_document:
     keep_tex: yes
+always_allow_html: yes
 ---
 
-```{r kc-parcels-setup, echo = FALSE, warning=FALSE,message=FALSE}
+```{r kc-parcels-setup, echo = FALSE, warning=FALSE,message=FALSE,comment=FALSE}
+library(plyr)
 library(knitr)
 library(rprojroot)
 library(tidyverse)
@@ -21,11 +21,20 @@ library(tigris)
 library(leaflet)
 library(ggthemes)
 library(magrittr)
+library(stringr)
 library(downloader)
+library(webshot)
+library(htmltools)
+library(gplots)
+library(ggmap)
+library(shiny)
+library(htmlwidgets)
+library(readxl)
+library(acs)
+library(RColorBrewer)
 root <- rprojroot::is_rstudio_project
 root_file <- root$make_fix_file()
-opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment = FALSE)
-options("readr.num_columns" = 0)
+opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
 ```
 
 ### Introduction
@@ -68,7 +77,7 @@ prcl_all_df <-
 
 colnames(prcl_all_df) %<>% toupper() 
 
-# Parcels (sp): 2012
+# Parcels (sp): most recent (August, 2016)
 
 if(!file.exists(root_file('1-data/3-external/parcel/parcel.shp'))){
         url <- 'ftp://ftp.kingcounty.gov/gis-web/web/GISData/parcel_SHP.zip' # direct URL to the file download
