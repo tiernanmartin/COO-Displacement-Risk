@@ -27,13 +27,18 @@ library(miscgis)
 library(sf)
 root <- rprojroot::is_rstudio_project
 root_file <- root$make_fix_file()
-opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
+```
+
+```{r misc-colors}
 green <- miscgis::miscgis_pals$tableau_cat[["green"]]
 blue <- miscgis::miscgis_pals$tableau_cat[["blue"]]
 orange <- miscgis::miscgis_pals$tableau_cat[["orange"]]
 red <- miscgis::miscgis_pals$tableau_cat[["red"]]
 teal <- miscgis::miscgis_pals$tableau_cat[["teal"]]
-pal_rgb_4 <- miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
 ```
 
 ###Seattle Boundary
@@ -83,10 +88,10 @@ myLfltGrey(data = as(sea_ccd_sf,'Spatial')) %>% addPolygons(color = orange,opaci
 
 In the absence of a straight-forward method for identifying all the census tracts in the Seattle CCD subdivision of King County, it is possible to extract this information from [American Factfinder](https://factfinder.census.gov/faces/nav/jsf/pages/index.xhtml). This [tutorial](https://ask.census.gov/faq.php?id=5000&faqId=1605) describes how to use the American Factfinder interface to extract a list of all "all tracts within (or partially within) a census place"; substituting "county subdivision" for "place" will retrieve the desired results.
 
-```{r misc-tracts-ccd}
+```{r misc-tracts-ccd-wtr}
 
 
-if(!file.exists(root_file('1-data/4-interim/tr-ccd-sf.rds'))){
+if(!file.exists(root_file('1-data/4-interim/tr-ccd-wtr-sf.rds'))){
         tr_ccd_geoid <- 
                 read_csv(
                         root_file('1-data/3-external/manual/seattle-ccd/ACS_12_5YR_B01001/ACS_12_5YR_B01001_with_ann.csv'), 
@@ -110,14 +115,14 @@ if(!file.exists(root_file('1-data/4-interim/tr-ccd-sf.rds'))){
 subset(tr, GEOID %in% tr_ccd_geoid) %>% 
         st_as_sf %>% 
         miscgis::coerce_to_geom(st_multipolygon) %>% 
-        write_rds(root_file('1-data/4-interim/tr-ccd-sf.rds'))
+        write_rds(root_file('1-data/4-interim/tr-ccd-wtr-sf.rds'))
 }
 
-tr_ccd_sf <- read_rds(root_file('1-data/4-interim/tr-ccd-sf.rds'))
+tr_ccd_wtr_sf <- read_rds(root_file('1-data/4-interim/tr-ccd-wtr-sf.rds'))
 
 show_tr_ccd_sf <- function(){
         myLfltGrey() %>% 
-        addPolygons(data = as(tr_ccd_sf,"Spatial"),weight = .5,color = blue,opacity = 1,fillColor = blue,fillOpacity = .5) %>% 
+        addPolygons(data = as(tr_ccd_wtr_sf,"Spatial"),weight = .5,color = blue,opacity = 1,fillColor = blue,fillOpacity = .5) %>% 
         addPolygons(data = as(sea_ccd_sf,"Spatial"),color = orange,opacity = 1,fillOpacity = 0)
 }
 # show_tr_ccd_sf()
@@ -129,7 +134,7 @@ These are useful for "clipping" census geographies whose boundaries extend into 
 
 ```{r misc-wtr, fig.cap="Puget Sound waterbodies"}
 
-if(!file.exists(root_file('1-data/4-interim/wtr_sf.rds'))){
+if(!file.exists(root_file('1-data/4-interim/wtr-sf.rds'))){
         fp_wtr <- root_file('1-data/3-external/NHDMajor.gdb')
 
 # check if the file already exists, if not then download it
@@ -158,10 +163,12 @@ wtr_sf %>%
         st_intersects(x = sea_ccd_sf,y = .) %>% 
         unlist(use.names = F) %>% 
         wtr_sf[.,] %>% 
-        write_rds(root_file('1-data/4-interim/wtr_sf.rds'))
+        st_union %>% 
+        st_intersection(st_union(sea_ccd_sf)) %>% 
+        write_rds(root_file('1-data/4-interim/wtr-sf.rds'))
 }
 
-wtr_sf <- read_rds(root_file('1-data/4-interim/wtr_sf.rds'))
+wtr_sf <- read_rds(root_file('1-data/4-interim/wtr-sf.rds'))
 
 show_wtr <- function(){
         myLfltGrey(data = as(wtr_sf,'Spatial')) %>% 
@@ -172,3 +179,30 @@ show_wtr <- function(){
 show_wtr()
 
 ```
+
+### Tracts in Seattle CCD Without Waterbodies
+```{r misc-tracts-ccd-no-wtr}
+
+if(!file.exists(root_file('1-data/4-interim/tr-ccd-sf.rds'))){
+        tr_ccd_sf %>% 
+                filter(TRACTCE %!in% '990100') %>% # remove the Puget Sound tract
+                mutate(geometry = st_difference(geometry,st_union(wtr_sf))) %>% 
+                coerce_to_geom(st_multipolygon) %>% 
+                write_rds(root_file('1-data/4-interim/tr-ccd-sf.rds'))
+}
+
+tr_ccd_sf <- read_rds(root_file('1-data/4-interim/tr-ccd-sf.rds'))
+
+show_tr_ccd <- function(){
+       tr_ccd_sf %>% 
+        as("Spatial") %>% 
+        myLfltGrey() %>% 
+        addPolygons() 
+}
+
+show_tr_ccd()
+
+
+
+```
+

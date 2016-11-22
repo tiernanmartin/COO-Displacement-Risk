@@ -1,0 +1,314 @@
+---
+df_print: tibble
+output:
+  html_notebook:
+    default
+  pdf_document:
+    keep_tex: yes
+always_allow_html: yes
+---
+
+```{r census-geos-setup, echo = FALSE, warning=FALSE,message=FALSE,comment=FALSE}
+library(plyr)
+library(knitr)
+library(rprojroot)
+library(rgdal)
+library(sp)
+library(rgeos)
+library(tigris)
+library(leaflet)
+library(ggthemes)
+library(magrittr)
+library(stringr)
+library(downloader)
+library(webshot)
+library(htmltools)
+library(gplots)
+library(ggmap)
+library(shiny)
+library(htmlwidgets)
+library(readxl)
+library(acs)
+library(RColorBrewer)
+library(tidyverse)
+library(miscgis)
+library(operator.tools)
+library(sf)
+root <- rprojroot::is_rstudio_project
+root_file <- root$make_fix_file()
+opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE, comment=FALSE)
+
+```
+
+```{r census-geos-colors}
+green <- miscgis::miscgis_pals$tableau_cat[["green"]]
+blue <- miscgis::miscgis_pals$tableau_cat[["blue"]]
+orange <- miscgis::miscgis_pals$tableau_cat[["orange"]]
+red <- miscgis::miscgis_pals$tableau_cat[["red"]]
+teal <- miscgis::miscgis_pals$tableau_cat[["teal"]]
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+```
+
+### Introduction
+The primary geographic unit of this assessment is the [census tract](https://www.census.gov/geo/reference/gtc/gtc_ct.html). As is the case with many communities, the census geographies do not coincide exactly with the formal geographic boundary of the study's three sites, and should be considered as _spatial approximations_ of these communities.
+
+Listed below are the geographic identifiers of the census tracts that approximate each site.
+
+
+```{r census-geos-intro, results="asis"}
+
+# Rainier Valley
+rv <- c("53033010001", "53033010300", "53033010401", "53033011001", "53033011002", "53033011101","53033011102", "53033011700", "53033011800", "53033011900")
+
+# White Center
+wc <- c("53033026600","53033026700","53033026500","53033026801","53033026802","53033027000")
+
+# SeaTac/Tukwila
+
+stc_hus <- read_csv(root_file('1-data/3-external/manual/seatac-tr/DEC_10_SF1_H1/DEC_10_SF1_H1_with_ann.csv'), 
+                    col_types = cols(Id2 = col_character()), skip = 1)
+
+tuk_hus <- read_csv(root_file('1-data/3-external/manual/tukwila-tr/DEC_10_SF1_H1/DEC_10_SF1_H1_with_ann.csv'), 
+    col_types = cols(Id2 = col_character()), 
+    skip = 1)
+
+stc <-  paste(substr(x = stc_hus$Id2,1,2),substr(x = stc_hus$Id2,8,16),sep = "")
+
+tuk <-  paste(substr(x = tuk_hus$Id2,1,2),substr(x = tuk_hus$Id2,8,16),sep = "")
+
+stctuk <- c(stc,tuk)
+
+coo <- c(rv,wc,stctuk)
+
+df <- miscgis::cbind_fill(rv,wc,stctuk) %>% 
+        as_tibble() %>% 
+        `colnames<-`(c("Rainier Valley",
+                       "White Center",
+                       "SeaTac/Tukwila"))
+
+knitr::kable(df,caption = "Census Tract GEOIDs")
+```
+
+```{r census-geos-ycc-nhoods}
+
+if(!file.exists(root_file('1-data/4-interim/coo-geos-sf.rds'))){
+        
+        tr_ccd_coo_sf <- 
+                read_rds(root_file('1-data/4-interim/tr-ccd-sf.rds')) %>% 
+                mutate(NAME_FULL = case_when(.$GEOID %in% rv ~ 'Rainier Valley',
+                                             .$GEOID %in% wc ~ 'White Center',
+                                             .$GEOID %in% stctuk ~ 'SeaTac/Tukwila',
+                                             .$GEOID %!in% coo ~ NA_character_),
+                       NAME = case_when(.$GEOID %in% rv ~ 'RV',
+                                             .$GEOID %in% wc ~ 'WC',
+                                             .$GEOID %in% stctuk ~ 'STKW',
+                                             .$GEOID %!in% coo ~ NA_character_)) %>%
+                select(NAME,NAME_FULL,GEOID,GEOID6 = TRACTCE,geometry)
+        
+        
+        # Tract-communities:
+        # dissolve YCC tracts by Community, join to the tract data, 
+        # record the geography type in a variable to make it easy
+        # to split the dataset later.
+        
+        tr_ccd_coo_sf <- 
+                tr_ccd_coo_sf %>% 
+                filter(!is.na(NAME)) %>% 
+                group_by(NAME) %>% 
+                summarise_all(first) %>% 
+                mutate(GEOID = NA_character_,
+                       GEOID6 = NA_character_) %>% 
+                rbind(tr_ccd_coo_sf) %>% 
+                mutate(GEOGRAPHY = ifelse(is.na(GEOID),
+                                          'community',
+                                          'tract')) %>% 
+                miscgis::coerce_to_geom(st_multipolygon) %>% 
+                select(everything(),geometry) %>% 
+                st_set_crs(st_crs(tr_ccd_coo_sf))
+        
+        # COO Communities (Combined)
+        
+        coo_sf <- 
+                tr_ccd_coo_sf %>% 
+                filter(GEOGRAPHY == 'community') %>% 
+                mutate(GRP = 1) %>% 
+                group_by(GRP) %>% 
+                summarise_all(first) %>% 
+                select(-GRP) %>% 
+                mutate(NAME = 'COO',
+                       NAME_FULL = 'COO Communities (combined)',
+                       GEOGRAPHY = 'communities (multiple)') %>% 
+                miscgis::coerce_to_geom(st_multipolygon)
+        
+        # Seattle CCD
+        
+        sea_ccd_sf <-  
+                tr_ccd_coo_sf %>% 
+                filter(GEOGRAPHY == 'tract') %>% 
+                mutate(GRP = 1) %>% 
+                group_by(GRP) %>% 
+                summarise_all(first) %>% 
+                select(-GRP) %>% 
+                mutate(NAME = 'SEACCD',
+                       NAME_FULL = 'Seattle CCD',
+                       GEOGRAPHY = 'county subdivision',
+                       GEOID = NA_character_,
+                       GEOID6 = NA_character_) %>% 
+                miscgis::coerce_to_geom(st_multipolygon)
+        
+        
+        coo_geos_sf <- 
+                rbind(tr_ccd_coo_sf,coo_sf) %>% 
+                rbind(sea_ccd_sf) %>% 
+                mutate(JOIN_ID = ifelse(is.na(GEOID6),NAME,GEOID6),
+                       NAME_FCT = factor(NAME,
+                                              levels = c('RV',
+                                                         'WC',
+                                                         'STKW',
+                                                         'COO',
+                                                         'SEACCD'),
+                                              ordered = TRUE),
+                       NAME_FULL_FCT = factor(NAME_FULL,
+                                              levels = c('Rainier Valley',
+                                                         'White Center',
+                                                         'SeaTac/Tukwila',
+                                                         'COO Communities (combined)',
+                                                         'Seattle CCD'),
+                                              ordered = TRUE),
+                       NAME_FULL_FCT_COMMS = factor(NAME_FULL,
+                                 levels = c('Rainier Valley',
+                                                         'White Center',
+                                                         'SeaTac/Tukwila'),
+                                 ordered = TRUE)) %>% 
+                st_set_crs(st_crs(tr_ccd_coo_sf))
+        
+        coo_geos_sf %>%
+                write_rds(root_file('1-data/4-interim/coo-geos-sf.rds'))
+                
+        
+}
+
+# Read in the data
+
+coo_geos_sf <- 
+        read_rds(root_file('1-data/4-interim/coo-geos-sf.rds'))
+
+```
+
+```{r census-geos-ycc-summary, echo=TRUE}
+
+# Print a summary (first 4 records of each geography type)
+coo_geos_sf %>% 
+        group_by(GEOGRAPHY) %>% 
+        slice(1:3) %>% 
+        arrange(GEOGRAPHY,NAME) 
+```
+
+### Maps
+#### Seattle CCD Tracts
+```{r census-geos-tr-map}
+
+show_tr_ccd <- function(){
+       
+        coo_geos_sf %>% 
+                filter(GEOGRAPHY %in% 'tract') %>% 
+                as("Spatial") %>% 
+                myLfltGrey() %>% 
+                addPolygons() 
+}
+
+# show_tr_ccd()
+
+
+```
+
+#### COO Tract-Communities
+```{r census-geos-coo-map, fig.height=1.25, fig.width=1,  fig.show='hold', dpi=150,fig.cap='Rainier Valley, White Center, and SeaTac/Tukwila'}
+
+# Map Center
+
+cntr <- coo_geos_sf %>% 
+        filter(GEOGRAPHY %in% 'communities (multiple)') %>% 
+        st_centroid() %>% st_bbox()
+lng <- cntr[['xmin']]
+lat <- cntr[['ymin']]
+        
+        
+# Individiaul Maps
+
+
+rv_sf <- 
+        coo_geos_sf %>% 
+        filter(GEOGRAPHY %in% 'tract' & NAME %in% 'RV')
+
+wc_sf <- 
+        coo_geos_sf %>% 
+        filter(GEOGRAPHY %in% 'tract' & NAME %in% 'WC')
+
+stkw_sf <- 
+        coo_geos_sf %>% 
+        filter(GEOGRAPHY %in% 'tract' & NAME %in% 'STKW')
+
+
+# Rainier Valley
+        
+rv_map <- 
+        rv_sf %>% 
+        as("Spatial") %>% 
+        miscgis::myLfltGrey() %>%
+        addPolygons(smoothFactor = 0,
+                    color = col2hex("white"),
+                    weight = .5,
+                    opacity = 1,
+                    fillColor = blue,
+                    fillOpacity = .65
+        ) %>% 
+        setView(lng,lat,zoom = 9) %>% 
+        miscgis::styleWidget(style = "float:left;margin:1px")
+
+
+
+# White Center
+
+wc_map <- 
+        wc_sf %>% 
+        as("Spatial") %>% 
+        miscgis::myLfltGrey() %>%
+        addPolygons(smoothFactor = 0,
+                    color = col2hex("white"),
+                    weight = .5,
+                    opacity = 1,
+                    fillColor = green,
+                    fillOpacity = .65
+        ) %>% 
+        setView(lng,lat,zoom = 9) %>% 
+        miscgis::styleWidget(style = "float:left;margin:1px")
+
+# SeaTac/Tukwila
+
+stkw_map <- 
+        stkw_sf %>% 
+        as("Spatial") %>% 
+        miscgis::myLfltGrey() %>%
+        addPolygons(smoothFactor = 0,
+                    color = col2hex("white"),
+                    weight = .5,
+                    opacity = 1,
+                    fillColor = red,
+                    fillOpacity = .65
+        ) %>% 
+        setView(lng,lat,zoom = 9) %>% 
+        miscgis::styleWidget(style = "float:left;margin:1px")
+
+rv_map
+
+wc_map
+
+stkw_map
+       
+
+```
+

@@ -33,8 +33,8 @@ Requires: base64enc
 
 Package: R6
 Source: CRAN
-Version: 2.1.3
-Hash: 1a8313c9df76d2a06aa27c13a4a71c73
+Version: 2.2.0
+Hash: 712773a3439bd32db5c40938e1a9aac2
 
 Package: RColorBrewer
 Source: CRAN
@@ -315,6 +315,16 @@ GithubUsername: rstudio
 GithubRef: master
 GithubSha1: fab5e1784ab6ddeca8c42710f3b47213d9ea44db
 
+Package: leaflet.extras
+Source: github
+Version: 0.1.9
+Hash: 1eb7c6afe9a41eff1ac36ce2e782e6e6
+Requires: htmltools, htmlwidgets, leaflet, magrittr, shiny
+GithubRepo: leaflet.extras
+GithubUsername: bhaskarvk
+GithubRef: master
+GithubSha1: 0bd72ffa535016531418c98408c34ac65bbdfea5
+
 Package: lubridate
 Source: CRAN
 Version: 1.6.0
@@ -369,13 +379,13 @@ Requires: htmltools, shiny
 Package: miscgis
 Source: github
 Version: 0.1.2
-Hash: f5c813d5b79872668ec78f831d9d49c0
+Hash: 00759a0c85401843db1f7f27da9bf7f5
 Requires: dplyr, leaflet, miniUI, operator.tools, sf, shinydashboard,
     sp, tigris
 GithubRepo: miscgis
 GithubUsername: tiernanmartin
 GithubRef: master
-GithubSha1: d63f379f93500d3007d544046bdccd7496567edc
+GithubSha1: caa6ecd80b17262623eba52881297b408ca91326
 
 Package: mnormt
 Source: CRAN
@@ -563,17 +573,17 @@ Requires: httpuv, jsonlite, mime
 Package: sf
 Source: github
 Version: 0.2-4
-Hash: 59b983a740436e1d11f750b023e03d7b
+Hash: cc61799d749ea6636b1459e2e019eaf6
 Requires: DBI, Rcpp
 GithubRepo: sfr
 GithubUsername: edzer
 GithubRef: master
-GithubSha1: 3372abdd7962926c01c61a90140351934d8608ea
+GithubSha1: 587cbc7dfc46aaec0f7a8e2cf865524967e56b53
 
 Package: shiny
 Source: CRAN
-Version: 0.14
-Hash: 695d82a6a0bc88b7fe693c968450f9ca
+Version: 0.14.2
+Hash: b3151540f7d02b2b455bbc1c4d75f5e2
 Requires: R6, digest, htmltools, httpuv, jsonlite, mime, sourcetools,
     xtable
 
@@ -639,6 +649,11 @@ Package: uuid
 Source: CRAN
 Version: 0.1-2
 Hash: 69acbbcf4dcff3a258f94de540214001
+
+Package: viridisLite
+Source: CRAN
+Version: 0.1.3
+Hash: d16a33135b1f4c8818b8cd569da3913f
 
 Package: webshot
 Source: github
