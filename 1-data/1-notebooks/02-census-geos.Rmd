@@ -53,6 +53,9 @@ pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","or
 ```
 
 ### Introduction
+Put something here.
+
+####Commmunities and Census Tracts
 The primary geographic unit of this assessment is the [census tract](https://www.census.gov/geo/reference/gtc/gtc_ct.html). As is the case with many communities, the census geographies do not coincide exactly with the formal geographic boundary of the study's three sites, and should be considered as _spatial approximations_ of these communities.
 
 Listed below are the geographic identifiers of the census tracts that approximate each site.
@@ -96,8 +99,8 @@ knitr::kable(df,caption = "Census Tract GEOIDs")
 
 if(!file.exists(root_file('1-data/4-interim/coo-geos-sf.rds'))){
         
-        tr_ccd_coo_sf <- 
-                read_rds(root_file('1-data/4-interim/tr-ccd-sf.rds')) %>% 
+        tr_kc_coo_sf <- 
+                read_rds(root_file('1-data/4-interim/tr-kc-sf.rds')) %>% 
                 mutate(NAME_FULL = case_when(.$GEOID %in% rv ~ 'Rainier Valley',
                                              .$GEOID %in% wc ~ 'White Center',
                                              .$GEOID %in% stctuk ~ 'SeaTac/Tukwila',
@@ -106,33 +109,34 @@ if(!file.exists(root_file('1-data/4-interim/coo-geos-sf.rds'))){
                                              .$GEOID %in% wc ~ 'WC',
                                              .$GEOID %in% stctuk ~ 'STKW',
                                              .$GEOID %!in% coo ~ NA_character_)) %>%
-                select(NAME,NAME_FULL,GEOID,GEOID6 = TRACTCE,geometry)
+                select(NAME,NAME_FULL,GEOID,GEOID6 = TRACTCE,SEACCD_LGL,geometry)
         
         
         # Tract-communities:
-        # dissolve YCC tracts by Community, join to the tract data, 
+        # dissolve COO tracts by Community, join to the tract data, 
         # record the geography type in a variable to make it easy
         # to split the dataset later.
         
-        tr_ccd_coo_sf <- 
-                tr_ccd_coo_sf %>% 
+        tr_kc_coo_sf <- 
+                tr_kc_coo_sf %>% 
                 filter(!is.na(NAME)) %>% 
                 group_by(NAME) %>% 
                 summarise_all(first) %>% 
                 mutate(GEOID = NA_character_,
-                       GEOID6 = NA_character_) %>% 
-                rbind(tr_ccd_coo_sf) %>% 
+                       GEOID6 = NA_character_,
+                       SEACCD_LGL = TRUE) %>% 
+                rbind(tr_kc_coo_sf) %>% 
                 mutate(GEOGRAPHY = ifelse(is.na(GEOID),
                                           'community',
                                           'tract')) %>% 
                 miscgis::coerce_to_geom(st_multipolygon) %>% 
                 select(everything(),geometry) %>% 
-                st_set_crs(st_crs(tr_ccd_coo_sf))
+                st_set_crs(st_crs(tr_kc_coo_sf))
         
         # COO Communities (Combined)
         
         coo_sf <- 
-                tr_ccd_coo_sf %>% 
+                tr_kc_coo_sf %>% 
                 filter(GEOGRAPHY == 'community') %>% 
                 mutate(GRP = 1) %>% 
                 group_by(GRP) %>% 
@@ -140,28 +144,32 @@ if(!file.exists(root_file('1-data/4-interim/coo-geos-sf.rds'))){
                 select(-GRP) %>% 
                 mutate(NAME = 'COO',
                        NAME_FULL = 'COO Communities (combined)',
-                       GEOGRAPHY = 'communities (multiple)') %>% 
+                       GEOGRAPHY = 'communities (multiple)',
+                       GEOID = NA_character_,
+                       GEOID6 = NA_character_,
+                       SEACCD_LGL = TRUE) %>% 
                 miscgis::coerce_to_geom(st_multipolygon)
         
         # Seattle CCD
         
-        sea_ccd_sf <-  
-                tr_ccd_coo_sf %>% 
-                filter(GEOGRAPHY == 'tract') %>% 
-                mutate(GRP = 1) %>% 
-                group_by(GRP) %>% 
-                summarise_all(first) %>% 
-                select(-GRP) %>% 
+        sea_ccd_sf <-
+                tr_kc_coo_sf %>%
+                filter(GEOGRAPHY == 'tract' & SEACCD_LGL) %>%
+                mutate(GRP = 1) %>%
+                group_by(GRP) %>%
+                summarise_all(first) %>%
+                select(-GRP) %>%
                 mutate(NAME = 'SEACCD',
                        NAME_FULL = 'Seattle CCD',
                        GEOGRAPHY = 'county subdivision',
                        GEOID = NA_character_,
-                       GEOID6 = NA_character_) %>% 
+                       GEOID6 = NA_character_,
+                       SEACCD_LGL = TRUE) %>%
                 miscgis::coerce_to_geom(st_multipolygon)
         
         
         coo_geos_sf <- 
-                rbind(tr_ccd_coo_sf,coo_sf) %>% 
+                rbind(tr_kc_coo_sf,coo_sf) %>% 
                 rbind(sea_ccd_sf) %>% 
                 mutate(JOIN_ID = ifelse(is.na(GEOID6),NAME,GEOID6),
                        NAME_FCT = factor(NAME,
@@ -183,7 +191,7 @@ if(!file.exists(root_file('1-data/4-interim/coo-geos-sf.rds'))){
                                                          'White Center',
                                                          'SeaTac/Tukwila'),
                                  ordered = TRUE)) %>% 
-                st_set_crs(st_crs(tr_ccd_coo_sf))
+                st_set_crs(st_crs(tr_kc_coo_sf))
         
         coo_geos_sf %>%
                 write_rds(root_file('1-data/4-interim/coo-geos-sf.rds'))
@@ -198,12 +206,23 @@ coo_geos_sf <-
 
 ```
 
-```{r census-geos-ycc-summary, echo=TRUE}
+####Mixed Census Geographies
+There are many ways to collect US Census data, but this method uses the `R` package called `acs` to extract data with the official US Census API. This method is efficient, reproducible, and allows users to download census tables for a group of dissimilar geographies. To learn more about this, see the `acs` [documentation](http://eglenn.scripts.mit.edu/citystate/wp-content/uploads/2013/06/wpid-working_with_acs_R3.pdf).
+
+The following census geographies will be useful to collect for this analysis:
+
+  * tracts, King County
+  * combined tracts, each COO community individually and all three combined together
+  * county subdivision, Seattle CCD
+
+The geospatial and tabular data is stored in a simple feature object, which simplifies analysis by allowing all geography types to be transformed and queried at the same time. Here is a summary of the simple feature object, showing a few examples of each geography type: 
+```{r census-geos-ycc-summary}
 
 # Print a summary (first 4 records of each geography type)
 coo_geos_sf %>% 
         group_by(GEOGRAPHY) %>% 
         slice(1:3) %>% 
+        select(NAME,NAME_FULL, GEOGRAPHY, geometry) %>% 
         arrange(GEOGRAPHY,NAME) 
 ```
 
@@ -214,13 +233,13 @@ coo_geos_sf %>%
 show_tr_ccd <- function(){
        
         coo_geos_sf %>% 
-                filter(GEOGRAPHY %in% 'tract') %>% 
+                filter(GEOGRAPHY %in% 'tract' & SEACCD_LGL) %>% 
                 as("Spatial") %>% 
                 myLfltGrey() %>% 
-                addPolygons() 
+                addPolygons(weight = .5,color = blue,opacity = 1,fillColor = blue,fillOpacity = .5) 
 }
 
-# show_tr_ccd()
+show_tr_ccd()
 
 
 ```

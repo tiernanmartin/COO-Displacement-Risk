@@ -78,20 +78,30 @@ if(!file.exists(root_file('1-data/4-interim/seattle-ccd-sf.rds'))){
 
 sea_ccd_sf <- read_rds(root_file('1-data/4-interim/seattle-ccd-sf.rds'))
 
-orange <- miscgis::miscgis_pals$tableau_cat[["orange"]]
-
-myLfltGrey(data = as(sea_ccd_sf,'Spatial')) %>% addPolygons(color = orange,opacity = 1,fillColor = orange,fillOpacity = .5)
+myLfltGrey(data = as(sea_ccd_sf,'Spatial')) %>% addPolygons(color = blue,opacity = 1,fillColor = blue,fillOpacity = .5)
 
 ```
 
-### Tracts in Seattle CCD
+### Tracts in King County
+Although this assessment is primarily focused on three communities within the Seattle CCD subdivision of King County, one of the indicators (housing market conditions) uses neighboring tracts to determine displacement risk. Some of the neighboring tracts are part of other county subdivision, but rather than targeting just those specific tracts, this method collects data for all King County tracts and then runs the analysis on the appropriate subsets.
 
 In the absence of a straight-forward method for identifying all the census tracts in the Seattle CCD subdivision of King County, it is possible to extract this information from [American Factfinder](https://factfinder.census.gov/faces/nav/jsf/pages/index.xhtml). This [tutorial](https://ask.census.gov/faq.php?id=5000&faqId=1605) describes how to use the American Factfinder interface to extract a list of all "all tracts within (or partially within) a census place"; substituting "county subdivision" for "place" will retrieve the desired results.
 
-```{r misc-tracts-ccd-wtr}
+```{r misc-tr-kc-wtr}
 
-
-if(!file.exists(root_file('1-data/4-interim/tr-ccd-wtr-sf.rds'))){
+if(!file.exists(root_file('1-data/4-interim/tr-kc-wtr-sf.rds'))){
+        
+        # All KC tracts
+        tr_kc_wtr_sf <-
+                tigris::tracts(state = '53',county = '033', year = 2014) %>%
+                spTransform(CRSobj = crs_proj) %>% 
+                st_as_sf() %>% 
+                miscgis::coerce_to_geom(sf::st_multipolygon) 
+       
+         # Seattle CCD tracts 
+         # Note: because this selection includes all tracts "within or partially-within" the Seattle CC,
+         # several tract GEOIDs are duplicated in the selection. For the sake of clarity, these duplicates
+         # are removed from the final vector of GEOIDs.
         tr_ccd_geoid <- 
                 read_csv(
                         root_file('1-data/3-external/manual/seattle-ccd/ACS_12_5YR_B01001/ACS_12_5YR_B01001_with_ann.csv'), 
@@ -99,33 +109,33 @@ if(!file.exists(root_file('1-data/4-interim/tr-ccd-wtr-sf.rds'))){
                         skip = 1) %>% 
                 mutate(NEW_GEOID1 = str_sub(Id2,1,5),
                        NEW_GEOID2 = str_sub(Id2,16,21),
-                       GEOID = paste0(NEW_GEOID1,NEW_GEOID2)) %>% 
+                       GEOID = paste0(NEW_GEOID1,NEW_GEOID2),
+                       UNIQUE = !duplicated(GEOID)) %>%
+                filter(UNIQUE) %>% 
                 select(GEOID) %>% unlist(use.names = F)
         
-        # If the WA census tracts objects isn't yet loaded in the global env.,
-        # download and load it
-        if(!exists('tr')){
-                tr <- 
-                        tigris::tracts(state = "WA",county = "King", year = 2014) %>%
-                        spTransform(CRSobj = crs_proj) %>% 
-                        st_as_sf() %>% 
-                        miscgis::coerce_to_geom(sf::st_multipolygon)
-                }
+        # Create a county Seattle CCD subdivision column and save
+
+        tr_kc_wtr_sf %>% 
+                mutate(SEACCD_LGL = ifelse(GEOID %in% tr_ccd_geoid,TRUE,FALSE)) %>% 
+                write_rds(root_file('1-data/4-interim/tr-kc-wtr-sf.rds'))
+}
+
+tr_kc_wtr_sf <- read_rds(root_file('1-data/4-interim/tr-kc-wtr-sf.rds'))
+
+show_tr_ccd_wtr_sf <- function(){
         
-subset(tr, GEOID %in% tr_ccd_geoid) %>% 
-        st_as_sf %>% 
-        miscgis::coerce_to_geom(st_multipolygon) %>% 
-        write_rds(root_file('1-data/4-interim/tr-ccd-wtr-sf.rds'))
-}
-
-tr_ccd_wtr_sf <- read_rds(root_file('1-data/4-interim/tr-ccd-wtr-sf.rds'))
-
-show_tr_ccd_sf <- function(){
+        seaccd <- tr_kc_wtr_sf %>% filter(SEACCD_LGL)
+        other_kc <- tr_kc_wtr_sf %>% filter(!SEACCD_LGL)
+        
         myLfltGrey() %>% 
-        addPolygons(data = as(tr_ccd_wtr_sf,"Spatial"),weight = .5,color = blue,opacity = 1,fillColor = blue,fillOpacity = .5) %>% 
-        addPolygons(data = as(sea_ccd_sf,"Spatial"),color = orange,opacity = 1,fillOpacity = 0)
+        addPolygons(data = as(seaccd,"Spatial"),weight = .5,color = blue,opacity = 1,fillColor = blue,fillOpacity = .5) %>% 
+        addPolygons(data = as(other_kc,"Spatial"),weight = .5,color = orange,opacity = 1,fillColor = orange,fillOpacity = .5)
 }
-# show_tr_ccd_sf()
+
+show_tr_ccd_wtr_sf()
+
+
 ```
 
 ###Puget Sound Waterbodies
@@ -163,8 +173,6 @@ wtr_sf %>%
         st_intersects(x = sea_ccd_sf,y = .) %>% 
         unlist(use.names = F) %>% 
         wtr_sf[.,] %>% 
-        st_union %>% 
-        st_intersection(st_union(sea_ccd_sf)) %>% 
         write_rds(root_file('1-data/4-interim/wtr-sf.rds'))
 }
 
@@ -180,27 +188,30 @@ show_wtr()
 
 ```
 
-### Tracts in Seattle CCD Without Waterbodies
+### KC Tracts Without (Western) Waterbodies 
 ```{r misc-tracts-ccd-no-wtr}
 
-if(!file.exists(root_file('1-data/4-interim/tr-ccd-sf.rds'))){
-        tr_ccd_sf %>% 
+if(!file.exists(root_file('1-data/4-interim/tr-kc-sf.rds'))){
+        tr_kc_wtr_sf %>% 
                 filter(TRACTCE %!in% '990100') %>% # remove the Puget Sound tract
                 mutate(geometry = st_difference(geometry,st_union(wtr_sf))) %>% 
                 coerce_to_geom(st_multipolygon) %>% 
-                write_rds(root_file('1-data/4-interim/tr-ccd-sf.rds'))
+                write_rds(root_file('1-data/4-interim/tr-kc-sf.rds'))
 }
 
-tr_ccd_sf <- read_rds(root_file('1-data/4-interim/tr-ccd-sf.rds'))
+tr_kc_sf <- read_rds(root_file('1-data/4-interim/tr-kc-sf.rds'))
 
-show_tr_ccd <- function(){
-       tr_ccd_sf %>% 
-        as("Spatial") %>% 
+show_tr_kc_sf <- function(){
+        
+        seaccd <- tr_kc_sf %>% filter(SEACCD_LGL)
+        other_kc <- tr_kc_sf %>% filter(!SEACCD_LGL)
+        
         myLfltGrey() %>% 
-        addPolygons() 
+        addPolygons(data = as(seaccd,"Spatial"),weight = .5,color = blue,opacity = 1,fillColor = blue,fillOpacity = .5) %>% 
+        addPolygons(data = as(other_kc,"Spatial"),weight = .5,color = orange,opacity = 1,fillColor = orange,fillOpacity = .5)
 }
 
-show_tr_ccd()
+show_tr_kc_sf()
 
 
 
