@@ -54,63 +54,40 @@ pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","or
 pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
 ```
 
-
-
-
 ### ACS Geo Set
 This geoset is mixture of geography type including:
 
-  - Seattle CCD (county subdivision)
-  - All tracts in/partially within Seattle
-  - Tract-neighborhoods (combined tract groups)
-  - Tract-neighborhood groups (combined tract groups)
+  * tracts, King County
+  * combined tracts, each COO community individually and all three combined together
+  * county subdivision, Seattle CCD
   
 ```{r census-acs, echo = TRUE}
 
-# Setup the ACS geographies: Seattle (tracts), YCC (tracts), Seattle (place)
+# Setup the ACS geographies: King County (tracts), Seattle CCD (), COO Communities (tracts)
 # -----------------------------------------------------------------------------
 
-if(!exists('ycc_geo_acs')){
-        ycc_all_sf <- 
-        read_rds(root_file('1-data/4-interim/ycc-all-sf.rds')) %>% 
-        mutate(NAME_FCT = factor(NAME_FULL,
-                                 levels = c('Capitol Hill',
-                                            'Central Area',
-                                            'First Hill',
-                                            'Chinatown International District'),
-                                 ordered = TRUE)) %>% 
-        select(everything(),geom)
+coo_geos_sf <- read_rds(root_file('1-data/4-interim/coo-geos-sf.rds')) 
 
 get_geoid <- function(x,nm){
         x %>% filter(NAME %in% nm & !is.na(GEOID6)) %>% select(GEOID6) %>% unlist(use.names = FALSE) %>% as.numeric
 }
 
-tr_ch <- get_geoid(ycc_all_sf,'CH')
-tr_ca <- get_geoid(ycc_all_sf,'CA')
-tr_fh <- get_geoid(ycc_all_sf,'FH')
-tr_cid <- get_geoid(ycc_all_sf,'CID')
-tr_ycc <- get_geoid(ycc_all_sf,c('CH','CA','FH','CID'))
-tr_sea <- 
-        ycc_all_sf %>% 
-        filter(!is.na(GEOID6)) %>% 
-        transmute(GEOID6 = as.numeric(GEOID6)) %>% unlist(use.names = FALSE)
-#
+tr_rv <- get_geoid(coo_geos_sf,'RV')
+tr_wc <- get_geoid(coo_geos_sf,'WC')
+tr_stkw <- get_geoid(coo_geos_sf,'STKW')
+tr_coo <- get_geoid(coo_geos_sf, c('RV','WC','STKW'))
+
+
 # Final Object
-ycc_geo_acs <- c(
-        acs::geo.make(state = "WA",county = "King", tract = tr_sea),
-        acs::geo.make(state = "WA",county = "King", tract = tr_ch, combine = TRUE, combine.term = 'CH'),
-        acs::geo.make(state = "WA",county = "King", tract =tr_ca, combine = TRUE, combine.term = 'CA'),
-        acs::geo.make(state = "WA",county = "King", tract = tr_fh, combine = TRUE, combine.term = 'FH'),
-        acs::geo.make(state = "WA",county = "King", tract = tr_cid, combine = TRUE, combine.term = 'CID'),
-        acs::geo.make(state = "WA",county = "King", tract = tr_ycc, combine = TRUE, combine.term = 'YCC'),
-        acs::geo.make(state = 'WA', place = "Seattle")
-)
-
-
-
-ycc_geo_acs %>% write_rds(root_file('1-data/4-interim/ycc-geo-acs.rds'))
-
-}
-
+coo_geo_acs <- c(
+        acs::geo.make(state = "WA",county = "King"),
+        acs::geo.make(state = "WA", county = "King",county.subdivision = "Seattle CCD"),
+        acs::geo.make(state = "WA",county = "King", tract = "*"),
+        acs::geo.make(state = "WA",county = "King", tract = tr_rv, combine = TRUE, combine.term = 'RV'),
+        acs::geo.make(state = "WA",county = "King", tract =tr_wc, combine = TRUE, combine.term = 'WC'),
+        acs::geo.make(state = "WA",county = "King", tract = tr_stkw, combine = TRUE, combine.term = 'STKW'),
+        acs::geo.make(state = "WA",county = "King", tract = tr_coo, combine = TRUE, combine.term = 'COO')
+) %>%  
+        write_rds(root_file('1-data/4-interim/coo-geo-acs.rds'))
 
 ```
