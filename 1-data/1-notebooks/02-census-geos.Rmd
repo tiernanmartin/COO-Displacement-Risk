@@ -167,30 +167,50 @@ if(!file.exists(root_file('1-data/4-interim/coo-geos-sf.rds'))){
                        SEACCD_LGL = TRUE) %>%
                 miscgis::coerce_to_geom(st_multipolygon)
         
-        
+        kc_sf <-
+                read_rds(root_file('1-data/4-interim/kc-sf.rds')) %>% 
+                mutate(NAME = 'KC',
+                       NAME_FULL = 'King County',
+                       GEOGRAPHY = 'county',
+                       GEOID = NA_character_,
+                       GEOID6 = NA_character_,
+                       SEACCD_LGL = FALSE) %>% 
+                select(NAME,NAME_FULL,GEOID,GEOID6,SEACCD_LGL,GEOGRAPHY,geometry)
+                
+         
         coo_geos_sf <- 
                 rbind(tr_kc_coo_sf,coo_sf) %>% 
                 rbind(sea_ccd_sf) %>% 
+                rbind(kc_sf) %>% 
                 mutate(JOIN_ID = ifelse(is.na(GEOID6),NAME,GEOID6),
                        NAME_FCT = factor(NAME,
                                               levels = c('RV',
                                                          'WC',
                                                          'STKW',
                                                          'COO',
-                                                         'SEACCD'),
+                                                         'SEACCD',
+                                                         'KC'),
                                               ordered = TRUE),
                        NAME_FULL_FCT = factor(NAME_FULL,
                                               levels = c('Rainier Valley',
                                                          'White Center',
                                                          'SeaTac/Tukwila',
                                                          'COO Communities (combined)',
-                                                         'Seattle CCD'),
+                                                         'Seattle CCD',
+                                                         'King County'),
                                               ordered = TRUE),
                        NAME_FULL_FCT_COMMS = factor(NAME_FULL,
                                  levels = c('Rainier Valley',
                                                          'White Center',
                                                          'SeaTac/Tukwila'),
-                                 ordered = TRUE)) %>% 
+                                 ordered = TRUE),
+                       GEOG_FCT = factor(GEOGRAPHY,
+                                         levels = c('tract',
+                                                    'community',
+                                                    'communities (multiple)',
+                                                    'county subdivision',
+                                                    'county'),
+                                         ordered = TRUE)) %>% 
                 st_set_crs(st_crs(tr_kc_coo_sf))
         
         coo_geos_sf %>%
@@ -214,6 +234,7 @@ The following census geographies will be useful to collect for this analysis:
   * tracts, King County
   * combined tracts, each COO community individually and all three combined together
   * county subdivision, Seattle CCD
+  * county, King
 
 The geospatial and tabular data is stored in a simple feature object, which simplifies analysis by allowing all geography types to be transformed and queried at the same time. Here is a summary of the simple feature object, showing a few examples of each geography type: 
 ```{r census-geos-ycc-summary}
@@ -222,8 +243,9 @@ The geospatial and tabular data is stored in a simple feature object, which simp
 coo_geos_sf %>% 
         group_by(GEOGRAPHY) %>% 
         slice(1:3) %>% 
-        select(NAME,NAME_FULL, GEOGRAPHY, geometry) %>% 
-        arrange(GEOGRAPHY,NAME) 
+        arrange(GEOG_FCT,NAME) %>% 
+        select(NAME,NAME_FULL, GEOGRAPHY, geometry) 
+        
 ```
 
 ### Maps

@@ -217,3 +217,23 @@ show_tr_kc_sf()
 
 ```
 
+### King County Without (Western) Waterbodies
+
+```{r misc-kc}
+
+if(!file.exists(root_file('1-data/4-interim/kc-sf.rds'))){
+        tigris::counties(state = '53', cb = TRUE) %>% 
+                st_as_sf() %>% 
+                st_transform(crs_proj@projargs) %>% 
+                filter(NAME %in% 'King') %>% 
+                miscgis::coerce_to_geom(sf::st_multipolygon) %>% 
+                mutate(geometry = st_difference(geometry,st_union(wtr_sf))) %>% 
+                write_rds(root_file('1-data/4-interim/kc-sf.rds'))
+        
+}
+
+kc_sf <- read_rds(root_file('1-data/4-interim/kc-sf.rds'))
+
+
+```
+

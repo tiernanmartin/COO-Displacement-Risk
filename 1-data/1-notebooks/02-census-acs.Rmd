@@ -60,7 +60,7 @@ pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","or
 ### ACS Geo Set
 This geoset is mixture of geography type including:
 
-  - Seattle (place)
+  - Seattle CCD (county subdivision)
   - All tracts in/partially within Seattle
   - Tract-neighborhoods (combined tract groups)
   - Tract-neighborhood groups (combined tract groups)
