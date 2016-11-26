@@ -77,12 +77,17 @@ tr_wc <- get_geoid(coo_geos_sf,'WC')
 tr_stkw <- get_geoid(coo_geos_sf,'STKW')
 tr_coo <- get_geoid(coo_geos_sf, c('RV','WC','STKW'))
 
+# King County (Puget Sound excluded)
+tr_kc <- read_rds(root_file('1-data/4-interim/tr-kc-sf.rds')) %>% select(TRACTCE) %>% unlist(use.names = FALSE) %>% as.numeric
+
+
+
 
 # Final Object
 coo_geo_acs <- c(
         acs::geo.make(state = "WA",county = "King"),
         acs::geo.make(state = "WA", county = "King",county.subdivision = "Seattle CCD"),
-        acs::geo.make(state = "WA",county = "King", tract = "*"),
+        acs::geo.make(state = "WA",county = "King", tract = tr_kc),
         acs::geo.make(state = "WA",county = "King", tract = tr_rv, combine = TRUE, combine.term = 'RV'),
         acs::geo.make(state = "WA",county = "King", tract =tr_wc, combine = TRUE, combine.term = 'WC'),
         acs::geo.make(state = "WA",county = "King", tract = tr_stkw, combine = TRUE, combine.term = 'STKW'),
