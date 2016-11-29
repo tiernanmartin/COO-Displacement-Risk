@@ -1,0 +1,669 @@
+---
+df_print: tibble
+output:
+  html_notebook:
+    code_folding: hide
+  pdf_document:
+    keep_tex: yes
+always_allow_html: yes
+---
+
+```{r chng-setup, echo = FALSE, warning=FALSE,message=FALSE,comment=FALSE}
+library(plyr)
+library(knitr)
+library(rprojroot)
+library(rgdal)
+library(sp)
+library(rgeos)
+library(tigris)
+library(leaflet)
+library(ggthemes)
+library(magrittr)
+library(stringr)
+library(downloader)
+library(webshot)
+library(htmltools)
+library(gplots)
+library(ggmap)
+library(shiny)
+library(htmlwidgets)
+library(readxl)
+library(acs)
+library(RColorBrewer)
+library(tidyverse)
+library(miscgis)
+library(operator.tools)
+library(leaflet.extras)
+library(viridisLite)
+library(sf)
+root <- rprojroot::is_rstudio_project
+root_file <- root$make_fix_file()
+opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
+```
+
+### Introduction
+
+```{r chng-colors}
+green <- miscgis::miscgis_pals$tableau_cat[["green"]]
+blue <- miscgis::miscgis_pals$tableau_cat[["blue"]]
+orange <- miscgis::miscgis_pals$tableau_cat[["orange"]]
+red <- miscgis::miscgis_pals$tableau_cat[["red"]]
+teal <- miscgis::miscgis_pals$tableau_cat[["teal"]]
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+proj_light_grey <- col2hex("grey75")
+proj_grey <- col2hex("grey50")
+proj_dark_grey <- col2hex("grey25")
+```
+
+_NOTE: this text is placeholder and must be changed_
+
+We defined census tracts with gentrification-related demographic change from 2005-2009 to 2010-2014 as
+those that experienced either at least 3 of the following 4:
+
+  * The white population share either increased or it decreased less than X.0%
+  * The share of homeowners either increased or it decreased less than X%
+  * The share of the population 25 years and older with a bachelor’s degree increased more
+than X%
+  * The median household income either increased or it decreased less than X%
+or experienced only 2 out of 4, which were:
+  * The white population share either increased or it decreased less than X%
+  * The share of the population 25 years and older with a bachelor’s degree increased more
+than X%
+
+### Change in Share of White Population (%), 2010-2014
+
+#### Plot
+```{r chng-white-2014-acs}
+
+# Download the Census table for the project's geographies, 2010-2014
+# -----------------------------------------------------------------------------
+
+coo_geo_acs <- read_rds(root_file('1-data/4-interim/coo-geo-acs.rds'))
+
+chng_white_tbl <- "B03002"  # census table code
+
+# 2010-2014, 5-year estimates
+if(!file.exists(root_file('1-data/4-interim/chng-white-2014-orig-acs.rds'))){
+        
+        acs.fetch(endyear = 2014, geography = coo_geo_acs, 
+                  table.number = chng_white_tbl) %>%
+                write_rds(root_file('1-data/4-interim/chng-white-2014-orig-acs.rds'))
+        
+}
+
+chng_white_2014_orig_acs <- read_rds(root_file('1-data/4-interim/chng-white-2014-orig-acs.rds'))
+
+
+# Process and save the data
+# -----------------------------------------------------------------------------
+
+if(!file.exists(root_file('1-data/4-interim/chng-white-2014-acs.rds'))){
+        chng_white_2014_acs_1 <- chng_white_2014_orig_acs
+        
+        chng_white_tbl_guide <- 
+                data.frame(terse = acs.colnames(chng_white_2014_acs_1),
+                       pretty = acs.colnames(acs.fetch(endyear = 2014, 
+                          geography = geo.make(us = TRUE), 
+                          table.number = chng_white_tbl,col.names = 'pretty')))
+        # Pull out the specific columns that are important
+        
+        get_col <- function(pattern){
+                chng_white_tbl_guide %>% filter(str_detect(pretty,pattern)) %>% select(terse) %>% unlist(use.names = FALSE) %>% as.character()
+        }
+        
+        total <- get_col('Total')
+        
+        white_not_hisp <- get_col('Not Hispanic or Latino: White alone')
+        
+        # Find the proportion of Whites to the Total population
+        
+        acs_col_pct_chng_white_2014 <-  
+                acs::apply(X = chng_white_2014_acs_1[,white_not_hisp],
+                           MARGIN = 1,
+                           FUN = divide.acs,
+                           denominator = chng_white_2014_acs_1[,total],
+                           method = "proportion",
+                           verbose = FALSE)
+        acs.colnames(acs_col_pct_chng_white_2014) <- 'PCT_WHITE'
+        
+        # Save the object
+
+acs_col_pct_chng_white_2014 %>% saveRDS(root_file('1-data/4-interim/chng-white-2014-acs.rds'))
+}
+
+chng_white_2014_acs <- read_rds(root_file('1-data/4-interim/chng-white-2014-acs.rds'))
+
+
+# Plot the data
+# -----------------------------------------------------------------------------
+
+plot(chng_white_2014_acs[order(estimate(chng_white_2014_acs)),1])
+
+
+```
+
+```{r chng-white-2009-acs}
+
+# Download the Census table for the project's geographies, 2005-2009
+# -----------------------------------------------------------------------------
+
+coo_geo_2009_acs <- read_rds(root_file('1-data/4-interim/coo-geo-2009-acs.rds'))
+
+# 2005-2009, 5-year estimates
+if(!file.exists(root_file('1-data/4-interim/chng-white-2009-orig-acs.rds'))){
+        
+        acs.fetch(endyear = 2009, 
+                  geography = coo_geo_2009_acs, 
+                  table.number = chng_white_tbl) %>%
+                write_rds(root_file('1-data/4-interim/chng-white-2009-orig-acs.rds'))
+        
+}
+
+chng_white_2009_orig_acs <- read_rds(root_file('1-data/4-interim/chng-white-2009-orig-acs.rds'))
+
+# Download the 2000-2010 Census Tract crosswalk
+# and create subsets of the tracts to be transformed
+# -----------------------------------------------------------------------------
+
+if(!file.exists(root_file('1-data/4-interim/cw.rds'))){
+        read_csv(
+                root_file('1-data/3-external/crosswalk_2000_2010.csv'),
+                col_types = cols(cbsa10 = col_character(),
+                                 ccflag10 = col_character(),
+                                 changetype = col_character(),
+                                 metdiv10 = col_character(),
+                                 placefp10 = col_character())
+        ) %>%
+                rename(GEOID_2000 = trtid00,
+                       GEOID_2010 = trtid10) %>% 
+                mutate(KC = str_sub(GEOID_2000,1,5)) %>%
+                filter(KC == '53033') %>%
+                mutate(GEOID6_2000 = str_sub(GEOID_2000,6,11),
+                       GEOID6_2010 = str_sub(GEOID_2010,6,11)) %>% 
+                select(matches('GEOID'),everything(),-KC) %>% 
+                write_rds(root_file('1-data/4-interim/cw.rds'))
+}
+
+cw <- read_rds(root_file('1-data/4-interim/cw.rds'))
+
+# Create a vector of the unchanged tracts
+tr_unchng <-
+        cw %>%
+        filter(changetype %in% '1') %>%
+        select(GEOID6_2000) %>%
+        unlist(use.names = FALSE)
+
+
+# Create a vector of the changed tracts
+tr_chng_all <-
+        cw %>%
+        filter(changetype %!in% '1') %>%
+        select(GEOID6_2000) %>%
+        unlist(use.names = FALSE)
+
+
+# Create a vector of the consolidated tracts
+tr_chng_consl <-
+        cw %>%
+        filter(changetype %in% '2') %>%
+        select(GEOID6_2000) %>%
+        unlist(use.names = FALSE)
+
+# Create a vector of the split
+tr_chng_split_2000 <- 
+        cw %>%
+        filter(changetype %in% c('3')) %>%
+        select(GEOID6_2000) %>%
+        unlist(use.names = FALSE)
+
+tr_chng_split_2010 <- 
+        cw %>%
+        filter(changetype %in% c('3')) %>%
+        select(GEOID6_2010) %>%
+        unlist(use.names = FALSE)
+
+# Create a vector of the many-to-many
+tr_chng_m2m_2000 <- 
+        cw %>%
+        filter(changetype %in% c('4')) %>%
+        select(GEOID6_2000) %>%
+        unlist(use.names = FALSE)
+
+tr_chng_m2m_2010 <- 
+        cw %>%
+        filter(changetype %in% c('4')) %>%
+        select(GEOID6_2010) %>%
+        unlist(use.names = FALSE)
+
+
+# Unchanged tracts
+# -----------------------------------------------------------------------------
+
+chng_white_2009_unchng_acs <- 
+        chng_white_2009_orig_acs[geography(chng_white_2009_orig_acs)[['tract']] %in% tr_unchng,]
+
+
+# Changed tracts
+# -----------------------------------------------------------------------------
+
+# Consolidated
+
+chng_white_2009_consl_acs <- 
+        chng_white_2009_orig_acs[geography(chng_white_2009_orig_acs)[['tract']] %in% tr_chng_consl,]
+
+
+# Split 
+
+chng_white_2009_split_acs <- 
+        chng_white_2009_orig_acs[geography(chng_white_2009_orig_acs)[['tract']] %in% tr_chng_split_2000,]
+
+# Many-to-many
+
+chng_white_2009_m2m_acs <- 
+        chng_white_2009_orig_acs[geography(chng_white_2009_orig_acs)[['tract']] %in% tr_chng_m2m_2000,]
+
+
+# Transformation of changed tracts
+# -----------------------------------------------------------------------------
+
+estimate_consl <- function(acs_consl){
+        
+        if(!exists('cw')){cw <- read_rds(root_file('1-data/4-interim/cw.rds'))}
+        
+        if(!exists('chng_white_2014_orig_acs')){chng_white_2014_orig_acs <- read_rds(root_file('1-data/4-interim/chng-white-2014-orig-acs.rds'))}
+        
+        acs_consl_transformed <- acs::apply(X = acs_consl,MARGIN = 1,FUN = sum, verbose = TRUE)
+        
+        tracts <- chng_white_2009_consl_acs %>% geography() %>% select(tract) %>% unlist(use.names = FALSE)
+        
+        tr_2010 <- 
+                cw %>% 
+                select(matches('GEOID|changetype')) %>% 
+                filter(GEOID6_2000 %in% tracts) %>% 
+                select(GEOID6_2010) %>% 
+                unlist(use.names = FALSE) %>% 
+                unique
+        
+        acs_geo_2010 <- 
+                chng_white_2014_orig_acs %>% 
+                geography() %>% 
+                filter(tract %in% tr_2010)
+        
+        geography(acs_consl_transformed) <- acs_geo_2010
+        
+        return(acs_consl_transformed)
+      
+}
+
+# Consolidated
+
+chng_white_2009_consl_transformed_acs <- 
+        chng_white_2009_consl_acs %>% 
+        estimate_consl()
+
+# Split 
+
+estimate_split <- function(acs_GEOID6_2010){
+        
+        if(!exists('cw')){cw <- read_rds(root_file('1-data/4-interim/cw.rds'))}
+        
+        if(!exists('chng_white_2014_orig_acs')){chng_white_2014_orig_acs <- read_rds(root_file('1-data/4-interim/chng-white-2014-orig-acs.rds'))}
+        
+        acs_weight <- 
+                cw %>% 
+                filter(GEOID6_2010 %in% acs_GEOID6_2010) %>% 
+                select(weight) %>% 
+                unlist(use.names = FALSE)
+        
+        acs_GEOID6_2000 <- 
+                cw %>% 
+                filter(GEOID6_2010 %in% acs_GEOID6_2010) %>% 
+                select(GEOID6_2000) %>% 
+                unlist(use.names = FALSE)
+        
+        acs_split_transformed <- chng_white_2009_split_acs[geography(chng_white_2009_split_acs)$tract %in% acs_GEOID6_2000,] * acs_weight
+        
+        acs_geo_2010 <- 
+                chng_white_2014_acs %>% 
+                geography() %>% 
+                filter(tract %in% acs_GEOID6_2010)
+        
+        geography(acs_split_transformed) <- acs_geo_2010
+        
+        return(acs_split_transformed)
+        
+}
+
+chng_white_2009_split_transformed_acs <-
+        lapply(as.list(tr_chng_split_2010),estimate_split) %>% 
+        Reduce('rbind.acs',.)
+
+# Many-to-many
+        
+estimate_m2m <- function(acs_GEOID6_2010){
+        
+        if(!exists('cw')){cw <- read_rds(root_file('1-data/4-interim/cw.rds'))}
+        
+        if(!exists('chng_white_2014_orig_acs')){chng_white_2014_orig_acs <- read_rds(root_file('1-data/4-interim/chng-white-2014-orig-acs.rds'))}
+        
+        acs_GEOID6_2000 <- 
+                cw %>% 
+                filter(GEOID6_2010 %in% acs_GEOID6_2010) %>% 
+                arrange(GEOID_2010,GEOID_2000) %>% 
+                select(GEOID6_2000) %>% 
+                unlist(use.names = FALSE)
+        
+        acs_weight_2000 <- 
+                cw %>% 
+                filter(GEOID6_2010 %in% acs_GEOID6_2010) %>% 
+                arrange(GEOID_2010,GEOID_2000) %>% 
+                select(weight) %>% 
+                unlist(use.names = FALSE)
+        
+        tmp <- 
+                chng_white_2009_m2m_acs[geography(chng_white_2009_m2m_acs)$tract %in% acs_GEOID6_2000,]
+
+        acs_m2m_transformed <- 
+                acs::apply(tmp,MARGIN = 1,FUN = function(x) x*acs_weight_2000) %>%
+                acs::apply(MARGIN = 1,FUN = sum)
+        
+        acs_geo_2010 <- 
+                chng_white_2014_acs %>% 
+                geography() %>% 
+                filter(tract %in% acs_GEOID6_2010)
+        
+        geography(acs_m2m_transformed) <- acs_geo_2010
+        
+        return(acs_m2m_transformed)
+        
+}
+
+chng_white_2009_m2m_transformed_acs <- 
+        lapply(as.list(unique(tr_chng_m2m_2010)), estimate_m2m) %>% 
+        Reduce('rbind.acs',.)
+
+# Combine KC, Seattle CCD, and all 2004-2009 tracts (unchanged and transformed)
+# -----------------------------------------------------------------------------
+
+chng_white_2009_tr_transformed_acs <- 
+        Reduce('rbind.acs',list(
+                chng_white_2009_unchng_acs,
+                chng_white_2009_consl_transformed_acs,
+                chng_white_2009_split_transformed_acs,
+                chng_white_2009_m2m_transformed_acs
+        )) %>% 
+        .[order(geography(.)$tract),] %>%  # order by tract
+        .[!duplicated(geography(.)$tract),] # remove duplicates
+
+
+# Combine tracts to create the COO Communities
+# -----------------------------------------------------------------------------
+
+coo_geos_sf <- read_rds(root_file('1-data/4-interim/coo-geos-sf.rds')) 
+
+make_comm <- function(tr_sf,nm_comm,nm_geog,acs_2009,acs_2014){
+        tr <- tr_sf %>% filter(NAME %in% nm_comm & !is.na(GEOID6)) %>% select(GEOID6) %>% unlist(use.names = FALSE)
+        
+        comm <- acs::apply(X = acs_2009[geography(acs_2009)$tract %in% tr],MARGIN = 1,FUN = sum)
+        
+        geography(comm) <- geography(acs_2014)[geography(acs_2014)$NAME %in% nm_geog,]
+                
+        return(comm)
+   
+}
+
+comm_rv_2009 <- make_comm(tr_sf = coo_geos_sf,
+                 nm_comm = 'RV',
+                 nm_geog = 'RV',
+                 acs_2009 = chng_white_2009_tr_transformed_acs,
+                 acs_2014 = chng_white_2014_acs)
+
+comm_wc_2009 <- make_comm(tr_sf = coo_geos_sf,
+                 nm_comm = 'WC',
+                 nm_geog = 'WC',
+                 acs_2009 = chng_white_2009_tr_transformed_acs,
+                 acs_2014 = chng_white_2014_acs)
+
+comm_stkw_2009 <- make_comm(tr_sf = coo_geos_sf,
+                 nm_comm = 'STKW',
+                 nm_geog = 'STKW',
+                 acs_2009 = chng_white_2009_tr_transformed_acs,
+                 acs_2014 = chng_white_2014_acs)
+
+comm_coo_2009 <- make_comm(tr_sf = coo_geos_sf,
+                 nm_comm = c('RV','WC','STKW'),
+                 nm_geog = 'COO',
+                 acs_2009 = chng_white_2009_tr_transformed_acs,
+                 acs_2014 = chng_white_2014_acs)
+
+
+# Combine all 2004-2009 geographies
+# -----------------------------------------------------------------------------
+
+
+chng_white_2009_all_geog <- 
+        Reduce('rbind.acs',list(
+                chng_white_2009_tr_transformed_acs,
+                comm_rv_2009,
+                comm_wc_2009,
+                comm_stkw_2009,
+                comm_coo_2009,
+                chng_white_2009_orig_acs[2:1,]
+        )) 
+
+
+
+# Process and save the data
+# -----------------------------------------------------------------------------
+
+if(!file.exists(root_file('1-data/4-interim/chng-white-2009-acs.rds'))){
+        chng_white_2009_acs_1 <- chng_white_2009_all_geog
+        
+        chng_white_tbl_guide <- 
+                data.frame(terse = acs.colnames(chng_white_2009_acs_1),
+                       pretty = acs.colnames(acs.fetch(endyear = 2009, 
+                          geography = geo.make(us = TRUE), 
+                          table.number = chng_white_tbl,col.names = 'pretty')))
+        # Pull out the specific columns that are important
+        
+        get_col <- function(pattern){
+                chng_white_tbl_guide %>% filter(str_detect(pretty,pattern)) %>% select(terse) %>% unlist(use.names = FALSE) %>% as.character()
+        }
+        
+        total <- get_col('Total')
+        
+        white_not_hisp <- get_col('Not Hispanic or Latino: White alone')
+        
+        # Find the proportion of Whites to the Total population
+        
+        acs_col_pct_chng_white_2009 <-  
+                acs::apply(X = chng_white_2009_acs_1[,white_not_hisp],
+                           MARGIN = 1,
+                           FUN = divide.acs,
+                           denominator = chng_white_2009_acs_1[,total],
+                           method = "proportion",
+                           verbose = FALSE)
+        acs.colnames(acs_col_pct_chng_white_2009) <- 'PCT_WHITE'
+        
+        # Save the object
+
+acs_col_pct_chng_white_2009 %>% write_rds(root_file('1-data/4-interim/chng-white-2009-acs.rds'))
+}
+
+chng_white_2009_acs <- read_rds(root_file('1-data/4-interim/chng-white-2009-acs.rds'))
+
+
+# Plot the data
+# -----------------------------------------------------------------------------
+
+plot(chng_white_2009_acs[order(estimate(chng_white_2009_acs)),1])
+
+
+
+```
+
+```{r chng-white-acs}
+
+if(!file.exists(root_file('1-data/4-interim/chng-white-acs.rds'))){
+        # remove any unshared geographies
+
+in_2009_not_2014 <- 
+        anti_join(geography(chng_white_2009_acs),
+                              geography(chng_white_2014_acs),
+                              by = 'NAME') %>% 
+        select(tract) %>% 
+        unlist(use.names = FALSE)
+
+in_2014_not_2009 <- anti_join(geography(chng_white_2014_acs),
+                              geography(chng_white_2009_acs),
+                              by = 'NAME') %>% 
+        select(tract) %>% 
+        unlist(use.names = FALSE)
+
+
+chng_white_2014_final_acs <- chng_white_2014_acs[geography(chng_white_2014_acs)$tract %!in% in_2014_not_2009,] %>% 
+        .[order(geography(.)$tract),]
+
+chng_white_2009_final_acs <- chng_white_2009_acs[geography(chng_white_2009_acs)$tract %!in% in_2009_not_2014,] %>% 
+        .[order(geography(.)$tract),]
+
+chng_white_acs <- chng_white_2014_final_acs - chng_white_2009_final_acs
+
+acs.colnames(chng_white_acs) <- 'CHNG_PCT_WHITE'
+
+check_names <- chng_white_acs %>% geography() %>% .$NAME
+
+geography(chng_white_acs) <- geography(chng_white_2014_final_acs)
+
+chng_white_acs %>% write_rds(root_file('1-data/4-interim/chng-white-acs.rds'))
+
+}
+
+chng_white_acs <-  read_rds(root_file('1-data/4-interim/chng-white-acs.rds'))
+
+
+```
+
+
+
+```{r chng-white-sf}
+
+if(!file.exists(root_file('1-data/4-interim/chng-white-sf.rds'))){
+        # Read in the `sf` object and re-order the records to by `JOIN_ID` 
+# -----------------------------------------------------------------------------
+
+coo_geos_sf <- 
+        read_rds(root_file('1-data/4-interim/coo-geos-sf.rds'))
+
+coo_geos_sf_ordered <- coo_geos_sf %>% arrange(desc(JOIN_ID)) %>% select(-JOIN_ID)
+
+#
+# Convert the `acs` object into a dataframe, join to sf object
+# -----------------------------------------------------------------------------
+
+coo_chng_white_sf <- 
+        data.frame(
+                geography(chng_white_acs)["NAME"],
+                geography(chng_white_acs)["tract"],
+                estimate(chng_white_acs), 
+                1.645 * standard.error(chng_white_acs)) %>% 
+        `colnames<-`(., c("NAME","GEOID6", "CHNG_PCT_WHITE_EST","CHNG_PCT_WHITE_MOE")) %>% 
+        mutate(JOIN_ID = case_when(.$NAME %in% 'King County, Washington' ~ 'KC',
+                                  .$NAME %in% 'Seattle CCD, King County, Washington' ~ 'SEACCD',
+                                  !is.na(.$GEOID6) ~ .$GEOID6),
+               UPPER = CHNG_PCT_WHITE_EST + CHNG_PCT_WHITE_MOE, 
+               LOWER = CHNG_PCT_WHITE_EST - CHNG_PCT_WHITE_MOE, 
+               POC_PCT_UPPER = if_else(UPPER > 1, 1, UPPER), 
+               POC_PCT_LOWER = if_else(LOWER < 0, 0, LOWER)) %>% 
+        select(JOIN_ID,everything(),-NAME,-GEOID6,-UPPER,-LOWER) %>% 
+        arrange(desc(JOIN_ID)) %>%
+        bind_cols(coo_geos_sf_ordered) %>% 
+        st_sf()
+
+#
+# Save the object
+# -----------------------------------------------------------------------------
+coo_chng_white_sf %>% write_rds(root_file('1-data/4-interim/chng-white-sf.rds'))
+}
+
+coo_chng_white_sf <-  read_rds(root_file('1-data/4-interim/chng-white-sf.rds'))
+
+
+```
+
+#### Maps
+
+These maps show the proportion of the population that belongs to a community of color for each census tract in Seattle CCD.
+
+##### Seattle CCD 
+```{r chng-white-seaccd-map}
+
+tr <- 
+        coo_chng_white_sf %>% 
+        filter(GEOGRAPHY == 'tract' & SEACCD_LGL)
+
+tr_comm <- 
+        coo_chng_white_sf %>% 
+        filter(GEOGRAPHY == 'tract' & SEACCD_LGL &!is.na(NAME))
+
+comm <- coo_chng_white_sf %>% 
+        filter(GEOGRAPHY == 'community')
+
+comm_cntr <- comm %>% mutate(geometry = st_centroid(comm))
+
+pal_chng_white <- colorNumeric(viridis(256, option = "C"),tr$CHNG_PCT_WHITE_EST)
+
+myLfltGrey() %>% 
+        addPolygons(data = as(tr,'Spatial'),
+                fillOpacity = .75,
+                fillColor = ~pal_chng_white(CHNG_PCT_WHITE_EST),
+                color = col2hex('white'),
+                opacity = 1,
+                weight = .5,
+                smoothFactor = 0) %>%
+        addPolygons(data = as(comm,'Spatial'),
+                fillOpacity = 0,
+                color = proj_dark_grey,
+                opacity = 1,
+                weight = 2,
+                smoothFactor = 0) %>%
+        addAwesomeMarkers(data = as(comm_cntr, "Spatial"),options = markerOptions(opacity = 0),label = ~ NAME_FULL, labelOptions = labelOptions(noHide = TRUE,direction = 'left', textOnly = TRUE)) %>% 
+        addLegend(title = "Change in<br>% White",
+                  position = 'topright',
+                  pal = pal_chng_white, 
+                  values = tr$CHNG_PCT_WHITE_EST,
+                  opacity = .75,
+                  labFormat = labelFormat(suffix = '%')) %>% 
+        styleWidget(style = "text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF")
+
+```
+
+#####COO Communities
+```{r chng-white-comm-map}
+myLfltGrey() %>% 
+        addPolygons(data = as(tr_comm,'Spatial'),
+                fillOpacity = .75,
+                fillColor = ~pal_chng_white(CHNG_PCT_WHITE_EST),
+                color = col2hex('white'),
+                opacity = 1,
+                weight = .5,
+                smoothFactor = 0) %>%
+        addPolygons(data = as(comm,'Spatial'),
+                fillOpacity = 0,
+                color = proj_dark_grey,
+                opacity = 1,
+                weight = 2,
+                smoothFactor = 0) %>%
+        addAwesomeMarkers(data = as(comm_cntr, "Spatial"),options = markerOptions(opacity = 0),label = ~ NAME_FULL, labelOptions = labelOptions(noHide = TRUE,direction = 'left', textOnly = TRUE)) %>% 
+        addLegend(title = "Change in<br>% White",
+                  position = 'topright',
+                  pal = pal_chng_white, 
+                  values = tr$CHNG_PCT_WHITE_EST,
+                  opacity = .75,
+                  labFormat = labelFormat(suffix = '%')) %>% 
+        styleWidget(style = "text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF")
+
+```
