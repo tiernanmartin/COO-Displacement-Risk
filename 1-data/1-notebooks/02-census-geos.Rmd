@@ -46,10 +46,7 @@ blue <- miscgis::miscgis_pals$tableau_cat[["blue"]]
 orange <- miscgis::miscgis_pals$tableau_cat[["orange"]]
 red <- miscgis::miscgis_pals$tableau_cat[["red"]]
 teal <- miscgis::miscgis_pals$tableau_cat[["teal"]]
-pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
-pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
-pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
-pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+
 ```
 
 ### Introduction
@@ -86,13 +83,25 @@ stctuk <- c(stc,tuk)
 
 coo <- c(rv,wc,stctuk)
 
-df <- miscgis::cbind_fill(rv,wc,stctuk) %>% 
-        as_tibble() %>% 
+if(!file.exists(root_file('1-data/4-interim/coo-comm-tr-df.rds'))){
+        miscgis::cbind_fill(rv,wc,stctuk) %>%
+        as_tibble() %>%
         `colnames<-`(c("Rainier Valley",
                        "White Center",
-                       "SeaTac/Tukwila"))
+                       "SeaTac/Tukwila")) %>% 
+                write_rds(root_file('1-data/4-interim/coo-comm-tr-df.rds'))
+}
 
-knitr::kable(df,caption = "Census Tract GEOIDs")
+read_rds(root_file('1-data/4-interim/coo-comm-tr-df.rds')) %>% 
+        knitr::kable(caption = "Census Tract GEOIDs")
+
+# df <- miscgis::cbind_fill(rv,wc,stctuk) %>%
+#         as_tibble() %>%
+#         `colnames<-`(c("Rainier Valley",
+#                        "White Center",
+#                        "SeaTac/Tukwila"))
+
+# knitr::kable(df,caption = "Census Tract GEOIDs")
 ```
 
 ```{r census-geos-ycc-nhoods}

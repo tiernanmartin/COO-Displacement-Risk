@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html >
+
+<head>
+
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Communities of Opportunity Displacement Risk Assessment</title>
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+  <meta name="description" content="This is a report.">
+  <meta name="generator" content="bookdown 0.2 and GitBook 2.6.7">
+
+  <meta property="og:title" content="Communities of Opportunity Displacement Risk Assessment" />
+  <meta property="og:type" content="book" />
+  
+  
+  <meta property="og:description" content="This is a report." />
+  
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Communities of Opportunity Displacement Risk Assessment" />
+  
+  <meta name="twitter:description" content="This is a report." />
+  
+
+<meta name="author" content="Tiernan Martin, Futurewise">
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  
+  
+<link rel="prev" href="census-geographies-spatial-data.html">
+
+
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+
+
+
+
+
+
+
+<script src="libs/htmlwidgets-0.8/htmlwidgets.js"></script>
+<link href="libs/leaflet-0.7.7/leaflet.css" rel="stylesheet" />
+<script src="libs/leaflet-0.7.7/leaflet.js"></script>
+<link href="libs/leafletfix-1.0.0/leafletfix.css" rel="stylesheet" />
+<link href="libs/leaflet-label-0.2.2/leaflet.label.css" rel="stylesheet" />
+<script src="libs/leaflet-label-0.2.2/leaflet.label.js"></script>
+<script src="libs/Proj4Leaflet-0.7.2/proj4-compressed.js"></script>
+<script src="libs/Proj4Leaflet-0.7.2/proj4leaflet.js"></script>
+<script src="libs/leaflet-binding-1.0.2.9006/leaflet.js"></script>
+<script src="libs/leaflet-providers-1.0.27/leaflet-providers.js"></script>
+<script src="libs/leaflet-providers-plugin-1.0.2.9006/leaflet-providers-plugin.js"></script>
+
+
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
+
+<link rel="stylesheet" href="css/style.css" type="text/css" />
+</head>
+
+<body>
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>Preface</a></li>
+<li class="appendix"><span><b>Appendices</b></span></li>
+<li class="chapter" data-level="A" data-path="data-methods.html"><a href="data-methods.html"><i class="fa fa-check"></i><b>A</b> Data Methods</a><ul>
+<li class="chapter" data-level="A.1" data-path="miscellaneous.html"><a href="miscellaneous.html"><i class="fa fa-check"></i><b>A.1</b> Miscellaneous</a><ul>
+<li class="chapter" data-level="A.1.1" data-path="miscellaneous.html"><a href="miscellaneous.html#seattle-boundary"><i class="fa fa-check"></i><b>A.1.1</b> Seattle Boundary</a></li>
+<li class="chapter" data-level="A.1.2" data-path="miscellaneous.html"><a href="miscellaneous.html#king-county-subdivision-boundary"><i class="fa fa-check"></i><b>A.1.2</b> King County Subdivision Boundary</a></li>
+<li class="chapter" data-level="A.1.3" data-path="miscellaneous.html"><a href="miscellaneous.html#tracts-in-king-county"><i class="fa fa-check"></i><b>A.1.3</b> Tracts in King County</a></li>
+<li class="chapter" data-level="A.1.4" data-path="miscellaneous.html"><a href="miscellaneous.html#puget-sound-waterbodies"><i class="fa fa-check"></i><b>A.1.4</b> Puget Sound Waterbodies</a></li>
+<li class="chapter" data-level="A.1.5" data-path="miscellaneous.html"><a href="miscellaneous.html#kc-tracts-without-western-waterbodies"><i class="fa fa-check"></i><b>A.1.5</b> KC Tracts Without (Western) Waterbodies</a></li>
+<li class="chapter" data-level="A.1.6" data-path="miscellaneous.html"><a href="miscellaneous.html#king-county-without-western-waterbodies"><i class="fa fa-check"></i><b>A.1.6</b> King County Without (Western) Waterbodies</a></li>
+</ul></li>
+<li class="chapter" data-level="A.2" data-path="census-geographies-spatial-data.html"><a href="census-geographies-spatial-data.html"><i class="fa fa-check"></i><b>A.2</b> Census Geographies: Spatial Data</a><ul>
+<li class="chapter" data-level="A.2.1" data-path="census-geographies-spatial-data.html"><a href="census-geographies-spatial-data.html#introduction"><i class="fa fa-check"></i><b>A.2.1</b> Introduction</a></li>
+<li class="chapter" data-level="A.2.2" data-path="census-geographies-spatial-data.html"><a href="census-geographies-spatial-data.html#maps"><i class="fa fa-check"></i><b>A.2.2</b> Maps</a></li>
+</ul></li>
+<li class="chapter" data-level="A.3" data-path="census-geographies-acs-geo-sets.html"><a href="census-geographies-acs-geo-sets.html"><i class="fa fa-check"></i><b>A.3</b> Census Geographies: ACS Geo Sets</a><ul>
+<li class="chapter" data-level="A.3.1" data-path="census-geographies-acs-geo-sets.html"><a href="census-geographies-acs-geo-sets.html#acs-geo-set"><i class="fa fa-check"></i><b>A.3.1</b> ACS Geo Set</a></li>
+<li class="chapter" data-level="A.3.2" data-path="census-geographies-acs-geo-sets.html"><a href="census-geographies-acs-geo-sets.html#matching-tracts-between-the-years"><i class="fa fa-check"></i><b>A.3.2</b> Matching Tracts between the years</a></li>
+</ul></li>
+</ul></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Communities of Opportunity Displacement Risk Assessment</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="census-geographies-acs-geo-sets" class="section level2">
+<h2><span class="header-section-number">A.3</span> Census Geographies: ACS Geo Sets</h2>
+<div id="acs-geo-set" class="section level3">
+<h3><span class="header-section-number">A.3.1</span> ACS Geo Set</h3>
+<p>This geoset is mixture of geography type including:</p>
+<ul>
+<li>tracts, King County</li>
+<li>combined tracts, each COO community individually and all three combined together</li>
+<li>county subdivision, Seattle CCD</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Setup the ACS geographies: King County (tracts), Seattle CCD (), COO Communities (tracts)</span>
+<span class="co"># -----------------------------------------------------------------------------</span>
+
+coo_geos_sf &lt;-<span class="st"> </span><span class="kw">read_rds</span>(<span class="kw">root_file</span>(<span class="st">&#39;1-data/4-interim/coo-geos-sf.rds&#39;</span>)) 
+
+get_geoid &lt;-<span class="st"> </span>function(x,nm){
+        x %&gt;%<span class="st"> </span><span class="kw">filter</span>(NAME %in%<span class="st"> </span>nm &amp;<span class="st"> </span>!<span class="kw">is.na</span>(GEOID6)) %&gt;%<span class="st"> </span><span class="kw">select</span>(GEOID6) %&gt;%<span class="st"> </span><span class="kw">unlist</span>(<span class="dt">use.names =</span> <span class="ot">FALSE</span>) %&gt;%<span class="st"> </span>as.numeric
+}
+
+tr_rv &lt;-<span class="st"> </span><span class="kw">get_geoid</span>(coo_geos_sf,<span class="st">&#39;RV&#39;</span>)
+tr_wc &lt;-<span class="st"> </span><span class="kw">get_geoid</span>(coo_geos_sf,<span class="st">&#39;WC&#39;</span>)
+tr_stkw &lt;-<span class="st"> </span><span class="kw">get_geoid</span>(coo_geos_sf,<span class="st">&#39;STKW&#39;</span>)
+tr_coo &lt;-<span class="st"> </span><span class="kw">get_geoid</span>(coo_geos_sf, <span class="kw">c</span>(<span class="st">&#39;RV&#39;</span>,<span class="st">&#39;WC&#39;</span>,<span class="st">&#39;STKW&#39;</span>))
+
+<span class="co"># King County (Puget Sound excluded)</span>
+tr_kc &lt;-<span class="st"> </span><span class="kw">read_rds</span>(<span class="kw">root_file</span>(<span class="st">&#39;1-data/4-interim/tr-kc-sf.rds&#39;</span>)) %&gt;%<span class="st"> </span><span class="kw">select</span>(TRACTCE) %&gt;%<span class="st"> </span><span class="kw">unlist</span>(<span class="dt">use.names =</span> <span class="ot">FALSE</span>) %&gt;%<span class="st"> </span>as.numeric
+
+
+
+
+<span class="co"># Final Object: 2010-2014</span>
+coo_geo_acs &lt;-<span class="st"> </span><span class="kw">c</span>(
+        acs::<span class="kw">geo.make</span>(<span class="dt">state =</span> <span class="st">&quot;WA&quot;</span>,<span class="dt">county =</span> <span class="st">&quot;King&quot;</span>),
+        acs::<span class="kw">geo.make</span>(<span class="dt">state =</span> <span class="st">&quot;WA&quot;</span>, <span class="dt">county =</span> <span class="st">&quot;King&quot;</span>,<span class="dt">county.subdivision =</span> <span class="st">&quot;Seattle CCD&quot;</span>),
+        acs::<span class="kw">geo.make</span>(<span class="dt">state =</span> <span class="st">&quot;WA&quot;</span>,<span class="dt">county =</span> <span class="st">&quot;King&quot;</span>, <span class="dt">tract =</span> tr_kc),
+        acs::<span class="kw">geo.make</span>(<span class="dt">state =</span> <span class="st">&quot;WA&quot;</span>,<span class="dt">county =</span> <span class="st">&quot;King&quot;</span>, <span class="dt">tract =</span> tr_rv, <span class="dt">combine =</span> <span class="ot">TRUE</span>, <span class="dt">combine.term =</span> <span class="st">&#39;RV&#39;</span>),
+        acs::<span class="kw">geo.make</span>(<span class="dt">state =</span> <span class="st">&quot;WA&quot;</span>,<span class="dt">county =</span> <span class="st">&quot;King&quot;</span>, <span class="dt">tract =</span>tr_wc, <span class="dt">combine =</span> <span class="ot">TRUE</span>, <span class="dt">combine.term =</span> <span class="st">&#39;WC&#39;</span>),
+        acs::<span class="kw">geo.make</span>(<span class="dt">state =</span> <span class="st">&quot;WA&quot;</span>,<span class="dt">county =</span> <span class="st">&quot;King&quot;</span>, <span class="dt">tract =</span> tr_stkw, <span class="dt">combine =</span> <span class="ot">TRUE</span>, <span class="dt">combine.term =</span> <span class="st">&#39;STKW&#39;</span>),
+        acs::<span class="kw">geo.make</span>(<span class="dt">state =</span> <span class="st">&quot;WA&quot;</span>,<span class="dt">county =</span> <span class="st">&quot;King&quot;</span>, <span class="dt">tract =</span> tr_coo, <span class="dt">combine =</span> <span class="ot">TRUE</span>, <span class="dt">combine.term =</span> <span class="st">&#39;COO&#39;</span>)
+) %&gt;%<span class="st">  </span>
+<span class="st">        </span><span class="kw">write_rds</span>(<span class="kw">root_file</span>(<span class="st">&#39;1-data/4-interim/coo-geo-acs.rds&#39;</span>))</code></pre></div>
+</div>
+<div id="matching-tracts-between-the-years" class="section level3">
+<h3><span class="header-section-number">A.3.2</span> Matching Tracts between the years</h3>
+<p>Census tract change over time and this must be accounted for before a temporal comparison be take place. Brown University’s <a href="http://www.s4.brown.edu/us2010/Researcher/LTDB.htm">Longitudinal Tract Database</a> provides “crosswalk” datasets that clarify which tract change from decade to decade and what type of change occurred (e.g., consolidation, split, many-to-many, none).</p>
+<p>Using the 2000-2010 crosswalk, a customized set of ACS geographies is prepared to ensure that the data between observation periods are comparable. This dataset is included in this repository, but may also be downloaded <a href="https://s4.ad.brown.edu/Projects/Diversity/Researcher/ltdb3.htm">here</a>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Save an acs object</span>
+<span class="kw">c</span>(
+        acs::<span class="kw">geo.make</span>(<span class="dt">state =</span> <span class="st">&quot;WA&quot;</span>,<span class="dt">county =</span> <span class="st">&quot;King&quot;</span>),
+        acs::<span class="kw">geo.make</span>(<span class="dt">state =</span> <span class="st">&quot;WA&quot;</span>, <span class="dt">county =</span> <span class="st">&quot;King&quot;</span>,<span class="dt">county.subdivision =</span> <span class="st">&quot;Seattle CCD&quot;</span>),
+        acs::<span class="kw">geo.make</span>(<span class="dt">state =</span> <span class="st">&quot;WA&quot;</span>,<span class="dt">county =</span> <span class="st">&quot;King&quot;</span>, <span class="dt">tract =</span> <span class="st">&#39;*&#39;</span>)
+) %&gt;%<span class="st">  </span>
+<span class="st">        </span><span class="kw">write_rds</span>(<span class="kw">root_file</span>(<span class="st">&#39;1-data/4-interim/coo-geo-2009-acs.rds&#39;</span>))</code></pre></div>
+
+</div>
+</div>
+<!-- </div> -->
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="census-geographies-spatial-data.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+
+
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script>
+require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"facebook": true,
+"twitter": true,
+"google": false,
+"weibo": false,
+"instapper": false,
+"vk": false,
+"all": ["facebook", "google", "twitter", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"download": null,
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+</body>
+
+</html>

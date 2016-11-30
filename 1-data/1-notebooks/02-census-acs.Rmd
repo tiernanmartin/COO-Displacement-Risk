@@ -42,18 +42,6 @@ opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
 
 ```
 
-```{r census-acs-colors}
-green <- miscgis::miscgis_pals$tableau_cat[["green"]]
-blue <- miscgis::miscgis_pals$tableau_cat[["blue"]]
-orange <- miscgis::miscgis_pals$tableau_cat[["orange"]]
-red <- miscgis::miscgis_pals$tableau_cat[["red"]]
-teal <- miscgis::miscgis_pals$tableau_cat[["teal"]]
-pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
-pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
-pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
-pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
-```
-
 ### ACS Geo Set
 This geoset is mixture of geography type including:
 
@@ -105,7 +93,7 @@ Census tract change over time and this must be accounted for before a temporal c
 Using the 2000-2010 crosswalk, a customized set of ACS geographies is prepared to ensure that the data between observation periods are comparable. This dataset is included in this repository, but may also be downloaded [here](https://s4.ad.brown.edu/Projects/Diversity/Researcher/ltdb3.htm).
 
 
-```{r census-2009-acs}
+```{r census-2009-acs, echo=TRUE}
 
 # Save an acs object
 c(
@@ -114,101 +102,5 @@ c(
         acs::geo.make(state = "WA",county = "King", tract = '*')
 ) %>%  
         write_rds(root_file('1-data/4-interim/coo-geo-2009-acs.rds'))
-
-
-# Load the 2000-2010 crosswalk and subset to include only King County
-
-# cw <- read_csv(
-#         root_file('1-data/3-external/crosswalk_2000_2010.csv'),
-#         col_types = cols(cbsa10 = col_character(), 
-#                          ccflag10 = col_character(), 
-#                          changetype = col_character(), 
-#                          metdiv10 = col_character(), 
-#                          placefp10 = col_character())
-#         ) %>% 
-#         mutate(KC = str_sub(trtid00,1,5)) %>% 
-#         filter(KC == '53033') %>% 
-#         mutate(GEOID6 = str_sub(trtid00,6,11)) %>% 
-#         select(GEOID6,everything())
-# 
-# # All tracts from 2000-2009
-# 
-# tr_kc_2009_all <- 
-#         cw %>% 
-#         select(GEOID6) %>% 
-#         unlist(use.names = FALSE) %>% 
-#         as.numeric
-# 
-# # Save an acs object
-# c(
-#         acs::geo.make(state = "WA",county = "King"),
-#         acs::geo.make(state = "WA", county = "King",county.subdivision = "Seattle CCD"),
-#         acs::geo.make(state = "WA",county = "King", tract = tr_kc_2009_all)
-# ) %>%  
-#         write_rds(root_file('1-data/4-interim/coo-geo-2009-acs.rds'))
-# 
-
-# # Create a vector of the unchanged tracts 
-# tr_unchng <- 
-#         cw %>% 
-#         filter(changetype %in% '1') %>% 
-#         select(trtid00) %>% 
-#         unlist(use.names = FALSE) %>% 
-#         as.numeric()
-# 
-# 
-# # Create a vector of the changed tracts
-# tr_chng_all <- 
-#         cw %>% 
-#         filter(changetype %!in% '1') %>% 
-#         select(GEOID6) %>% 
-#         unlist(use.names = FALSE) %>% 
-#         as.numeric
-# 
-# 
-# # Create a vector of the consolidated tracts 
-# tr_chng_consolidate <- 
-#         cw %>% 
-#         filter(changetype %in% '2') %>% 
-#          select(GEOID6) %>% 
-#         unlist(use.names = FALSE) %>% 
-#         as.numeric
-# 
-# # Create a vector of the split or many-to-many tracts
-# tr_chng_split <- 
-#         cw %>% 
-#         filter(changetype %in% c('3','4')) %>% 
-#         select(trtid00) %>% 
-#         unlist(use.names = FALSE)
-# 
-# 
-# 
-# 
-# # Figure out which tracts changed between the two 5-year spreads
-# 
-# test_tbl <- "B03002"  # census table code, for testing purposes
-# 
-# geo_tr_kc_all <- acs::geo.make(state = "WA",county = "King", tract = '*')
-# 
-# tr_kc_2014_acs <- 
-#         acs.fetch(endyear = 2014, 
-#                   geography = geo_tr_kc_all, 
-#                   table.number = test_tbl) %>%
-#         acs::geography() %>% 
-#         as.data.frame() %>% 
-#         transmute(GEOID = paste0(state,0,county,tract)) %>% 
-#         unlist(use.names = FALSE)
-# 
-# tr_kc_2009_acs <- 
-#         acs.fetch(endyear = 2009, 
-#                   geography = geo_tr_kc_all, 
-#                   table.number = test_tbl) %>%
-#         acs::geography() %>% 
-#         as.data.frame() %>% 
-#         transmute(GEOID = paste0(state,0,county,tract)) %>% 
-#         unlist(use.names = FALSE)
-
-
-
 
 ```

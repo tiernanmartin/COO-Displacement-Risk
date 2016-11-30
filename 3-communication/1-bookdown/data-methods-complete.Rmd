@@ -19,20 +19,20 @@ misc_fp <- root_file('1-data/1-notebooks/01-misc.Rmd')
 
 `r knit_child(misc_fp)`
 
-## Census Geographies: Spatial Data
+## Census Geographies: ACS Geo Sets
 
-```{r data-methods-hra-census-geos}
+```{r data-methods-hra-census-acs}
 
-census_geos_fp <- root_file('1-data/1-notebooks/02-census-geos.Rmd')
+census_geos_fp <- root_file('1-data/1-notebooks/02-census-acs.Rmd')
 ```
 
 `r knit_child(census_geos_fp)`
 
 
-## Census Geographies: ACS Geo Sets
+## Census Geographies: Spatial Data
 
 ```{r data-methods-census-acs}
-census_acs_fp <- root_file('1-data/1-notebooks/02-census-acs.Rmd')
+census_acs_fp <- root_file('1-data/1-notebooks/02-census-geos.Rmd')
 ```
 
 `r knit_child(census_acs_fp)`
