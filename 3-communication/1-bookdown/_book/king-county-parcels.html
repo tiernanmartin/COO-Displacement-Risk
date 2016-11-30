@@ -8,7 +8,7 @@
   <title>Communities of Opportunity Displacement Risk Assessment</title>
   <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
   <meta name="description" content="This is a report.">
-  <meta name="generator" content="bookdown 0.1.16 and GitBook 2.6.7">
+  <meta name="generator" content="bookdown 0.2 and GitBook 2.6.7">
 
   <meta property="og:title" content="Communities of Opportunity Displacement Risk Assessment" />
   <meta property="og:type" content="book" />
@@ -25,7 +25,6 @@
 
 <meta name="author" content="Tiernan Martin, Futurewise">
 
-  
 
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -33,8 +32,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   
   
-<link rel="prev" href="census-tracts.html">
-<link rel="next" href="king-county-residential-property-values.html">
+<link rel="prev" href="census-geographies-acs-geo-sets.html">
+<link rel="next" href="vulnerability.html">
 
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
@@ -49,7 +48,7 @@
 
 
 
-<script src="libs/htmlwidgets-0.7/htmlwidgets.js"></script>
+<script src="libs/htmlwidgets-0.8/htmlwidgets.js"></script>
 <link href="libs/leaflet-0.7.7/leaflet.css" rel="stylesheet" />
 <script src="libs/leaflet-0.7.7/leaflet.js"></script>
 <link href="libs/leafletfix-1.0.0/leafletfix.css" rel="stylesheet" />
@@ -57,9 +56,11 @@
 <script src="libs/leaflet-label-0.2.2/leaflet.label.js"></script>
 <script src="libs/Proj4Leaflet-0.7.2/proj4-compressed.js"></script>
 <script src="libs/Proj4Leaflet-0.7.2/proj4leaflet.js"></script>
-<script src="libs/leaflet-binding-1.0.2.9002/leaflet.js"></script>
+<script src="libs/leaflet-binding-1.0.2.9006/leaflet.js"></script>
 <script src="libs/leaflet-providers-1.0.27/leaflet-providers.js"></script>
-<script src="libs/leaflet-providers-plugin-1.0.2.9002/leaflet-providers-plugin.js"></script>
+<script src="libs/leaflet-providers-plugin-1.0.2.9006/leaflet-providers-plugin.js"></script>
+<link href="libs/leaflet-awesomemarkers-2.0.2/leaflet.awesome-markers.css" rel="stylesheet" />
+<script src="libs/leaflet-awesomemarkers-2.0.2/leaflet.awesome-markers.min.js"></script>
 
 
 <style type="text/css">
@@ -118,29 +119,47 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li class="chapter" data-level="A.1" data-path="miscellaneous.html"><a href="miscellaneous.html"><i class="fa fa-check"></i><b>A.1</b> Miscellaneous</a><ul>
 <li class="chapter" data-level="A.1.1" data-path="miscellaneous.html"><a href="miscellaneous.html#seattle-boundary"><i class="fa fa-check"></i><b>A.1.1</b> Seattle Boundary</a></li>
 <li class="chapter" data-level="A.1.2" data-path="miscellaneous.html"><a href="miscellaneous.html#king-county-subdivision-boundary"><i class="fa fa-check"></i><b>A.1.2</b> King County Subdivision Boundary</a></li>
-<li class="chapter" data-level="A.1.3" data-path="miscellaneous.html"><a href="miscellaneous.html#tracts-in-seattle-ccd"><i class="fa fa-check"></i><b>A.1.3</b> Tracts in Seattle CCD</a></li>
+<li class="chapter" data-level="A.1.3" data-path="miscellaneous.html"><a href="miscellaneous.html#tracts-in-king-county"><i class="fa fa-check"></i><b>A.1.3</b> Tracts in King County</a></li>
 <li class="chapter" data-level="A.1.4" data-path="miscellaneous.html"><a href="miscellaneous.html#puget-sound-waterbodies"><i class="fa fa-check"></i><b>A.1.4</b> Puget Sound Waterbodies</a></li>
+<li class="chapter" data-level="A.1.5" data-path="miscellaneous.html"><a href="miscellaneous.html#kc-tracts-without-western-waterbodies"><i class="fa fa-check"></i><b>A.1.5</b> KC Tracts Without (Western) Waterbodies</a></li>
+<li class="chapter" data-level="A.1.6" data-path="miscellaneous.html"><a href="miscellaneous.html#king-county-without-western-waterbodies"><i class="fa fa-check"></i><b>A.1.6</b> King County Without (Western) Waterbodies</a></li>
 </ul></li>
-<li class="chapter" data-level="A.2" data-path="health-reporting-areas.html"><a href="health-reporting-areas.html"><i class="fa fa-check"></i><b>A.2</b> Health Reporting Areas</a><ul>
-<li class="chapter" data-level="A.2.1" data-path="health-reporting-areas.html"><a href="health-reporting-areas.html#introduction"><i class="fa fa-check"></i><b>A.2.1</b> Introduction</a></li>
-<li class="chapter" data-level="A.2.2" data-path="health-reporting-areas.html"><a href="health-reporting-areas.html#census-block-counts"><i class="fa fa-check"></i><b>A.2.2</b> Census Block Counts</a></li>
-<li class="chapter" data-level="A.2.3" data-path="health-reporting-areas.html"><a href="health-reporting-areas.html#the-algorithm"><i class="fa fa-check"></i><b>A.2.3</b> The Algorithm</a></li>
-<li class="chapter" data-level="A.2.4" data-path="health-reporting-areas.html"><a href="health-reporting-areas.html#maps"><i class="fa fa-check"></i><b>A.2.4</b> Maps</a></li>
+<li class="chapter" data-level="A.2" data-path="census-geographies-spatial-data.html"><a href="census-geographies-spatial-data.html"><i class="fa fa-check"></i><b>A.2</b> Census Geographies: Spatial Data</a><ul>
+<li class="chapter" data-level="A.2.1" data-path="census-geographies-spatial-data.html"><a href="census-geographies-spatial-data.html#introduction"><i class="fa fa-check"></i><b>A.2.1</b> Introduction</a></li>
+<li class="chapter" data-level="A.2.2" data-path="census-geographies-spatial-data.html"><a href="census-geographies-spatial-data.html#maps"><i class="fa fa-check"></i><b>A.2.2</b> Maps</a></li>
 </ul></li>
-<li class="chapter" data-level="A.3" data-path="census-tracts.html"><a href="census-tracts.html"><i class="fa fa-check"></i><b>A.3</b> Census Tracts</a><ul>
-<li class="chapter" data-level="A.3.1" data-path="census-tracts.html"><a href="census-tracts.html#introduction-1"><i class="fa fa-check"></i><b>A.3.1</b> Introduction</a></li>
-<li class="chapter" data-level="A.3.2" data-path="census-tracts.html"><a href="census-tracts.html#spatial-polygons"><i class="fa fa-check"></i><b>A.3.2</b> Spatial Polygons</a></li>
+<li class="chapter" data-level="A.3" data-path="census-geographies-acs-geo-sets.html"><a href="census-geographies-acs-geo-sets.html"><i class="fa fa-check"></i><b>A.3</b> Census Geographies: ACS Geo Sets</a><ul>
+<li class="chapter" data-level="A.3.1" data-path="census-geographies-acs-geo-sets.html"><a href="census-geographies-acs-geo-sets.html#acs-geo-set"><i class="fa fa-check"></i><b>A.3.1</b> ACS Geo Set</a></li>
+<li class="chapter" data-level="A.3.2" data-path="census-geographies-acs-geo-sets.html"><a href="census-geographies-acs-geo-sets.html#matching-tracts-between-the-years"><i class="fa fa-check"></i><b>A.3.2</b> Matching Tracts between the years</a></li>
 </ul></li>
 <li class="chapter" data-level="A.4" data-path="king-county-parcels.html"><a href="king-county-parcels.html"><i class="fa fa-check"></i><b>A.4</b> King County Parcels</a><ul>
-<li class="chapter" data-level="A.4.1" data-path="king-county-parcels.html"><a href="king-county-parcels.html#introduction-2"><i class="fa fa-check"></i><b>A.4.1</b> Introduction</a></li>
+<li class="chapter" data-level="A.4.1" data-path="king-county-parcels.html"><a href="king-county-parcels.html#introduction-1"><i class="fa fa-check"></i><b>A.4.1</b> Introduction</a></li>
 <li class="chapter" data-level="A.4.2" data-path="king-county-parcels.html"><a href="king-county-parcels.html#parcels-in-seattle-ccd"><i class="fa fa-check"></i><b>A.4.2</b> Parcels in Seattle CCD</a></li>
 <li class="chapter" data-level="A.4.3" data-path="king-county-parcels.html"><a href="king-county-parcels.html#assigning-census-tracts-to-parcels"><i class="fa fa-check"></i><b>A.4.3</b> Assigning Census Tracts to Parcels</a></li>
 </ul></li>
-<li class="chapter" data-level="A.5" data-path="king-county-residential-property-values.html"><a href="king-county-residential-property-values.html"><i class="fa fa-check"></i><b>A.5</b> King County Residential Property Values</a><ul>
-<li class="chapter" data-level="A.5.1" data-path="king-county-residential-property-values.html"><a href="king-county-residential-property-values.html#introduduction"><i class="fa fa-check"></i><b>A.5.1</b> Introduduction</a></li>
-<li class="chapter" data-level="A.5.2" data-path="king-county-residential-property-values.html"><a href="king-county-residential-property-values.html#data-transformation"><i class="fa fa-check"></i><b>A.5.2</b> Data Transformation</a></li>
+<li class="chapter" data-level="A.5" data-path="vulnerability.html"><a href="vulnerability.html"><i class="fa fa-check"></i><b>A.5</b> Vulnerability</a><ul>
+<li class="chapter" data-level="A.5.1" data-path="vulnerability.html"><a href="vulnerability.html#introduction-2"><i class="fa fa-check"></i><b>A.5.1</b> Introduction</a></li>
+<li class="chapter" data-level="A.5.2" data-path="vulnerability.html"><a href="vulnerability.html#population-belonging-to-a-community-of-color-2010-2014"><i class="fa fa-check"></i><b>A.5.2</b> Population Belonging to A Community of Color (%), 2010-2014</a></li>
+<li class="chapter" data-level="A.5.3" data-path="vulnerability.html"><a href="vulnerability.html#population-in-renter-occupied-housing-units-2010-2014"><i class="fa fa-check"></i><b>A.5.3</b> Population in Renter-Occupied Housing Units (%), 2010-2014</a></li>
+<li class="chapter" data-level="A.5.4" data-path="vulnerability.html"><a href="vulnerability.html#adults-25-with-less-than-a-bachelor-degree-2010-2014"><i class="fa fa-check"></i><b>A.5.4</b> Adults 25+ With Less Than a Bachelor Degree (%), 2010-2014</a></li>
+<li class="chapter" data-level="A.5.5" data-path="vulnerability.html"><a href="vulnerability.html#household-earning-less-than-80-of-the-hud-2010-2014"><i class="fa fa-check"></i><b>A.5.5</b> Household earning less than 80% of the HUD , 2010-2014</a></li>
 </ul></li>
-<li class="chapter" data-level="A.6" data-path="people-of-color-acs.html"><a href="people-of-color-acs.html"><i class="fa fa-check"></i><b>A.6</b> People of Color (ACS)</a></li>
+<li class="chapter" data-level="A.6" data-path="demographic-change-race.html"><a href="demographic-change-race.html"><i class="fa fa-check"></i><b>A.6</b> Demographic Change: Race</a><ul>
+<li class="chapter" data-level="A.6.1" data-path="demographic-change-race.html"><a href="demographic-change-race.html#introduction-3"><i class="fa fa-check"></i><b>A.6.1</b> Introduction</a></li>
+<li class="chapter" data-level="A.6.2" data-path="demographic-change-race.html"><a href="demographic-change-race.html#change-in-share-of-white-population-2005-2009-to-2010-2014"><i class="fa fa-check"></i><b>A.6.2</b> Change in Share of White Population (%), 2005-2009 to 2010-2014</a></li>
+</ul></li>
+<li class="chapter" data-level="A.7" data-path="demographic-change-education.html"><a href="demographic-change-education.html"><i class="fa fa-check"></i><b>A.7</b> Demographic Change: Education</a><ul>
+<li class="chapter" data-level="A.7.1" data-path="demographic-change-education.html"><a href="demographic-change-education.html#introduction-4"><i class="fa fa-check"></i><b>A.7.1</b> Introduction</a></li>
+<li class="chapter" data-level="A.7.2" data-path="demographic-change-education.html"><a href="demographic-change-education.html#change-in-share-of-adults-with-a-bachelor-degree-or-higher-2005-2009-to-2010-2014"><i class="fa fa-check"></i><b>A.7.2</b> Change in Share of Adults with a Bachelor Degree or Higher (%), 2005-2009 to 2010-2014</a></li>
+</ul></li>
+<li class="chapter" data-level="A.8" data-path="demographic-change-housing-tenure.html"><a href="demographic-change-housing-tenure.html"><i class="fa fa-check"></i><b>A.8</b> Demographic Change: Housing Tenure</a><ul>
+<li class="chapter" data-level="A.8.1" data-path="demographic-change-housing-tenure.html"><a href="demographic-change-housing-tenure.html#introduction-5"><i class="fa fa-check"></i><b>A.8.1</b> Introduction</a></li>
+<li class="chapter" data-level="A.8.2" data-path="demographic-change-housing-tenure.html"><a href="demographic-change-housing-tenure.html#change-in-share-of-home-owners-2005-2009-to-2010-2014"><i class="fa fa-check"></i><b>A.8.2</b> Change in Share of Home Owners (%), 2005-2009 to 2010-2014</a></li>
+</ul></li>
+<li class="chapter" data-level="A.9" data-path="demographic-change-income.html"><a href="demographic-change-income.html"><i class="fa fa-check"></i><b>A.9</b> Demographic Change: Income</a><ul>
+<li class="chapter" data-level="A.9.1" data-path="demographic-change-income.html"><a href="demographic-change-income.html#introduction-6"><i class="fa fa-check"></i><b>A.9.1</b> Introduction</a></li>
+<li class="chapter" data-level="A.9.2" data-path="demographic-change-income.html"><a href="demographic-change-income.html#change-in-share-of-moderate-to-high-income-households-2010-2014"><i class="fa fa-check"></i><b>A.9.2</b> Change in Share of Moderate to High Income Households (%), 2010-2014</a></li>
+</ul></li>
 </ul></li>
 </ul>
 
@@ -161,7 +180,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
             <section class="normal" id="section-">
 <div id="king-county-parcels" class="section level2">
 <h2><span class="header-section-number">A.4</span> King County Parcels</h2>
-<div id="introduction-2" class="section level3">
+<div id="introduction-1" class="section level3">
 <h3><span class="header-section-number">A.4.1</span> Introduction</h3>
 <p>Tax parcels are the pieces of land associated with property value. King County appraises parcels in order to determine an estimate of the fair market value, which is then used in the process of determening taxation amounts. For the purposes of this assessment, parcels are the geographic unit of the indicator of housing market conditions: residential property value.</p>
 <p>More information about the parcel dataset is available at the King County GIS Center:</p>
@@ -196,7 +215,7 @@ prcl_all_df &lt;-<span class="st"> </span>
 
 <span class="kw">colnames</span>(prcl_all_df) %&lt;&gt;%<span class="st"> </span><span class="kw">toupper</span>() 
 
-<span class="co"># Parcels (sp): 2012</span>
+<span class="co"># Parcels (sp): most recent (August, 2016)</span>
 
 if(!<span class="kw">file.exists</span>(<span class="kw">root_file</span>(<span class="st">&#39;1-data/3-external/parcel/parcel.shp&#39;</span>))){
         url &lt;-<span class="st"> &#39;ftp://ftp.kingcounty.gov/gis-web/web/GISData/parcel_SHP.zip&#39;</span> <span class="co"># direct URL to the file download</span>
@@ -302,8 +321,8 @@ if(!<span class="kw">exists</span>(<span class="st">&#39;prcl_ccd_tr_sp&#39;</sp
           </div>
         </div>
       </div>
-<a href="census-tracts.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="king-county-residential-property-values.html" class="navigation navigation-next " aria-label="Next page""><i class="fa fa-angle-right"></i></a>
+<a href="census-geographies-acs-geo-sets.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="vulnerability.html" class="navigation navigation-next " aria-label="Next page""><i class="fa fa-angle-right"></i></a>
 
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
 <script src="libs/gitbook-2.6.7/js/lunr.js"></script>
