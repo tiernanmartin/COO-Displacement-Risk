@@ -59,7 +59,9 @@ sea_sf <- read_rds(root_file('1-data/4-interim/seattle-sf.rds'))
 
 green <- miscgis::miscgis_pals$tableau_cat[["green"]]
 
-myLfltGrey(data = as(sea_sf,'Spatial')) %>% addPolygons(color = green,opacity = 1,fillColor = green,fillOpacity = .5)
+myLfltGrey(data = as(sea_sf,'Spatial')) %>% 
+        myLfltOpts() %>% 
+        addPolygons(color = green,opacity = 1,fillColor = green,fillOpacity = .5)
 
 ```
 
@@ -78,7 +80,9 @@ if(!file.exists(root_file('1-data/4-interim/seattle-ccd-sf.rds'))){
 
 sea_ccd_sf <- read_rds(root_file('1-data/4-interim/seattle-ccd-sf.rds'))
 
-myLfltGrey(data = as(sea_ccd_sf,'Spatial')) %>% addPolygons(color = blue,opacity = 1,fillColor = blue,fillOpacity = .5)
+myLfltGrey(data = as(sea_ccd_sf,'Spatial')) %>% 
+        myLfltOpts() %>% 
+        addPolygons(color = blue,opacity = 1,fillColor = blue,fillOpacity = .5)
 
 ```
 
@@ -129,8 +133,9 @@ show_tr_ccd_wtr_sf <- function(){
         other_kc <- tr_kc_wtr_sf %>% filter(!SEACCD_LGL)
         
         myLfltGrey() %>% 
-        addPolygons(data = as(seaccd,"Spatial"),weight = .5,color = blue,opacity = 1,fillColor = blue,fillOpacity = .5) %>% 
-        addPolygons(data = as(other_kc,"Spatial"),weight = .5,color = orange,opacity = 1,fillColor = orange,fillOpacity = .5)
+                myLfltOpts() %>% 
+                addPolygons(data = as(seaccd,"Spatial"),weight = .5,color = blue,opacity = 1,fillColor = blue,fillOpacity = .5) %>% 
+                addPolygons(data = as(other_kc,"Spatial"),weight = .5,color = orange,opacity = 1,fillColor = orange,fillOpacity = .5)
 }
 
 show_tr_ccd_wtr_sf()
@@ -180,6 +185,7 @@ wtr_sf <- read_rds(root_file('1-data/4-interim/wtr-sf.rds'))
 
 show_wtr <- function(){
         myLfltGrey(data = as(wtr_sf,'Spatial')) %>% 
+                myLfltOpts() %>% 
                 addPolygons(color = blue, opacity = 1, 
                             weight = .5, fillColor = blue,fillOpacity = .5)        
 }
@@ -207,6 +213,7 @@ show_tr_kc_sf <- function(){
         other_kc <- tr_kc_sf %>% filter(!SEACCD_LGL)
         
         myLfltGrey() %>% 
+                myLfltOpts() %>% 
         addPolygons(data = as(seaccd,"Spatial"),weight = .5,color = blue,opacity = 1,fillColor = blue,fillOpacity = .5) %>% 
         addPolygons(data = as(other_kc,"Spatial"),weight = .5,color = orange,opacity = 1,fillColor = orange,fillOpacity = .5)
 }
