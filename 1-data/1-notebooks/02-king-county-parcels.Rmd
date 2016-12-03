@@ -1,0 +1,239 @@
+---
+df_print: tibble
+output:
+  html_notebook:
+    code_folding: hide
+  pdf_document:
+    keep_tex: yes
+always_allow_html: yes
+---
+
+```{r kc-prcl-setup, echo = FALSE, warning=FALSE,message=FALSE,comment=FALSE}
+library(plyr)
+library(knitr)
+library(rprojroot)
+library(rgdal)
+library(sp)
+library(rgeos)
+library(tigris)
+library(leaflet)
+library(ggthemes)
+library(magrittr)
+library(stringr)
+library(downloader)
+library(webshot)
+library(htmltools)
+library(gplots)
+library(ggmap)
+library(shiny)
+library(htmlwidgets)
+library(readxl)
+library(acs)
+library(RColorBrewer)
+library(tidyverse)
+library(miscgis)
+library(operator.tools)
+library(leaflet.extras)
+library(viridisLite)
+library(maptools)
+library(cleangeo)
+library(sf)
+root <- rprojroot::is_rstudio_project
+root_file <- root$make_fix_file()
+opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
+```
+
+### Introduction
+
+```{r kc-prcl-colors}
+green <- miscgis::miscgis_pals$tableau_cat[["green"]]
+blue <- miscgis::miscgis_pals$tableau_cat[["blue"]]
+orange <- miscgis::miscgis_pals$tableau_cat[["orange"]]
+red <- miscgis::miscgis_pals$tableau_cat[["red"]]
+teal <- miscgis::miscgis_pals$tableau_cat[["teal"]]
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+proj_light_grey <- col2hex("grey75")
+proj_grey <- col2hex("grey50")
+proj_dark_grey <- col2hex("grey25")
+```
+
+_NOTE: this text is placeholder and must be changed_
+
+#### Calendar Year 2014 / Tax Year 2015
+```{r kc-prcl-2014}
+
+# Read in original parcel data, remove the problem geometries, convert to points
+# -----------------------------------------------------------------------------
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl_all_2014_pt_sf.rds'))){
+        
+        # Figure out which featureclass to load
+        
+        fp_2014 <- root_file('1-data/3-external/manual/over-size-limit/Year2015.gdb/')
+        
+        layers <- ogrListLayers(fp_2014)
+        
+        layers[1:length(layers)]
+        
+        # It looks like 'parcel_area' is the spatial layer        
+        
+        # Load the data spatial data
+        
+        prcl_all_2014_sp <- readOGR(dsn = fp_2014,
+                                    layer = 'parcel_area',
+                                    verbose = FALSE,stringsAsFactors = FALSE)
+        
+        # Identify the trouble polygons
+        bad_geom_indices <- 
+                prcl_all_2014_sp %>% 
+                clgeo_CollectionReport() %>% 
+                clgeo_SuspiciousFeatures()
+        
+        # Remove the trouble polygons
+        cleaned_sp <- 
+                prcl_all_2014_sp[seq_along( prcl_all_2014_sp) %!in% bad_geom_indices,]
+        
+        # Convert to simple feature object,
+        # tranform the geometries from polygon to point with `st_centroid()`,
+        # and reproject
+        prcl_all_2014_pt_sf <- 
+                cleaned_sp %>% 
+                st_as_sf %>% 
+                mutate(geometry = st_centroid(geometry)) %>% 
+                st_set_crs(proj4string(prcl_all_2014_sp)) %>% 
+                st_transform(crs_proj@projargs)
+        
+        # Save the sf object
+        prcl_all_2014_pt_sf %>% write_rds(root_file('1-data/4-interim/over-size-limit/prcl_all_2014_pt_sf.rds'))
+}
+
+prcl_all_2014_pt_sf <- read_rds(root_file('1-data/4-interim/over-size-limit/prcl_all_2014_pt_sf.rds'))
+
+# Print a random selection from the data set
+
+print(prcl_all_2014_pt_sf,n = 5)
+
+
+```
+
+
+#### Calendar Year 2004 / Tax Year 2005
+```{r kc-prcl-2004}
+
+# Read in original parcel data, remove the problem geometries, convert to points
+# -----------------------------------------------------------------------------
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl_all_2004_pt_sf.rds'))){
+        
+        # Figure out which featureclass to load
+        
+        fp_2004 <- root_file('1-data/3-external/manual/over-size-limit/Year2005.gdb/')
+        
+        layers <- ogrListLayers(fp_2004)
+        
+        layers[1:length(layers)]
+        
+        # It looks like 'parcel_area' is the spatial layer        
+        
+        # Load the data spatial data
+        
+        prcl_all_2004_sp <- readOGR(dsn = fp_2004,
+                                    layer = 'parcel_area',
+                                    verbose = FALSE,stringsAsFactors = FALSE)
+        
+        # Identify the trouble polygons
+        
+        report <- clgeo_CollectionReport(prcl_all_2004_sp)
+        
+        problem_geom_indices <- clgeo_SuspiciousFeatures(report)
+                
+        
+        # Remove the trouble polygons
+        cleaned_sp <- 
+                prcl_all_2004_sp[seq_along( prcl_all_2004_sp) %!in% problem_geom_indices,]
+        
+        # Convert to simple feature object,
+        # tranform the geometries from polygon to point with `st_centroid()`,
+        # and reproject
+        prcl_all_2004_pt_sf <- 
+                cleaned_sp %>% 
+                st_as_sf %>% 
+                mutate(geometry = st_centroid(geometry)) %>% 
+                st_set_crs(proj4string(prcl_all_2004_sp)) %>% 
+                st_transform(crs_proj@projargs)
+        
+        # Save the sf object
+        prcl_all_2004_pt_sf %>% write_rds(root_file('1-data/4-interim/over-size-limit/prcl_all_2004_pt_sf.rds'))
+}
+
+prcl_all_2004_pt_sf <- read_rds(root_file('1-data/4-interim/over-size-limit/prcl_all_2004_pt_sf.rds'))
+
+print(prcl_all_2004_pt_sf,n = 5)
+
+```
+
+
+#### Calendar Year 1999 / Tax Year 2000
+```{r kc-prcl-1999}
+
+# Read in original parcel data, remove the problem geometries, convert to points
+# -----------------------------------------------------------------------------
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl_all_1999_pt_sf.rds'))){
+        
+        # Figure out which featureclass to load
+        
+        fp_1999 <- root_file('1-data/3-external/manual/over-size-limit/Year2000.gdb/')
+        
+        layers <- ogrListLayers(fp_1999)
+        
+        layers[1:length(layers)]
+        
+        # It looks like 'parcel_area' is the spatial layer        
+        
+        # Load the data spatial data
+        
+        prcl_all_1999_sp <- readOGR(dsn = fp_1999,
+                                    layer = 'parcel_area',
+                                    verbose = FALSE,stringsAsFactors = FALSE)
+        
+        # Identify the trouble polygons
+        
+        report <- clgeo_CollectionReport(prcl_all_1999_sp)
+        
+        problem_geom_indices <- clgeo_SuspiciousFeatures(report)
+                
+        
+        # Remove the trouble polygons
+        cleaned_sp <- 
+                prcl_all_1999_sp[seq_along( prcl_all_1999_sp) %!in% problem_geom_indices,]
+        
+        # Convert to simple feature object,
+        # tranform the geometries from polygon to point with `st_centroid()`,
+        # and reproject
+        prcl_all_1999_pt_sf <- 
+                cleaned_sp %>% 
+                st_as_sf %>% 
+                mutate(geometry = st_centroid(geometry)) %>% 
+                st_set_crs(proj4string(prcl_all_1999_sp)) %>% 
+                st_transform(crs_proj@projargs)
+        
+        # Save the sf object
+        prcl_all_1999_pt_sf %>% write_rds(root_file('1-data/4-interim/over-size-limit/prcl_all_1999_pt_sf.rds'))
+}
+
+prcl_all_1999_pt_sf <- read_rds(root_file('1-data/4-interim/over-size-limit/prcl_all_1999_pt_sf.rds'))
+
+print(prcl_all_1999_pt_sf,n = 5)
+
+```
+
+
+
+
+
+
+

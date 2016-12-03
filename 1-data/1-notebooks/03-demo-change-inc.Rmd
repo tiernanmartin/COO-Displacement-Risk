@@ -572,8 +572,6 @@ chng_inc_acs <-  read_rds(root_file('1-data/4-interim/chng-inc-acs.rds'))
 
 ```
 
-
-
 ```{r chng-inc-sf}
 
 if(!file.exists(root_file('1-data/4-interim/chng-inc-sf.rds'))){
@@ -641,7 +639,8 @@ comm_cntr <- comm %>% mutate(geometry = st_centroid(comm))
 
 pal_chng_inc <- colorNumeric(viridis(256, option = "C"),tr$CHNG_PCT_INC_EST)
 
-myLfltGrey() %>% 
+myLfltGrey() %>%
+        myLfltOpts() %>% 
         addPolygons(data = as(tr,'Spatial'),
                 fillOpacity = .75,
                 fillColor = ~pal_chng_inc(CHNG_PCT_INC_EST),
@@ -669,6 +668,7 @@ myLfltGrey() %>%
 #####COO Communities
 ```{r chng-inc-comm-map}
 myLfltGrey() %>% 
+        myLfltOpts() %>% 
         addPolygons(data = as(tr_comm,'Spatial'),
                 fillOpacity = .75,
                 fillColor = ~pal_chng_inc(CHNG_PCT_INC_EST),

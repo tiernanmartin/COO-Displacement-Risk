@@ -267,6 +267,7 @@ show_tr_ccd <- function(){
                 filter(GEOGRAPHY %in% 'tract' & SEACCD_LGL) %>% 
                 as("Spatial") %>% 
                 myLfltGrey() %>% 
+                myLfltOpts() %>% 
                 addPolygons(weight = .5,color = blue,opacity = 1,fillColor = blue,fillOpacity = .5) 
 }
 
@@ -309,6 +310,7 @@ rv_map <-
         rv_sf %>% 
         as("Spatial") %>% 
         miscgis::myLfltGrey() %>%
+        myLfltOpts() %>% 
         addPolygons(smoothFactor = 0,
                     color = col2hex("white"),
                     weight = .5,
@@ -327,6 +329,7 @@ wc_map <-
         wc_sf %>% 
         as("Spatial") %>% 
         miscgis::myLfltGrey() %>%
+        myLfltOpts() %>% 
         addPolygons(smoothFactor = 0,
                     color = col2hex("white"),
                     weight = .5,
@@ -343,6 +346,7 @@ stkw_map <-
         stkw_sf %>% 
         as("Spatial") %>% 
         miscgis::myLfltGrey() %>%
+        myLfltOpts() %>% 
         addPolygons(smoothFactor = 0,
                     color = col2hex("white"),
                     weight = .5,

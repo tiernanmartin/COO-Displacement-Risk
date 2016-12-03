@@ -617,6 +617,7 @@ comm_cntr <- comm %>% mutate(geometry = st_centroid(comm))
 pal_chng_white <- colorNumeric(viridis(256, option = "C"),tr$CHNG_PCT_WHITE_EST)
 
 myLfltGrey() %>% 
+        myLfltOpts() %>% 
         addPolygons(data = as(tr,'Spatial'),
                 fillOpacity = .75,
                 fillColor = ~pal_chng_white(CHNG_PCT_WHITE_EST),
@@ -644,6 +645,7 @@ myLfltGrey() %>%
 #####COO Communities
 ```{r chng-white-comm-map}
 myLfltGrey() %>% 
+        myLfltOpts() %>% 
         addPolygons(data = as(tr_comm,'Spatial'),
                 fillOpacity = .75,
                 fillColor = ~pal_chng_white(CHNG_PCT_WHITE_EST),
