@@ -1,0 +1,26 @@
+---
+df_print: tibble
+output:
+  html_notebook:
+    code_folding: hide
+  pdf_document:
+    keep_tex: yes
+always_allow_html: yes
+---
+
+### Introduction
+
+_NOTE: this text is placeholder and must be changed_
+
+We defined census tracts with gentrification-related demographic change from 2005-2009 to 2010-2014 as
+those that experienced either at least 3 of the following 4:
+
+  * The white population share either increased or it decreased less than X.0%
+  * The share of homeowners either increased or it decreased less than X%
+  * The share of the population 25 years and older with a bachelor’s degree increased more
+than X%
+  * The share of household earning more than 80% AMI increased or it decreased less than X%
+or experienced only 2 out of 4, which were:
+  * The white population share either increased or it decreased less than X%
+  * The share of the population 25 years and older with a bachelor’s degree increased more
+than X%

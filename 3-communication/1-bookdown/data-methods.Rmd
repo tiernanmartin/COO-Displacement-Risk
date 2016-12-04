@@ -53,34 +53,28 @@ vuln_fp <- root_file('1-data/1-notebooks/03-vulnerability.Rmd')
 
 `r knit_child(vuln_fp)`
 
-## Demographic Change: Race
+## Demographic Change
 
 ```{r data-methods-demo-chng-white}
+
+demo_chng_intro_fp <- root_file('1-data/1-notebooks/03-demo-change-intro.Rmd')
+
 white_fp <- root_file('1-data/1-notebooks/03-demo-change-white.Rmd')
+
+bach_fp <- root_file('1-data/1-notebooks/03-demo-change-bach.Rmd')
+
+own_fp <- root_file('1-data/1-notebooks/03-demo-change-own.Rmd')
+
+income_fp <- root_file('1-data/1-notebooks/03-demo-change-inc.Rmd')
+
 ```
+
+`r knit_child(demo_chng_intro_fp)`
 
 `r knit_child(white_fp)`
 
-## Demographic Change: Education
-
-```{r data-methods-demo-chng-bach}
-bach_fp <- root_file('1-data/1-notebooks/03-demo-change-bach.Rmd')
-```
-
 `r knit_child(bach_fp)`
 
-## Demographic Change: Housing Tenure
-
-```{r data-methods-demo-chng-own}
-own_fp <- root_file('1-data/1-notebooks/03-demo-change-own.Rmd')
-```
-
 `r knit_child(own_fp)`
-
-## Demographic Change: Income
-
-```{r data-methods-demo-chng-income}
-income_fp <- root_file('1-data/1-notebooks/03-demo-change-inc.Rmd')
-```
 
 `r knit_child(income_fp)`
