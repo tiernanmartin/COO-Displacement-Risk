@@ -67,11 +67,13 @@ own_fp <- root_file('1-data/1-notebooks/03-demo-change-own.Rmd')
 
 income_fp <- root_file('1-data/1-notebooks/03-demo-change-inc.Rmd')
 
+# `r knit_child(white_fp)`
+# `r knit_child(bach_fp)`
+# `r knit_child(own_fp)`
+# `r knit_child(income_fp)`
+
 ```
 
-`r knit_child(demo_chng_intro_fp)`
-`r knit_child(white_fp)`
-`r knit_child(bach_fp)`
-`r knit_child(own_fp)`
-`r knit_child(income_fp)`
+`r knit_child(demo_chng_intro_fp);knit_child(white_fp);knit_child(bach_fp);knit_child(own_fp);knit_child(income_fp)`
+
 
