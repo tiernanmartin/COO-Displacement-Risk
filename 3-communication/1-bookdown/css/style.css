@@ -13,6 +13,11 @@ pre code {
   white-space: inherit;
 }
 
-leaflet-control-fullscreen-button leaflet-bar-part {
-        background: #fff url(tiernanmartin.github.io/COO-Displacement-Risk/3-communication/1-bookdown/_book/libs/fullscreen-1.0.1/fullscreen.png) no-repeat 0 0;
+.leaflet-top .leaflet-control {
+    margin-top: 10px;
+    background-color: white !important;
+}
+
+.leaflet-control-fullscreen-button.leaflet-bar-part {
+        background-image: url("../_book/libs/fullscreen-1.0.1/fullscreen.png") !important;
 }
