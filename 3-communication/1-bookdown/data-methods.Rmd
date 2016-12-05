@@ -55,7 +55,7 @@ vuln_fp <- root_file('1-data/1-notebooks/03-vulnerability.Rmd')
 
 ## Demographic Change
 
-```{r data-methods-demo-chng-white}
+```{r data-methods-demo-chng}
 
 demo_chng_intro_fp <- root_file('1-data/1-notebooks/03-demo-change-intro.Rmd')
 
@@ -66,8 +66,6 @@ bach_fp <- root_file('1-data/1-notebooks/03-demo-change-bach.Rmd')
 own_fp <- root_file('1-data/1-notebooks/03-demo-change-own.Rmd')
 
 income_fp <- root_file('1-data/1-notebooks/03-demo-change-inc.Rmd')
-
-
 
 ```
 
