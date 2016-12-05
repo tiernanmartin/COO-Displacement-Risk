@@ -339,12 +339,12 @@ GithubSha1: c62fedc39016c76e1fab891e20791411f0fbc731
 Package: leaflet.extras
 Source: github
 Version: 0.1.9005
-Hash: 0abb4057f1a4dd8748270594bc3ea112
+Hash: e504fca50f94fc24c462c9bf2b58fece
 Requires: htmltools, htmlwidgets, leaflet, magrittr, shiny
 GithubRepo: leaflet.extras
 GithubUsername: bhaskarvk
 GithubRef: master
-GithubSha1: 55863c1119d68868b712a64af22d6f13956d0d83
+GithubSha1: a5c6955897e0cc354f8fc094e904f4215ed948e0
 
 Package: lubridate
 Source: CRAN
