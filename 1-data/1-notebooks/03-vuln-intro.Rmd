@@ -1,0 +1,25 @@
+---
+df_print: tibble
+output:
+  html_notebook:
+    code_folding: hide
+  pdf_document:
+    keep_tex: yes
+always_allow_html: yes
+---
+
+_NOTE: this text is placeholder and must be changed_
+
+### Introduction
+
+Census tracts were assigned a “vulnerability score” between 0 and 4, with a weight of 1 for each
+of the following that is true:
+
+  * Greater than XX% of households are renters
+  * Greater than XX% of the population are communities of color
+  * Greater than XX% of the population 25 years and older do not have a bachelor’s degree
+  * Greater than XX% of households have incomes at or below at or below 80% of the HUDadjusted
+median family income (MFI) [Note: HUD's FY2015 MFI for the
+Seattle-Bellevue, WA HUD Metro FMR Area was $89,500.]
+
+We defined vulnerable tracts as those with a vulnerability score of at least 3 out of 4.
