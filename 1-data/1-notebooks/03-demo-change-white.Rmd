@@ -597,35 +597,30 @@ comm_cntr <- comm %>% mutate(geometry = st_centroid(comm))
 
 pal_chng_white <- colorNumeric(viridis(256, option = "C"),tr$CHNG_PCT_WHITE_EST)
 
-leaflet() %>%
-        addTiles() %>%
-        setView(-93.65, 42.0285, zoom = 17) %>%
+myLfltGrey() %>%
+        # myLfltOpts() %>%
+        addPolygons(data = as(tr,'Spatial'),
+                fillOpacity = .75,
+                fillColor = ~pal_chng_white(CHNG_PCT_WHITE_EST),
+                color = col2hex('white'),
+                opacity = 1,
+                weight = .5,
+                smoothFactor = 0) %>%
+        addPolygons(data = as(comm,'Spatial'),
+                fillOpacity = 0,
+                color = proj_dark_grey,
+                opacity = 1,
+                weight = 2,
+                smoothFactor = 0) %>%
+        addAwesomeMarkers(data = as(comm_cntr, "Spatial"),options = markerOptions(opacity = 0),label = ~ NAME_FULL, labelOptions = labelOptions(noHide = TRUE,direction = 'left', textOnly = TRUE)) %>%
+        addLegend(title = "Change in<br>% White",
+                  position = 'topright',
+                  pal = pal_chng_white,
+                  values = tr$CHNG_PCT_WHITE_EST,
+                  opacity = .75,
+                  labFormat = labelFormat(suffix = '%')) %>%
+        styleWidget(style = "text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF") %>%
         addFullscreenControl()
-
-# myLfltGrey() %>% 
-#         # myLfltOpts() %>% 
-#         addPolygons(data = as(tr,'Spatial'),
-#                 fillOpacity = .75,
-#                 fillColor = ~pal_chng_white(CHNG_PCT_WHITE_EST),
-#                 color = col2hex('white'),
-#                 opacity = 1,
-#                 weight = .5,
-#                 smoothFactor = 0) %>%
-#         addPolygons(data = as(comm,'Spatial'),
-#                 fillOpacity = 0,
-#                 color = proj_dark_grey,
-#                 opacity = 1,
-#                 weight = 2,
-#                 smoothFactor = 0) %>%
-#         addAwesomeMarkers(data = as(comm_cntr, "Spatial"),options = markerOptions(opacity = 0),label = ~ NAME_FULL, labelOptions = labelOptions(noHide = TRUE,direction = 'left', textOnly = TRUE)) %>% 
-#         addLegend(title = "Change in<br>% White",
-#                   position = 'topright',
-#                   pal = pal_chng_white, 
-#                   values = tr$CHNG_PCT_WHITE_EST,
-#                   opacity = .75,
-#                   labFormat = labelFormat(suffix = '%')) %>% 
-#         styleWidget(style = "text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF") %>% 
-#         addFullscreenControl()
 
 ```
 
