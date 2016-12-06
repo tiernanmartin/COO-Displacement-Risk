@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html >
+
+<head>
+
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Communities of Opportunity Displacement Risk Assessment</title>
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+  <meta name="description" content="This is a report.">
+  <meta name="generator" content="bookdown <!--bookdown:version--> and GitBook 2.6.7">
+
+  <meta property="og:title" content="Communities of Opportunity Displacement Risk Assessment" />
+  <meta property="og:type" content="book" />
+  
+  
+  <meta property="og:description" content="This is a report." />
+  
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Communities of Opportunity Displacement Risk Assessment" />
+  
+  <meta name="twitter:description" content="This is a report." />
+  
+
+<meta name="author" content="Tiernan Martin, Futurewise">
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  
+  
+<!--bookdown:link_prev-->
+<!--bookdown:link_next-->
+
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/htmlwidgets-0.8/htmlwidgets.js"></script>
+<link href="libs/leaflet-0.7.7/leaflet.css" rel="stylesheet" />
+<script src="libs/leaflet-0.7.7/leaflet.js"></script>
+<link href="libs/leafletfix-1.0.0/leafletfix.css" rel="stylesheet" />
+<link href="libs/leaflet-label-0.2.2/leaflet.label.css" rel="stylesheet" />
+<script src="libs/leaflet-label-0.2.2/leaflet.label.js"></script>
+<script src="libs/Proj4Leaflet-0.7.2/proj4-compressed.js"></script>
+<script src="libs/Proj4Leaflet-0.7.2/proj4leaflet.js"></script>
+<script src="libs/leaflet-binding-1.0.2.9008/leaflet.js"></script>
+<script src="libs/leaflet-providers-1.0.27/leaflet-providers.js"></script>
+<script src="libs/leaflet-providers-plugin-1.0.2.9008/leaflet-providers-plugin.js"></script>
+<link href="libs/fullscreen-1.0.1/leaflet.fullscreen.css" rel="stylesheet" />
+<script src="libs/fullscreen-1.0.1/Leaflet.fullscreen.min.js"></script>
+<link href="libs/leaflet-awesomemarkers-2.0.2/leaflet.awesome-markers.css" rel="stylesheet" />
+<script src="libs/leaflet-awesomemarkers-2.0.2/leaflet.awesome-markers.min.js"></script>
+
+
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
+
+<link rel="stylesheet" href="css/style.css" type="text/css" />
+</head>
+
+<body>
+
+
+<!--bookdown:title:start-->
+<div id="header">
+<h1 class="title">Communities of Opportunity Displacement Risk Assessment</h1>
+<h3 class="subtitle"><em>A User Guide</em></h3>
+<h4 class="author"><em>Tiernan Martin, <a href="http://www.futurewisewa.org/">Futurewise</a></em></h4>
+<h4 class="date"><em>Fall 2016</em></h4>
+</div>
+<!--bookdown:title:end-->
+
+<!--bookdown:toc:start-->
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+<!--bookdown:toc2:start-->
+<ul>
+<li><a href="#preface">Preface</a></li>
+<li><a href="#appendix-appendices">(APPENDIX) Appendices</a></li>
+<li><a href="#data-methods"><span class="toc-section-number">1</span> Data Methods</a><ul>
+<li><a href="#miscellaneous"><span class="toc-section-number">1.1</span> Miscellaneous</a><ul>
+<li><a href="#seattle-boundary"><span class="toc-section-number">1.1.1</span> Seattle Boundary</a></li>
+<li><a href="#king-county-subdivision-boundary"><span class="toc-section-number">1.1.2</span> King County Subdivision Boundary</a></li>
+<li><a href="#tracts-in-king-county"><span class="toc-section-number">1.1.3</span> Tracts in King County</a></li>
+<li><a href="#puget-sound-waterbodies"><span class="toc-section-number">1.1.4</span> Puget Sound Waterbodies</a></li>
+<li><a href="#kc-tracts-without-western-waterbodies"><span class="toc-section-number">1.1.5</span> KC Tracts Without (Western) Waterbodies</a></li>
+<li><a href="#king-county-without-western-waterbodies"><span class="toc-section-number">1.1.6</span> King County Without (Western) Waterbodies</a></li>
+</ul></li>
+<li><a href="#census-geographies-spatial-data"><span class="toc-section-number">1.2</span> Census Geographies: Spatial Data</a><ul>
+<li><a href="#introduction"><span class="toc-section-number">1.2.1</span> Introduction</a></li>
+<li><a href="#maps"><span class="toc-section-number">1.2.2</span> Maps</a></li>
+</ul></li>
+<li><a href="#census-geographies-acs-geo-sets"><span class="toc-section-number">1.3</span> Census Geographies: ACS Geo Sets</a><ul>
+<li><a href="#acs-geo-set"><span class="toc-section-number">1.3.1</span> ACS Geo Set</a></li>
+<li><a href="#matching-tracts-between-the-years"><span class="toc-section-number">1.3.2</span> Matching Tracts between the years</a></li>
+</ul></li>
+<li><a href="#king-county-parcels"><span class="toc-section-number">1.4</span> King County Parcels</a><ul>
+<li><a href="#introduction-1"><span class="toc-section-number">1.4.1</span> Introduction</a></li>
+<li><a href="#parcels-in-seattle-ccd"><span class="toc-section-number">1.4.2</span> Parcels in Seattle CCD</a></li>
+<li><a href="#assigning-census-tracts-to-parcels"><span class="toc-section-number">1.4.3</span> Assigning Census Tracts to Parcels</a></li>
+</ul></li>
+<li><a href="#vulnerability"><span class="toc-section-number">1.5</span> Vulnerability</a><ul>
+<li><a href="#introduction-2"><span class="toc-section-number">1.5.1</span> Introduction</a></li>
+<li><a href="#population-belonging-to-a-community-of-color-2010-2014"><span class="toc-section-number">1.5.2</span> Population Belonging to A Community of Color (%), 2010-2014</a></li>
+<li><a href="#population-in-renter-occupied-housing-units-2010-2014"><span class="toc-section-number">1.5.3</span> Population in Renter-Occupied Housing Units (%), 2010-2014</a></li>
+<li><a href="#adults-25-with-less-than-a-bachelor-degree-2010-2014"><span class="toc-section-number">1.5.4</span> Adults 25+ With Less Than a Bachelor Degree (%), 2010-2014</a></li>
+<li><a href="#household-earning-less-than-80-of-the-hud-2010-2014"><span class="toc-section-number">1.5.5</span> Household earning less than 80% of the HUD , 2010-2014</a></li>
+</ul></li>
+<li><a href="#demographic-change"><span class="toc-section-number">1.6</span> Demographic Change</a><ul>
+<li><a href="#introduction-3"><span class="toc-section-number">1.6.1</span> Introduction</a></li>
+<li><a href="#change-in-share-of-white-population-2005-2009-to-2010-2014"><span class="toc-section-number">1.6.2</span> Change in Share of White Population (%), 2005-2009 to 2010-2014</a></li>
+<li><a href="#change-in-share-of-adults-with-a-bachelor-degree-or-higher-2005-2009-to-2010-2014"><span class="toc-section-number">1.6.3</span> Change in Share of Adults with a Bachelor Degree or Higher (%), 2005-2009 to 2010-2014</a></li>
+<li><a href="#change-in-share-of-home-owners-2005-2009-to-2010-2014"><span class="toc-section-number">1.6.4</span> Change in Share of Home Owners (%), 2005-2009 to 2010-2014</a></li>
+<li><a href="#change-in-share-of-moderate-to-high-income-households-2010-2014"><span class="toc-section-number">1.6.5</span> Change in Share of Moderate to High Income Households (%), 2010-2014</a></li>
+</ul></li>
+</ul></li>
+</ul>
+<!--bookdown:toc2:end-->
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Communities of Opportunity Displacement Risk Assessment</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<!--bookdown:toc:end-->
+<!--bookdown:body:start-->
+<div id="preface" class="section level1 unnumbered">
+<h1>Preface</h1>
+<p>This is a work in-progress.</p>
+<!--chapter:end:index.Rmd-->
+</div>
+<div id="appendix-appendices" class="section level1 unnumbered">
+<h1>(APPENDIX) Appendices</h1>
+</div>
+<div id="data-methods" class="section level1">
+<h1><span class="header-section-number">1</span> Data Methods</h1>
+<div id="miscellaneous" class="section level2">
+<h2><span class="header-section-number">1.1</span> Miscellaneous</h2>
+<div id="seattle-boundary" class="section level3">
+<h3><span class="header-section-number">1.1.1</span> Seattle Boundary</h3>
+<div class="figure">
+preserve5c44105f7da708e2
+<p class="caption">
+(#fig:misc-sea-bound)Seattle’s geographic boundary
+</p>
+</div>
+</div>
+<div id="king-county-subdivision-boundary" class="section level3">
+<h3><span class="header-section-number">1.1.2</span> King County Subdivision Boundary</h3>
+<div class="figure">
+preservec3b9603db570862f
+<p class="caption">
+(#fig:misc-sea-ccd)Seattle Subdivision of King County’s geographic boundary
+</p>
+</div>
+</div>
+<div id="tracts-in-king-county" class="section level3">
+<h3><span class="header-section-number">1.1.3</span> Tracts in King County</h3>
+<p>Although this assessment is primarily focused on three communities within the Seattle CCD subdivision of King County, one of the indicators (housing market conditions) uses neighboring tracts to determine displacement risk. Some of the neighboring tracts are part of other county subdivision, but rather than targeting just those specific tracts, this method collects data for all King County tracts and then runs the analysis on the appropriate subsets.</p>
+<p>In the absence of a straight-forward method for identifying all the census tracts in the Seattle CCD subdivision of King County, it is possible to extract this information from <a href="https://factfinder.census.gov/faces/nav/jsf/pages/index.xhtml">American Factfinder</a>. This <a href="https://ask.census.gov/faq.php?id=5000&amp;faqId=1605">tutorial</a> describes how to use the American Factfinder interface to extract a list of all “all tracts within (or partially within) a census place”; substituting “county subdivision” for “place” will retrieve the desired results.</p>
+<p>preserveef14eef6fafa67f1</p>
+</div>
+<div id="puget-sound-waterbodies" class="section level3">
+<h3><span class="header-section-number">1.1.4</span> Puget Sound Waterbodies</h3>
+<p>These are useful for “clipping” census geographies whose boundaries extend into waterbodies.</p>
+<div class="figure">
+preservebb553cb9b92d8dc0
+<p class="caption">
+(#fig:misc-wtr)Puget Sound waterbodies
+</p>
+</div>
+</div>
+<div id="kc-tracts-without-western-waterbodies" class="section level3">
+<h3><span class="header-section-number">1.1.5</span> KC Tracts Without (Western) Waterbodies</h3>
+<p>preserve6aba2e4ab364dcd8</p>
+</div>
+<div id="king-county-without-western-waterbodies" class="section level3">
+<h3><span class="header-section-number">1.1.6</span> King County Without (Western) Waterbodies</h3>
+</div>
+</div>
+<div id="census-geographies-spatial-data" class="section level2">
+<h2><span class="header-section-number">1.2</span> Census Geographies: Spatial Data</h2>
+<div id="introduction" class="section level3">
+<h3><span class="header-section-number">1.2.1</span> Introduction</h3>
+<p>Put something here.</p>
+<div id="commmunities-and-census-tracts" class="section level4">
+<h4><span class="header-section-number">1.2.1.1</span> Commmunities and Census Tracts</h4>
+<p>The primary geographic unit of this assessment is the <a href="https://www.census.gov/geo/reference/gtc/gtc_ct.html">census tract</a>. As is the case with many communities, the census geographies do not coincide exactly with the formal geographic boundary of the study’s three sites, and should be considered as <em>spatial approximations</em> of these communities.</p>
+<p>Listed below are the geographic identifiers of the census tracts that approximate each site.</p>
+<table>
+<caption>(#tab:census-geos-intro)Census Tract GEOIDs</caption>
+<thead>
+<tr class="header">
+<th align="left">Rainier Valley</th>
+<th align="left">White Center</th>
+<th align="left">SeaTac/Tukwila</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">53033010001</td>
+<td align="left">53033026600</td>
+<td align="left">53033026200</td>
+</tr>
+<tr class="even">
+<td align="left">53033010300</td>
+<td align="left">53033026700</td>
+<td align="left">53033027300</td>
+</tr>
+<tr class="odd">
+<td align="left">53033010401</td>
+<td align="left">53033026500</td>
+<td align="left">53033028000</td>
+</tr>
+<tr class="even">
+<td align="left">53033011001</td>
+<td align="left">53033026801</td>
+<td align="left">53033028100</td>
+</tr>
+<tr class="odd">
+<td align="left">53033011002</td>
+<td align="left">53033026802</td>
+<td align="left">53033028300</td>
+</tr>
+<tr class="even">
+<td align="left">53033011101</td>
+<td align="left">53033027000</td>
+<td align="left">53033028402</td>
+</tr>
+<tr class="odd">
+<td align="left">53033011102</td>
+<td align="left">NA</td>
+<td align="left">53033028403</td>
+</tr>
+<tr class="even">
+<td align="left">53033011700</td>
+<td align="left">NA</td>
+<td align="left">53033028500</td>
+</tr>
+<tr class="odd">
+<td align="left">53033011800</td>
+<td align="left">NA</td>
+<td align="left">53033028700</td>
+</tr>
+<tr class="even">
+<td align="left">53033011900</td>
+<td align="left">NA</td>
+<td align="left">53033028801</td>
+</tr>
+<tr class="odd">
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">53033028802</td>
+</tr>
+<tr class="even">
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">53033029101</td>
+</tr>
+<tr class="odd">
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">53033026100</td>
+</tr>
+<tr class="even">
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">53033026200</td>
+</tr>
+<tr class="odd">
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">53033026300</td>
+</tr>
+<tr class="even">
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">53033026400</td>
+</tr>
+<tr class="odd">
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">53033027100</td>
+</tr>
+<tr class="even">
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">53033027200</td>
+</tr>
+<tr class="odd">
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">53033027300</td>
+</tr>
+<tr class="even">
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">53033028100</td>
+</tr>
+<tr class="odd">
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">53033028200</td>
+</tr>
+<tr class="even">
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">53033028300</td>
+</tr>
+<tr class="odd">
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">53033028802</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="mixed-census-geographies" class="section level4">
+<h4><span class="header-section-number">1.2.1.2</span> Mixed Census Geographies</h4>
+<p>There are many ways to collect US Census data, but this method uses the <code>R</code> package called <code>acs</code> to extract data with the official US Census API. This method is efficient, reproducible, and allows users to download census tables for a group of dissimilar geographies. To learn more about this, see the <code>acs</code> <a href="http://eglenn.scripts.mit.edu/citystate/wp-content/uploads/2013/06/wpid-working_with_acs_R3.pdf">documentation</a>.</p>
+<p>The following census geographies will be useful to collect for this analysis:</p>
+<ul>
+<li>tracts, King County</li>
+<li>combined tracts, each COO community individually and all three combined together</li>
+<li>county subdivision, Seattle CCD</li>
+<li>county, King</li>
+</ul>
+<p>The geospatial and tabular data is stored in a simple feature object, which simplifies analysis by allowing all geography types to be transformed and queried at the same time. Here is a summary of the simple feature object, showing a few examples of each geography type:</p>
+<pre><code>FALSE Source: local data frame [9 x 4]
+FALSE Groups: GEOGRAPHY [5]
+FALSE 
+FALSE     NAME                  NAME_FULL              GEOGRAPHY
+FALSE    &lt;chr&gt;                      &lt;chr&gt;                  &lt;chr&gt;
+FALSE 1   &lt;NA&gt;                       &lt;NA&gt;                  tract
+FALSE 2   &lt;NA&gt;                       &lt;NA&gt;                  tract
+FALSE 3   &lt;NA&gt;                       &lt;NA&gt;                  tract
+FALSE 4     RV             Rainier Valley              community
+FALSE 5   STKW             SeaTac/Tukwila              community
+FALSE 6     WC               White Center              community
+FALSE 7    COO COO Communities (combined) communities (multiple)
+FALSE 8 SEACCD                Seattle CCD     county subdivision
+FALSE 9     KC                King County                 county
+FALSE # ... with 1 more variables: geometry &lt;simple_feature&gt;</code></pre>
+</div>
+</div>
+<div id="maps" class="section level3">
+<h3><span class="header-section-number">1.2.2</span> Maps</h3>
+<div id="seattle-ccd-tracts" class="section level4">
+<h4><span class="header-section-number">1.2.2.1</span> Seattle CCD Tracts</h4>
+<p>preserveeefa0efb4d943eba</p>
+</div>
+<div id="coo-tract-communities" class="section level4">
+<h4><span class="header-section-number">1.2.2.2</span> COO Tract-Communities</h4>
+<div class="figure">
+preserve985047744807c464
+<p class="caption">
+(#fig:census-geos-coo-map)Rainier Valley, White Center, and SeaTac/Tukwila
+</p>
+</div>
+<div class="figure">
+preserve855dc46dd024546a
+<p class="caption">
+(#fig:census-geos-coo-map)Rainier Valley, White Center, and SeaTac/Tukwila
+</p>
+</div>
+<div class="figure">
+preserveebbd5f936bf56dd5
+<p class="caption">
+(#fig:census-geos-coo-map)Rainier Valley, White Center, and SeaTac/Tukwila
+</p>
+</div>
+</div>
+</div>
+</div>
+<div id="census-geographies-acs-geo-sets" class="section level2">
+<h2><span class="header-section-number">1.3</span> Census Geographies: ACS Geo Sets</h2>
+<div id="acs-geo-set" class="section level3">
+<h3><span class="header-section-number">1.3.1</span> ACS Geo Set</h3>
+<p>This geoset is mixture of geography type including:</p>
+<ul>
+<li>tracts, King County</li>
+<li>combined tracts, each COO community individually and all three combined together</li>
+<li>county subdivision, Seattle CCD</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Setup the ACS geographies: King County (tracts), Seattle CCD (), COO Communities (tracts)</span>
+<span class="co"># -----------------------------------------------------------------------------</span>
+
+coo_geos_sf &lt;-<span class="st"> </span><span class="kw">read_rds</span>(<span class="kw">root_file</span>(<span class="st">&#39;1-data/4-interim/coo-geos-sf.rds&#39;</span>)) 
+
+get_geoid &lt;-<span class="st"> </span>function(x,nm){
+        x %&gt;%<span class="st"> </span><span class="kw">filter</span>(NAME %in%<span class="st"> </span>nm &amp;<span class="st"> </span>!<span class="kw">is.na</span>(GEOID6)) %&gt;%<span class="st"> </span><span class="kw">select</span>(GEOID6) %&gt;%<span class="st"> </span><span class="kw">unlist</span>(<span class="dt">use.names =</span> <span class="ot">FALSE</span>) %&gt;%<span class="st"> </span>as.numeric
+}
+
+tr_rv &lt;-<span class="st"> </span><span class="kw">get_geoid</span>(coo_geos_sf,<span class="st">&#39;RV&#39;</span>)
+tr_wc &lt;-<span class="st"> </span><span class="kw">get_geoid</span>(coo_geos_sf,<span class="st">&#39;WC&#39;</span>)
+tr_stkw &lt;-<span class="st"> </span><span class="kw">get_geoid</span>(coo_geos_sf,<span class="st">&#39;STKW&#39;</span>)
+tr_coo &lt;-<span class="st"> </span><span class="kw">get_geoid</span>(coo_geos_sf, <span class="kw">c</span>(<span class="st">&#39;RV&#39;</span>,<span class="st">&#39;WC&#39;</span>,<span class="st">&#39;STKW&#39;</span>))
+
+<span class="co"># King County (Puget Sound excluded)</span>
+tr_kc &lt;-<span class="st"> </span><span class="kw">read_rds</span>(<span class="kw">root_file</span>(<span class="st">&#39;1-data/4-interim/tr-kc-sf.rds&#39;</span>)) %&gt;%<span class="st"> </span><span class="kw">select</span>(TRACTCE) %&gt;%<span class="st"> </span><span class="kw">unlist</span>(<span class="dt">use.names =</span> <span class="ot">FALSE</span>) %&gt;%<span class="st"> </span>as.numeric
+
+
+
+
+<span class="co"># Final Object: 2010-2014</span>
+coo_geo_acs &lt;-<span class="st"> </span><span class="kw">c</span>(
+        acs::<span class="kw">geo.make</span>(<span class="dt">state =</span> <span class="st">&quot;WA&quot;</span>,<span class="dt">county =</span> <span class="st">&quot;King&quot;</span>),
+        acs::<span class="kw">geo.make</span>(<span class="dt">state =</span> <span class="st">&quot;WA&quot;</span>, <span class="dt">county =</span> <span class="st">&quot;King&quot;</span>,<span class="dt">county.subdivision =</span> <span class="st">&quot;Seattle CCD&quot;</span>),
+        acs::<span class="kw">geo.make</span>(<span class="dt">state =</span> <span class="st">&quot;WA&quot;</span>,<span class="dt">county =</span> <span class="st">&quot;King&quot;</span>, <span class="dt">tract =</span> tr_kc),
+        acs::<span class="kw">geo.make</span>(<span class="dt">state =</span> <span class="st">&quot;WA&quot;</span>,<span class="dt">county =</span> <span class="st">&quot;King&quot;</span>, <span class="dt">tract =</span> tr_rv, <span class="dt">combine =</span> <span class="ot">TRUE</span>, <span class="dt">combine.term =</span> <span class="st">&#39;RV&#39;</span>),
+        acs::<span class="kw">geo.make</span>(<span class="dt">state =</span> <span class="st">&quot;WA&quot;</span>,<span class="dt">county =</span> <span class="st">&quot;King&quot;</span>, <span class="dt">tract =</span>tr_wc, <span class="dt">combine =</span> <span class="ot">TRUE</span>, <span class="dt">combine.term =</span> <span class="st">&#39;WC&#39;</span>),
+        acs::<span class="kw">geo.make</span>(<span class="dt">state =</span> <span class="st">&quot;WA&quot;</span>,<span class="dt">county =</span> <span class="st">&quot;King&quot;</span>, <span class="dt">tract =</span> tr_stkw, <span class="dt">combine =</span> <span class="ot">TRUE</span>, <span class="dt">combine.term =</span> <span class="st">&#39;STKW&#39;</span>),
+        acs::<span class="kw">geo.make</span>(<span class="dt">state =</span> <span class="st">&quot;WA&quot;</span>,<span class="dt">county =</span> <span class="st">&quot;King&quot;</span>, <span class="dt">tract =</span> tr_coo, <span class="dt">combine =</span> <span class="ot">TRUE</span>, <span class="dt">combine.term =</span> <span class="st">&#39;COO&#39;</span>)
+) %&gt;%<span class="st">  </span>
+<span class="st">        </span><span class="kw">write_rds</span>(<span class="kw">root_file</span>(<span class="st">&#39;1-data/4-interim/coo-geo-acs.rds&#39;</span>))</code></pre></div>
+</div>
+<div id="matching-tracts-between-the-years" class="section level3">
+<h3><span class="header-section-number">1.3.2</span> Matching Tracts between the years</h3>
+<p>Census tract change over time and this must be accounted for before a temporal comparison be take place. Brown University’s <a href="http://www.s4.brown.edu/us2010/Researcher/LTDB.htm">Longitudinal Tract Database</a> provides “crosswalk” datasets that clarify which tract change from decade to decade and what type of change occurred (e.g., consolidation, split, many-to-many, none).</p>
+<p>Using the 2000-2010 crosswalk, a customized set of ACS geographies is prepared to ensure that the data between observation periods are comparable. This dataset is included in this repository, but may also be downloaded <a href="https://s4.ad.brown.edu/Projects/Diversity/Researcher/ltdb3.htm">here</a>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Save an acs object</span>
+<span class="kw">c</span>(
+        acs::<span class="kw">geo.make</span>(<span class="dt">state =</span> <span class="st">&quot;WA&quot;</span>,<span class="dt">county =</span> <span class="st">&quot;King&quot;</span>),
+        acs::<span class="kw">geo.make</span>(<span class="dt">state =</span> <span class="st">&quot;WA&quot;</span>, <span class="dt">county =</span> <span class="st">&quot;King&quot;</span>,<span class="dt">county.subdivision =</span> <span class="st">&quot;Seattle CCD&quot;</span>),
+        acs::<span class="kw">geo.make</span>(<span class="dt">state =</span> <span class="st">&quot;WA&quot;</span>,<span class="dt">county =</span> <span class="st">&quot;King&quot;</span>, <span class="dt">tract =</span> <span class="st">&#39;*&#39;</span>)
+) %&gt;%<span class="st">  </span>
+<span class="st">        </span><span class="kw">write_rds</span>(<span class="kw">root_file</span>(<span class="st">&#39;1-data/4-interim/coo-geo-2009-acs.rds&#39;</span>))</code></pre></div>
+</div>
+</div>
+<div id="king-county-parcels" class="section level2">
+<h2><span class="header-section-number">1.4</span> King County Parcels</h2>
+<div id="introduction-1" class="section level3">
+<h3><span class="header-section-number">1.4.1</span> Introduction</h3>
+<p>Tax parcels are the pieces of land associated with property value. King County appraises parcels in order to determine an estimate of the fair market value, which is then used in the process of determening taxation amounts. For the purposes of this assessment, parcels are the geographic unit of the indicator of housing market conditions: residential property value.</p>
+<p>More information about the parcel dataset is available at the King County GIS Center:</p>
+<ul>
+<li><a href="http://www.kingcounty.gov/operations/GIS/GISData.aspx">KCGIS Center</a></li>
+<li><a href="http://www5.kingcounty.gov/sdc/Metadata.aspx?Layer=parcel">Parcel Shapefile Metadata</a></li>
+</ul>
+</div>
+<div id="parcels-in-seattle-ccd" class="section level3">
+<h3><span class="header-section-number">1.4.2</span> Parcels in Seattle CCD</h3>
+<p>The entire dataset of King County parcels contains 602,803 records, which makes it challenging to work with because of the file size. The methodology of this project is to compare communities to the Seattle subdivision of King County, so the first step is to extract only the parcels in that geography.</p>
+<p>The unique identifier for each parcel is called a <code>PIN</code>, and it is a combination of two numeric codes: a six-digit <code>MAJOR</code> (e.g., 092503) and a four-digit <code>MINOR</code> (e.g., 5891). After creating the <code>PIN</code> the <code>PropType</code> variable from the <a href="http://info.kingcounty.gov/Assessor/DataDownload/default.aspx">KC assessor’s parcel dataset</a> is joined to the spatial dataset from the KCGIS Center.</p>
+<p>The spatial dataset’s size is reduced by converting the polygon into points using the <code>rgeos::gCentroid()</code> function. <code>sp::over()</code> is then used to determine which parcels are overlayed by the Seattle CCD polygon (see this <a href="https://cran.r-project.org/web/packages/sp/vignettes/over.pdf">excellent tutorial</a> for more details on <code>sp::over()</code>). The subset is exported, retaining its <code>SpatialPointsDataFrame</code> class.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Seattle subdivision of King County, WA (Seattle CCD)</span>
+sea_ccd &lt;-<span class="st"> </span><span class="kw">readOGR</span>(<span class="dt">dsn =</span> <span class="kw">root_file</span>(<span class="st">&#39;1-data/4-interim/seattle_ccd.gpkg&#39;</span>),<span class="dt">layer =</span> <span class="st">&quot;seattle&quot;</span>,<span class="dt">verbose =</span> <span class="ot">FALSE</span>) %&gt;%<span class="st"> </span><span class="kw">spTransform</span>(crs_proj)
+
+<span class="co"># Parcels (tabular data only)</span>
+if(!<span class="kw">file.exists</span>(<span class="kw">root_file</span>(<span class="st">&#39;1-data/3-external/EXTR_Parcel.csv&#39;</span>))){
+        url &lt;-<span class="st"> &#39;http://aqua.kingcounty.gov/extranet/assessor/Parcel.zip&#39;</span> <span class="co"># direct URL to the file download</span>
+        
+        temp &lt;-<span class="st"> </span><span class="kw">tempfile</span>() <span class="co"># create a temporary file to hold the compressed download</span>
+        
+        <span class="kw">download</span>(url, <span class="dt">dest =</span> temp, <span class="dt">mode=</span><span class="st">&#39;wb&#39;</span>) <span class="co"># download the file</span>
+        
+        <span class="kw">unzip</span> (temp, <span class="dt">exdir =</span> <span class="kw">root_file</span>(<span class="st">&#39;1-data/3-external/&#39;</span>)) <span class="co"># extract the file to the project folder</span>
+}
+
+prcl_all_df &lt;-<span class="st"> </span>
+<span class="st">        </span><span class="kw">read_csv</span>(<span class="kw">root_file</span>(<span class="st">&#39;1-data/3-external/EXTR_Parcel.csv&#39;</span>),<span class="dt">progress =</span> <span class="ot">FALSE</span>) %&gt;%<span class="st"> </span>
+<span class="st">        </span><span class="kw">mutate</span>(<span class="dt">PIN =</span> <span class="kw">paste0</span>(Major,Minor)) %&gt;%<span class="st"> </span>
+<span class="st">        </span><span class="kw">select</span>(PIN, PropType,CurrentZoning,CurrentUseDesignation)
+
+<span class="kw">colnames</span>(prcl_all_df) %&lt;&gt;%<span class="st"> </span><span class="kw">toupper</span>() 
+
+<span class="co"># Parcels (sp): most recent (August, 2016)</span>
+
+if(!<span class="kw">file.exists</span>(<span class="kw">root_file</span>(<span class="st">&#39;1-data/3-external/parcel/parcel.shp&#39;</span>))){
+        url &lt;-<span class="st"> &#39;ftp://ftp.kingcounty.gov/gis-web/web/GISData/parcel_SHP.zip&#39;</span> <span class="co"># direct URL to the file download</span>
+        
+        temp &lt;-<span class="st"> </span><span class="kw">tempfile</span>() <span class="co"># create a temporary file to hold the compressed download</span>
+        
+        <span class="kw">download</span>(url, <span class="dt">dest =</span> temp, <span class="dt">mode=</span><span class="st">&#39;wb&#39;</span>) <span class="co"># download the file</span>
+        
+        <span class="kw">unzip</span> (temp, <span class="dt">exdir =</span> <span class="kw">root_file</span>(<span class="st">&#39;1-data/3-external/&#39;</span>)) <span class="co"># extract the file to the project folder</span>
+}
+
+<span class="co"># Load the parcel file</span>
+<span class="co"># WARNING: large file with long load time</span>
+
+<span class="co"># Make the data</span>
+if(!<span class="kw">file.exists</span>(<span class="kw">root_file</span>(<span class="st">&#39;1-data/4-interim/prcl-ccd-ptdf-sp.gpkg&#39;</span>))){
+        prcl_all_sp &lt;-<span class="st"> </span><span class="kw">readOGR</span>(<span class="dt">dsn =</span> <span class="kw">root_file</span>(<span class="st">&#39;1-data/3-external/parcel/&#39;</span>),<span class="dt">layer =</span> <span class="st">&#39;parcel&#39;</span>,<span class="dt">verbose =</span> <span class="ot">FALSE</span>) 
+        
+        prcl_all_sp@data %&lt;&gt;%<span class="st"> </span><span class="kw">mutate</span>(<span class="dt">PIN =</span> <span class="kw">as.character</span>(PIN))
+        
+        <span class="co"># prcl_all_sp %&lt;&gt;% spTransform(crs_proj)   # this reprojection is prohibively slow </span>
+        
+        join_df &lt;-<span class="st"> </span>prcl_all_sp@data %&gt;%<span class="st"> </span><span class="kw">as.data.frame</span>() %&gt;%<span class="st"> </span><span class="kw">left_join</span>(.,prcl_all_df, <span class="dt">by =</span> <span class="st">&quot;PIN&quot;</span>)
+        
+        
+        <span class="co"># Collect the centroids of all the KC parcels (and transform their CRS to match the project CRS)</span>
+        prcl_all_pt_sp &lt;-<span class="st"> </span>prcl_all_sp %&gt;%<span class="st"> </span>rgeos::<span class="kw">gCentroid</span>(<span class="dt">byid =</span> T) %&gt;%<span class="st"> </span><span class="kw">spTransform</span>(crs_proj)
+        
+        
+        
+        prcl_all_ptdf_sp &lt;-<span class="st"> </span><span class="kw">SpatialPointsDataFrame</span>(prcl_all_pt_sp,join_df,<span class="dt">match.ID =</span> <span class="ot">FALSE</span>)
+        
+        sea_ccd_poly &lt;-<span class="st"> </span><span class="kw">SpatialPolygons</span>(<span class="dt">Srl =</span> sea_ccd@polygons,<span class="dt">proj4string =</span> crs_proj) 
+        
+        <span class="co"># Using the sp::over </span>
+        pts_over &lt;-<span class="st"> </span>prcl_all_pt_sp %&gt;%<span class="st"> </span>sp::<span class="kw">over</span>(sea_ccd_poly) 
+        <span class="co"># prcl_ccd_sp &lt;- prcl_all_sp[which(!is.na(pts_over)),] %&gt;% spTransform(crs_proj) # slow</span>
+        prcl_ccd_pt_sp &lt;-<span class="st"> </span>prcl_all_pt_sp[<span class="kw">which</span>(!<span class="kw">is.na</span>(pts_over)),]
+        prcl_ccd_ptdf_sp &lt;-<span class="st"> </span>prcl_all_ptdf_sp[<span class="kw">which</span>(!<span class="kw">is.na</span>(pts_over)),]
+        
+        prcl_ccd_ptdf_sp %&gt;%<span class="st"> </span>
+<span class="st">                </span><span class="kw">writeOGR</span>(<span class="dt">dsn =</span> <span class="kw">root_file</span>(<span class="st">&#39;1-data/4-interim/prcl-ccd-ptdf-sp.gpkg&#39;</span>),
+                         <span class="dt">layer =</span> <span class="st">&#39;prcl_ccd_ptdf_sp&#39;</span>,<span class="dt">driver =</span> <span class="st">&#39;GPKG&#39;</span>,
+                         <span class="dt">verbose =</span> <span class="ot">FALSE</span>,
+                         <span class="dt">overwrite_layer =</span> <span class="ot">TRUE</span>)
+        
+        
+        <span class="kw">rm</span>(prcl_all_sp)
+}
+
+<span class="co"># Load the data</span>
+if(!<span class="kw">exists</span>(<span class="st">&#39;prcl_ccd_ptdf_sp&#39;</span>)){
+        prcl_ccd_ptdf_sp &lt;-<span class="st"> </span>
+<span class="st">        </span><span class="kw">readOGR</span>(<span class="dt">dsn =</span> <span class="kw">root_file</span>(<span class="st">&#39;1-data/4-interim/prcl-ccd-ptdf-sp.gpkg&#39;</span>),
+                <span class="dt">layer =</span> <span class="st">&#39;prcl_ccd_ptdf_sp&#39;</span>,
+                <span class="dt">verbose =</span> <span class="ot">FALSE</span>
+        )
+}</code></pre></div>
+</div>
+<div id="assigning-census-tracts-to-parcels" class="section level3">
+<h3><span class="header-section-number">1.4.3</span> Assigning Census Tracts to Parcels</h3>
+<p>The <code>sp::over()</code> function is used again, but this time to pass the unique identifier from the census tracts (<code>GEOID</code>) to each parcel that it overlay. This method resolves the issue of parcels that are overlayed by multiple tracts because it uses the centroid of the parcel instead of the polygon. Where the centroid is overlayed by two contiguous tract polygon boundaries only the first tract <code>GEOID</code> will be passed on.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Make the data</span>
+if(!<span class="kw">file.exists</span>(<span class="kw">root_file</span>(<span class="st">&#39;1-data/4-interim/prcl-ccd-tr-sp.gpkg&#39;</span>))){
+        <span class="co"># Seattle CCD tracts</span>
+        if(!<span class="kw">exists</span>(<span class="st">&#39;tr_ccd_sp&#39;</span>)){
+                tr_ccd_sp &lt;-<span class="st"> </span><span class="kw">readOGR</span>(<span class="dt">dsn =</span> <span class="kw">root_file</span>(<span class="st">&#39;1-data/4-interim/tr-ccd-sp.gpkg&#39;</span>),
+                                     <span class="dt">layer =</span> <span class="st">&#39;tr_ccd_sp&#39;</span>,
+                                     <span class="dt">verbose =</span> <span class="ot">FALSE</span>)
+        }
+        
+        <span class="co"># Trim the data to just the GEOID variable</span>
+        tr_ccd_geoid_sp &lt;-<span class="st"> </span><span class="kw">SpatialPolygonsDataFrame</span>(tr_ccd_sp,tr_ccd_sp@data[<span class="st">&#39;GEOID&#39;</span>]) %&gt;%<span class="st"> </span>
+<span class="st">                </span><span class="kw">spTransform</span>(crs_proj)
+        
+        <span class="co"># Extract the census tract GEOID using a spatial overlay</span>
+        prcl_ccd_tr_sp &lt;-<span class="st"> </span><span class="kw">SpatialPointsDataFrame</span>(prcl_ccd_ptdf_sp@coords,
+                                                 <span class="kw">cbind</span>(prcl_ccd_ptdf_sp@data,
+                                                      sp::<span class="kw">over</span>(prcl_ccd_ptdf_sp,tr_ccd_geoid_sp)))
+        prcl_ccd_tr_sp@data %&lt;&gt;%<span class="st"> </span>
+<span class="st">                </span><span class="kw">mutate</span>(<span class="dt">GEOID =</span> <span class="kw">as.character</span>(GEOID)) %&gt;%<span class="st"> </span>
+<span class="st">                </span><span class="kw">select</span>(GEOID,<span class="kw">everything</span>())
+        
+        <span class="kw">writeOGR</span>(<span class="dt">obj =</span> prcl_ccd_tr_sp,
+                 <span class="dt">dsn =</span> <span class="kw">root_file</span>(<span class="st">&#39;1-data/4-interim/prcl-ccd-tr-sp.gpkg&#39;</span>),
+                 <span class="dt">layer =</span> <span class="st">&#39;prcl_ccd_tr_sp&#39;</span>,
+                 <span class="dt">driver =</span> <span class="st">&#39;GPKG&#39;</span>,
+                 <span class="dt">verbose =</span> <span class="ot">FALSE</span>,
+                 <span class="dt">overwrite_layer =</span> <span class="ot">TRUE</span>)
+}
+
+<span class="co"># Load the data</span>
+if(!<span class="kw">exists</span>(<span class="st">&#39;prcl_ccd_tr_sp&#39;</span>)){
+        prcl_ccd_tr_sp &lt;-<span class="st"> </span>
+<span class="st">                </span><span class="kw">readOGR</span>(<span class="dt">dsn =</span> <span class="kw">root_file</span>(<span class="st">&#39;1-data/4-interim/prcl-ccd-tr-sp.gpkg&#39;</span>),
+                        <span class="dt">layer =</span> <span class="st">&#39;prcl_ccd_tr_sp&#39;</span>,
+                        <span class="dt">verbose =</span> <span class="ot">FALSE</span>)
+}</code></pre></div>
+</div>
+</div>
+<div id="vulnerability" class="section level2">
+<h2><span class="header-section-number">1.5</span> Vulnerability</h2>
+<div id="introduction-2" class="section level3">
+<h3><span class="header-section-number">1.5.1</span> Introduction</h3>
+<p><em>NOTE: this text is placeholder and must be changed</em></p>
+<p>Census tracts were assigned a “vulnerability score” between 0 and 4, with a weight of 1 for each of the following that is true:</p>
+<ul>
+<li>Greater than XX% of households are renters</li>
+<li>Greater than XX% of the population are communities of color</li>
+<li>Greater than XX% of the population 25 years and older do not have a bachelor’s degree</li>
+<li>Greater than XX% of households have incomes at or below at or below 80% of the HUDadjusted median family income (MFI) [Note: HUD’s FY2015 MFI for the Seattle-Bellevue, WA HUD Metro FMR Area was $89,500.]</li>
+</ul>
+<p>We defined vulnerable tracts as those with a vulnerability score of at least 3 out of 4.</p>
+</div>
+<div id="population-belonging-to-a-community-of-color-2010-2014" class="section level3">
+<h3><span class="header-section-number">1.5.2</span> Population Belonging to A Community of Color (%), 2010-2014</h3>
+<div id="plot" class="section level4">
+<h4><span class="header-section-number">1.5.2.1</span> Plot</h4>
+<p><img src="bookdown_files/figure-html/vuln-poc-acs-1.png" width="672" /></p>
+</div>
+<div id="maps-1" class="section level4">
+<h4><span class="header-section-number">1.5.2.2</span> Maps</h4>
+<p>These maps show the proportion of the population that belongs to a community of color for each census tract in Seattle CCD.</p>
+<div id="seattle-ccd" class="section level5">
+<h5><span class="header-section-number">1.5.2.2.1</span> Seattle CCD</h5>
+<p>preservefcf26fdcd1a19435</p>
+</div>
+<div id="coo-communities" class="section level5">
+<h5><span class="header-section-number">1.5.2.2.2</span> COO Communities</h5>
+<p>preservecaebee8a8f8e8750</p>
+</div>
+</div>
+</div>
+<div id="population-in-renter-occupied-housing-units-2010-2014" class="section level3">
+<h3><span class="header-section-number">1.5.3</span> Population in Renter-Occupied Housing Units (%), 2010-2014</h3>
+<p><img src="bookdown_files/figure-html/vuln-rent-acs-1.png" width="672" /></p>
+<div id="seattle-ccd-1" class="section level5">
+<h5><span class="header-section-number">1.5.3.0.1</span> Seattle CCD</h5>
+<p>preserve3f2baf1de9a5d496</p>
+</div>
+<div id="coo-communities-1" class="section level5">
+<h5><span class="header-section-number">1.5.3.0.2</span> COO Communities</h5>
+<p>preserve73461790e92728ce</p>
+</div>
+</div>
+<div id="adults-25-with-less-than-a-bachelor-degree-2010-2014" class="section level3">
+<h3><span class="header-section-number">1.5.4</span> Adults 25+ With Less Than a Bachelor Degree (%), 2010-2014</h3>
+<p><img src="bookdown_files/figure-html/vuln-lt-bach-acs-1.png" width="672" /></p>
+<div id="seattle-ccd-2" class="section level5">
+<h5><span class="header-section-number">1.5.4.0.1</span> Seattle CCD</h5>
+<p>preservee466423a10cdf855</p>
+</div>
+<div id="coo-communities-2" class="section level5">
+<h5><span class="header-section-number">1.5.4.0.2</span> COO Communities</h5>
+<p>preserve5a2c2ba5964759ee</p>
+</div>
+</div>
+<div id="household-earning-less-than-80-of-the-hud-2010-2014" class="section level3">
+<h3><span class="header-section-number">1.5.5</span> Household earning less than 80% of the HUD , 2010-2014</h3>
+<p>This indicator is intended as a proxy for low-income households. There are many possible ways to determine whether a household fits this category, but one commonly-used metric is the area median income (AMI). Generally speaking, households earning less than 80% AMI are considered to be low-income households, as status which has implications for affordable housing eligibility.</p>
+<p>The Lisa Bates used a fairly precise dataset for this indicator: percent of households that have incomes at or below at or below 80% of the HUD-adjusted median family income (MFI). The data source is HUD’s Consolidated Housing Affordability Strategy (CHAS) as used. Unfortunately, the <a href="https://www.huduser.gov/portal/datasets/cp/CHAS/data_download_chas.html">most recent CHAS data</a> is based on the 2009-2013 ACS 5-year estimate.</p>
+<p>Rather than introduce an inconsistency in the observation periods of this assessment’s datasets, this method uses an approximation of the 80% AMI metric using the ACS Household Income (B19001), 2010-2014 5-year estimate. This data is structured as household counts within a range of annual household income (e.g. $15,000 to $19,999). The FY 2015 MFI Estimate for Seattle-Bellevue, WA HUD Metro FMR Area is $89,500. In inflation-adjusted 2014 dollars that is $87,732.78, and 80% of that equals $70,200; which puts it within the <code>$60,000 to $74,999</code> range. Therefore, for this assessment any household with an annual income of $74,999 or less is considered to be low-income.</p>
+<p><img src="bookdown_files/figure-html/vuln-low-inc-acs-1.png" width="672" /></p>
+<div id="seattle-ccd-3" class="section level5">
+<h5><span class="header-section-number">1.5.5.0.1</span> Seattle CCD</h5>
+<p>preservee6e2359e8565ac04</p>
+</div>
+<div id="coo-communities-3" class="section level5">
+<h5><span class="header-section-number">1.5.5.0.2</span> COO Communities</h5>
+<p>preservedb791b5ba13e0905</p>
+</div>
+</div>
+</div>
+<div id="demographic-change" class="section level2">
+<h2><span class="header-section-number">1.6</span> Demographic Change</h2>
+<div id="introduction-3" class="section level3">
+<h3><span class="header-section-number">1.6.1</span> Introduction</h3>
+<p><em>NOTE: this text is placeholder and must be changed</em></p>
+<p>We defined census tracts with gentrification-related demographic change from 2005-2009 to 2010-2014 as those that experienced either at least 3 of the following 4:</p>
+<ul>
+<li>The white population share either increased or it decreased less than X.0%</li>
+<li>The share of homeowners either increased or it decreased less than X%</li>
+<li>The share of the population 25 years and older with a bachelor’s degree increased more than X%</li>
+<li>The share of household earning more than 80% AMI increased or it decreased less than X% or experienced only 2 out of 4, which were:</li>
+<li>The white population share either increased or it decreased less than X%</li>
+<li>The share of the population 25 years and older with a bachelor’s degree increased more than X%</li>
+</ul>
+</div>
+<div id="change-in-share-of-white-population-2005-2009-to-2010-2014" class="section level3">
+<h3><span class="header-section-number">1.6.2</span> Change in Share of White Population (%), 2005-2009 to 2010-2014</h3>
+<div id="plot-1" class="section level4">
+<h4><span class="header-section-number">1.6.2.1</span> Plot</h4>
+<p><img src="bookdown_files/figure-html/chng-white-2014-acs-1.png" width="672" /></p>
+<p><img src="bookdown_files/figure-html/chng-white-2009-acs-1.png" width="672" /></p>
+</div>
+<div id="maps-2" class="section level4">
+<h4><span class="header-section-number">1.6.2.2</span> Maps</h4>
+<p><em>Add a description sentence</em></p>
+<div id="seattle-ccd-4" class="section level5">
+<h5><span class="header-section-number">1.6.2.2.1</span> Seattle CCD</h5>
+<p>preserve13f3b17d4842e6a4</p>
+</div>
+<div id="coo-communities-4" class="section level5">
+<h5><span class="header-section-number">1.6.2.2.2</span> COO Communities</h5>
+<p>preserve746e0f61f09b3d39</p>
+</div>
+</div>
+</div>
+<div id="change-in-share-of-adults-with-a-bachelor-degree-or-higher-2005-2009-to-2010-2014" class="section level3">
+<h3><span class="header-section-number">1.6.3</span> Change in Share of Adults with a Bachelor Degree or Higher (%), 2005-2009 to 2010-2014</h3>
+<div id="plot-2" class="section level4">
+<h4><span class="header-section-number">1.6.3.1</span> Plot</h4>
+<p><img src="bookdown_files/figure-html/chng-bach-2014-acs-1.png" width="672" /></p>
+<p><img src="bookdown_files/figure-html/chng-bach-2009-acs-1.png" width="672" /></p>
+</div>
+<div id="maps-3" class="section level4">
+<h4><span class="header-section-number">1.6.3.2</span> Maps</h4>
+<p><em>Add a description sentence</em></p>
+<div id="seattle-ccd-5" class="section level5">
+<h5><span class="header-section-number">1.6.3.2.1</span> Seattle CCD</h5>
+<p>preserve9b2449063b7b7a09</p>
+</div>
+<div id="coo-communities-5" class="section level5">
+<h5><span class="header-section-number">1.6.3.2.2</span> COO Communities</h5>
+<p>preservecf3b6e9fc5108861</p>
+</div>
+</div>
+</div>
+<div id="change-in-share-of-home-owners-2005-2009-to-2010-2014" class="section level3">
+<h3><span class="header-section-number">1.6.4</span> Change in Share of Home Owners (%), 2005-2009 to 2010-2014</h3>
+<div id="plot-3" class="section level4">
+<h4><span class="header-section-number">1.6.4.1</span> Plot</h4>
+<p><img src="bookdown_files/figure-html/chng-own-2014-acs-1.png" width="672" /></p>
+<p><img src="bookdown_files/figure-html/chng-own-2009-acs-1.png" width="672" /></p>
+</div>
+<div id="maps-4" class="section level4">
+<h4><span class="header-section-number">1.6.4.2</span> Maps</h4>
+<p><em>Add a description sentence</em></p>
+<div id="seattle-ccd-6" class="section level5">
+<h5><span class="header-section-number">1.6.4.2.1</span> Seattle CCD</h5>
+<p>preservea1c3b472dfd373da</p>
+</div>
+<div id="coo-communities-6" class="section level5">
+<h5><span class="header-section-number">1.6.4.2.2</span> COO Communities</h5>
+<p>preservef541810b8e1c4f67</p>
+</div>
+</div>
+</div>
+<div id="change-in-share-of-moderate-to-high-income-households-2010-2014" class="section level3">
+<h3><span class="header-section-number">1.6.5</span> Change in Share of Moderate to High Income Households (%), 2010-2014</h3>
+<div id="plot-4" class="section level4">
+<h4><span class="header-section-number">1.6.5.1</span> Plot</h4>
+<p><img src="bookdown_files/figure-html/chng-inc-2014-acs-1.png" width="672" /></p>
+<p><img src="bookdown_files/figure-html/chng-inc-2009-acs-1.png" width="672" /></p>
+</div>
+<div id="maps-5" class="section level4">
+<h4><span class="header-section-number">1.6.5.2</span> Maps</h4>
+<p>These maps show the proportion of the population that belongs to a community of color for each census tract in Seattle CCD.</p>
+<div id="seattle-ccd-7" class="section level5">
+<h5><span class="header-section-number">1.6.5.2.1</span> Seattle CCD</h5>
+<p>preserve366637b44bee524b</p>
+</div>
+<div id="coo-communities-7" class="section level5">
+<h5><span class="header-section-number">1.6.5.2.2</span> COO Communities</h5>
+<p>preserveb2e683c20539e564</p>
+<!--chapter:end:data-methods.Rmd-->
+</div>
+</div>
+</div>
+</div>
+</div>
+<!--bookdown:body:end-->
+            </section>
+
+          </div>
+        </div>
+      </div>
+<!--bookdown:link_prev-->
+<!--bookdown:link_next-->
+
+<!--bookdown:config-->
+
+</body>
+
+</html>
