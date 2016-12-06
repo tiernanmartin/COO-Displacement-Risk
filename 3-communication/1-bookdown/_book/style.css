@@ -13,8 +13,11 @@ pre code {
   white-space: inherit;
 }
 
-.book .book-body .page-wrapper .page-inner section.normal a {
-    color: #4183c4;
-    text-decoration: none;
-    /* background: 0 0; */
+.leaflet-top .leaflet-control {
+    margin-top: 10px;
+    background-color: white !important;
+}
+
+.leaflet-control-fullscreen-button .leaflet-bar-part {
+        background-image: url("../_book/libs/fullscreen-1.0.1/fullscreen.png") !important;
 }
