@@ -18,6 +18,6 @@ pre code {
     background-color: white !important;
 }
 
-.leaflet-control-fullscreen-button .leaflet-bar-part {
+a.leaflet-control-fullscreen-button.leaflet-bar-part {
         background-image: url("../_book/libs/fullscreen-1.0.1/fullscreen.png") !important;
 }
