@@ -598,7 +598,7 @@ comm_cntr <- comm %>% mutate(geometry = st_centroid(comm))
 pal_chng_white <- colorNumeric(viridis(256, option = "C"),tr$CHNG_PCT_WHITE_EST)
 
 myLfltGrey() %>%
-        # myLfltOpts() %>%
+        myLfltOpts() %>%
         addPolygons(data = as(tr,'Spatial'),
                 fillOpacity = .75,
                 fillColor = ~pal_chng_white(CHNG_PCT_WHITE_EST),
