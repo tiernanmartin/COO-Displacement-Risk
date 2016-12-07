@@ -43,7 +43,7 @@ root_file <- root$make_fix_file()
 opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
 ```
 
-### Introduction
+### Introduction {-}
 
 ```{r kc-prcl-colors}
 green <- miscgis::miscgis_pals$tableau_cat[["green"]]
@@ -62,7 +62,7 @@ proj_dark_grey <- col2hex("grey25")
 
 _NOTE: this text is placeholder and must be changed_
 
-#### Calendar Year 2014 / Tax Year 2015
+#### Calendar Year 2014 / Tax Year 2015 {-}
 ```{r kc-prcl-2014}
 
 # Read in original parcel data, remove the problem geometries, convert to points
@@ -120,7 +120,7 @@ print(prcl_all_2014_pt_sf,n = 5)
 ```
 
 
-#### Calendar Year 2004 / Tax Year 2005
+#### Calendar Year 2004 / Tax Year 2005 {-}
 ```{r kc-prcl-2004}
 
 # Read in original parcel data, remove the problem geometries, convert to points
@@ -176,7 +176,7 @@ print(prcl_all_2004_pt_sf,n = 5)
 ```
 
 
-#### Calendar Year 1999 / Tax Year 2000
+#### Calendar Year 1999 / Tax Year 2000 {-}
 ```{r kc-prcl-1999}
 
 # Read in original parcel data, remove the problem geometries, convert to points

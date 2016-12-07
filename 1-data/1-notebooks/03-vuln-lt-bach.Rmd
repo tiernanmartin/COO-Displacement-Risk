@@ -56,8 +56,8 @@ proj_grey <- col2hex("grey50")
 proj_dark_grey <- col2hex("grey25")
 ```
 
-### Adults 25+ With Less Than a Bachelor Degree (%), 2010-2014
-```{r vuln-lt-bach-acs}
+### Educational Attainment: Low Formal Educational {-}
+```{r vuln-lt-bach-acs, fig.cap= 'Adults 25+ With Less Than a Bachelor Degree (%), King County Census Tracts, 2010-2014'}
 
 # Download the Census table for the project's geographies
 # -----------------------------------------------------------------------------
@@ -134,10 +134,11 @@ vuln_lt_bach_acs <- read_rds(root_file('1-data/4-interim/vuln-lt-bach-acs.rds'))
 # Plot the data
 # -----------------------------------------------------------------------------
 
-# plot(vuln_lt_bach_acs)
-
-plot(vuln_lt_bach_acs[order(estimate(vuln_lt_bach_acs)),1])
-# plot(vuln_lt_bach_acs[order(standard.error(vuln_lt_bach_acs)),1])
+par(mar = c(1,4,1,1))
+plot(vuln_lt_bach_acs[order(estimate(vuln_lt_bach_acs)),1],ylab = 'Adults With Less Than a Bachelor Degree (%)',yaxt = 'n',xaxt = 'n',bty = 'n')
+yticks_val <- scales::pretty_breaks(n=5)(vuln_poc_acs@estimate)
+yticks <- scales::pretty_breaks(n=5)(vuln_poc_acs@estimate)
+axis(2, at=yticks_val,labels = 100*yticks)
 
 ```
 

@@ -8,7 +8,7 @@ output:
 always_allow_html: yes
 ---
 
-### Introduction
+### Introduction {-}
 
 _NOTE: this text is placeholder and must be changed_
 

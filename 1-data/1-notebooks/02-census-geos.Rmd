@@ -49,10 +49,10 @@ teal <- miscgis::miscgis_pals$tableau_cat[["teal"]]
 
 ```
 
-### Introduction
+### Introduction {-}
 Put something here.
 
-### Commmunities and Census Tracts
+### Commmunities and Census Tracts {-}
 The primary geographic unit of this assessment is the [census tract](https://www.census.gov/geo/reference/gtc/gtc_ct.html). As is the case with many communities, the census geographies do not coincide exactly with the formal geographic boundary of the study's three sites, and should be considered as _spatial approximations_ of these communities.
 
 Listed below are the geographic identifiers of the census tracts that approximate each site.
@@ -234,7 +234,7 @@ coo_geos_sf <-
 
 ```
 
-### Mixed Census Geographies
+### Mixed Census Geographies {-}
 There are many ways to collect US Census data, but this method uses the `R` package called `acs` to extract data with the official US Census API. This method is efficient, reproducible, and allows users to download census tables for a group of dissimilar geographies. To learn more about this, see the `acs` [documentation](http://eglenn.scripts.mit.edu/citystate/wp-content/uploads/2013/06/wpid-working_with_acs_R3.pdf).
 
 The following census geographies will be useful to collect for this analysis:
@@ -256,7 +256,7 @@ coo_geos_sf %>%
         
 ```
 
-### Census Tracts
+### Census Tracts {-}
 #### Seattle CCD Tracts {-}
 ```{r census-geos-tr-map}
 
@@ -309,7 +309,7 @@ rv_map <-
         rv_sf %>% 
         as("Spatial") %>% 
         miscgis::myLfltGrey() %>%
-        myLfltOpts() %>% 
+        myLfltOpts(fullScreenBtn = FALSE) %>% 
         addPolygons(smoothFactor = 0,
                     color = col2hex("white"),
                     weight = .5,
@@ -328,7 +328,7 @@ wc_map <-
         wc_sf %>% 
         as("Spatial") %>% 
         miscgis::myLfltGrey() %>%
-        myLfltOpts() %>% 
+        myLfltOpts(fullScreenBtn = FALSE) %>% 
         addPolygons(smoothFactor = 0,
                     color = col2hex("white"),
                     weight = .5,

@@ -56,7 +56,7 @@ proj_grey <- col2hex("grey50")
 proj_dark_grey <- col2hex("grey25")
 ```
 
-### Household earning less than 80% of the HUD , 2010-2014
+### Income: Low Income {-}
 
 This indicator is intended as a proxy for low-income households. There are many possible ways to determine whether a household fits this category, but one commonly-used metric is the area median income (AMI). Generally speaking, households earning less than 80% AMI are considered to be low-income households, as status which has implications for affordable housing eligibility. 
 
@@ -64,7 +64,7 @@ The Lisa Bates used a fairly precise dataset for this indicator: percent of hous
 
 Rather than introduce an inconsistency in the observation periods of this assessment's datasets, this method uses an approximation of the 80% AMI metric using the ACS Household Income (B19001), 2010-2014 5-year estimate. This data is structured as household counts within a range of annual household income (e.g. $15,000 to $19,999). The FY 2015 MFI Estimate for Seattle-Bellevue, WA HUD Metro FMR Area is $89,500. In inflation-adjusted 2014 dollars that is $87,732.78, and 80% of that equals $70,200; which puts it within the `$60,000 to $74,999` range. Therefore, for this assessment any household with an annual income of $74,999 or less is considered to be low-income.
 
-```{r vuln-low-inc-acs}
+```{r vuln-low-inc-acs, fig.cap= 'Household earning less than 80% of the HUD, King County Census Tracts, 2010-2014'}
 
 # Download the Census table for the project's geographies
 # -----------------------------------------------------------------------------
@@ -137,10 +137,12 @@ vuln_low_inc_acs <- read_rds(root_file('1-data/4-interim/vuln-low-inc-acs.rds'))
 # Plot the data
 # -----------------------------------------------------------------------------
 
-# plot(vuln_low_inc_acs)
+par(mar = c(1,4,1,1))
+plot(vuln_low_inc_acs[order(estimate(vuln_low_inc_acs)),1],ylab = 'People of Color (%)',yaxt = 'n',xaxt = 'n',bty = 'n')
+yticks_val <- scales::pretty_breaks(n=5)(vuln_poc_acs@estimate)
+yticks <- scales::pretty_breaks(n=5)(vuln_poc_acs@estimate)
+axis(2, at=yticks_val,labels = 100*yticks)
 
-plot(vuln_low_inc_acs[order(estimate(vuln_low_inc_acs)),1])
-# plot(vuln_low_inc_acs[order(standard.error(vuln_low_inc_acs)),1])
 
 ```
 

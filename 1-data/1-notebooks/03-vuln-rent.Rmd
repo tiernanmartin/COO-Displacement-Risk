@@ -56,8 +56,8 @@ proj_grey <- col2hex("grey50")
 proj_dark_grey <- col2hex("grey25")
 ```
 
-### Population in Renter-Occupied Housing Units (%), 2010-2014
-```{r vuln-rent-acs}
+### Housing Tenure: Renters {-}
+```{r vuln-rent-acs, fig.cap= 'Population in Renter-Occupied Housing Units (%), King County Census Tracts, 2010-2014'}
 
 # Download the Census table for the project's geographies
 # -----------------------------------------------------------------------------
@@ -120,10 +120,11 @@ vuln_rent_acs <- read_rds(root_file('1-data/4-interim/vuln-rent-acs.rds'))
 # Plot the data
 # -----------------------------------------------------------------------------
 
-# plot(vuln_rent_acs)
-
-plot(vuln_rent_acs[order(estimate(vuln_rent_acs)),1])
-# plot(vuln_rent_acs[order(standard.error(vuln_rent_acs)),1])
+par(mar = c(1,4,1,1))
+plot(vuln_rent_acs[order(estimate(vuln_rent_acs)),1],ylab = 'Population in Renter-Occupied Housing (%)',yaxt = 'n',xaxt = 'n',bty = 'n')
+yticks_val <- scales::pretty_breaks(n=5)(vuln_poc_acs@estimate)
+yticks <- scales::pretty_breaks(n=5)(vuln_poc_acs@estimate)
+axis(2, at=yticks_val,labels = 100*yticks)
 
 ```
 

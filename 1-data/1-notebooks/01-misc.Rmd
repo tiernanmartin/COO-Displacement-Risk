@@ -43,7 +43,7 @@ pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","or
 
 Below is a collection of spatial datasets used in this project.
 
-### Seattle Boundary
+### Seattle Boundary {-}
 
 ```{r misc-sea-bound, fig.cap="Seattle\'s geographic boundary"}
 
@@ -67,7 +67,7 @@ myLfltGrey(data = as(sea_sf,'Spatial')) %>%
 
 ```
 
-### King County Subdivision Boundary
+### King County Subdivision Boundary {-}
 
 ```{r misc-sea-ccd, fig.cap="Seattle Subdivision of King County\'s geographic boundary"}
 
@@ -88,7 +88,7 @@ myLfltGrey(data = as(sea_ccd_sf,'Spatial')) %>%
 
 ```
 
-### Tracts in King County
+### Tracts in King County {-}
 Although this assessment is primarily focused on three communities within the Seattle CCD subdivision of King County, one of the indicators (housing market conditions) uses neighboring tracts to determine displacement risk. Some of the neighboring tracts are part of other county subdivision, but rather than targeting just those specific tracts, this method collects data for all King County tracts and then runs the analysis on the appropriate subsets.
 
 In the absence of a straight-forward method for identifying all the census tracts in the Seattle CCD subdivision of King County, it is possible to extract this information from [American Factfinder](https://factfinder.census.gov/faces/nav/jsf/pages/index.xhtml). This [tutorial](https://ask.census.gov/faq.php?id=5000&faqId=1605) describes how to use the American Factfinder interface to extract a list of all "all tracts within (or partially within) a census place"; substituting "county subdivision" for "place" will retrieve the desired results.
@@ -145,7 +145,7 @@ show_tr_ccd_wtr_sf()
 
 ```
 
-### Puget Sound Waterbodies
+### Puget Sound Waterbodies {-}
 
 These are useful for "clipping" census geographies whose boundaries extend into waterbodies.
 
@@ -196,7 +196,7 @@ show_wtr()
 
 ```
 
-### KC Tracts Without (Western) Waterbodies
+### KC Tracts Without (Western) Waterbodies {-}
 ```{r misc-tracts-ccd-no-wtr}
 
 if(!file.exists(root_file('1-data/4-interim/tr-kc-sf.rds'))){
@@ -222,26 +222,6 @@ show_tr_kc_sf <- function(){
 
 show_tr_kc_sf()
 
-
-
-```
-
-### King County Without (Western) Waterbodies
-
-```{r misc-kc}
-
-if(!file.exists(root_file('1-data/4-interim/kc-sf.rds'))){
-        tigris::counties(state = '53', cb = TRUE) %>% 
-                st_as_sf() %>% 
-                st_transform(crs_proj@projargs) %>% 
-                filter(NAME %in% 'King') %>% 
-                miscgis::coerce_to_geom(sf::st_multipolygon) %>% 
-                mutate(geometry = st_difference(geometry,st_union(wtr_sf))) %>% 
-                write_rds(root_file('1-data/4-interim/kc-sf.rds'))
-        
-}
-
-kc_sf <- read_rds(root_file('1-data/4-interim/kc-sf.rds'))
 
 
 ```

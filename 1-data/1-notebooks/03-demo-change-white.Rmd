@@ -56,9 +56,9 @@ proj_grey <- col2hex("grey50")
 proj_dark_grey <- col2hex("grey25")
 ```
 
-### Change in Share of White Population (%), 2005-2009 to 2010-2014
+### Change in Share of White Population (%), 2005-2009 to 2010-2014 {-}
 
-```{r chng-white-2014-acs}
+```{r chng-white-2014-acs, fig.cap= 'White Population (%), 2010-2014'}
 
 # Download the Census table for the project's geographies, 2010-2014
 # -----------------------------------------------------------------------------
@@ -122,12 +122,15 @@ chng_white_2014_acs <- read_rds(root_file('1-data/4-interim/chng-white-2014-acs.
 # Plot the data
 # -----------------------------------------------------------------------------
 
-plot(chng_white_2014_acs[order(estimate(chng_white_2014_acs)),1])
-
+par(mar = c(1,4,1,1))
+plot(chng_white_2014_acs[order(estimate(chng_white_2014_acs)),1],ylab = 'Moderate/High Income Households (%)',yaxt = 'n',xaxt = 'n',bty = 'n')
+yticks_val <- scales::pretty_breaks(n=5)(chng_white_2014_acs@estimate)
+yticks <- scales::pretty_breaks(n=5)(chng_white_2014_acs@estimate)
+axis(2, at=yticks_val,labels = 100*yticks)
 
 ```
 
-```{r chng-white-2009-acs}
+```{r chng-white-2009-acs, fig.cap= 'White Population (%), 2005-2009'}
 
 # Download the Census table for the project's geographies, 2005-2009
 # -----------------------------------------------------------------------------
@@ -481,8 +484,11 @@ chng_white_2009_acs <- read_rds(root_file('1-data/4-interim/chng-white-2009-acs.
 # Plot the data
 # -----------------------------------------------------------------------------
 
-plot(chng_white_2009_acs[order(estimate(chng_white_2009_acs)),1])
-
+par(mar = c(1,4,1,1))
+plot(chng_white_2009_acs[order(estimate(chng_white_2009_acs)),1],ylab = 'Moderate/High Income Households (%)',yaxt = 'n',xaxt = 'n',bty = 'n')
+yticks_val <- scales::pretty_breaks(n=5)(chng_white_2009_acs@estimate)
+yticks <- scales::pretty_breaks(n=5)(chng_white_2009_acs@estimate)
+axis(2, at=yticks_val,labels = 100*yticks)
 
 
 ```

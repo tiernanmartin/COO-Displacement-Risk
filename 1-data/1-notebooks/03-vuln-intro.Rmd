@@ -10,7 +10,7 @@ always_allow_html: yes
 
 _NOTE: this text is placeholder and must be changed_
 
-### Introduction
+### Introduction {-}
 
 Census tracts were assigned a “vulnerability score” between 0 and 4, with a weight of 1 for each
 of the following that is true:

@@ -271,6 +271,12 @@ Source: CRAN
 Version: 0.2
 Hash: c1b6ded8c65ae31a98d73a312b2e6574
 
+Package: htmlTable
+Source: CRAN
+Version: 1.7
+Hash: 4f01e68b2d8f5150f9e24a376b506cbf
+Requires: knitr, magrittr, stringr
+
 Package: htmltools
 Source: CRAN
 Version: 0.3.5
