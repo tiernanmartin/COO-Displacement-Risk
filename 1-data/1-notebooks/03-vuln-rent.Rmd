@@ -171,7 +171,7 @@ coo_vuln_rent_sf <-  read_rds(root_file('1-data/4-interim/vuln-rent-sf.rds'))
 
 ```
 
-##### Seattle CCD 
+##### Seattle CCD {-}
 ```{r vuln-rent-seaccd-map}
 
 tr <- 
@@ -215,7 +215,7 @@ myLfltGrey() %>%
 
 ```
 
-##### COO Communities
+##### COO Communities {-}
 ```{r vuln-rent-comm-map}
 myLfltGrey() %>% 
         myLfltOpts() %>% 

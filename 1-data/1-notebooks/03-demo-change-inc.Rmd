@@ -58,7 +58,6 @@ proj_dark_grey <- col2hex("grey25")
 
 ### Change in Share of Moderate to High Income Households (%), 2010-2014
 
-#### Plot
 ```{r chng-inc-2014-acs}
 
 # Download the Census table for the project's geographies, 2010-2014
@@ -600,11 +599,11 @@ coo_chng_inc_sf <-  read_rds(root_file('1-data/4-interim/chng-inc-sf.rds'))
 
 ```
 
-#### Maps
+#### Maps {-}
 
 These maps show the proportion of the population that belongs to a community of color for each census tract in Seattle CCD.
 
-##### Seattle CCD 
+##### Seattle CCD {-}
 ```{r chng-inc-seaccd-map}
 
 tr <- 
@@ -648,7 +647,7 @@ myLfltGrey() %>%
 
 ```
 
-#####COO Communities
+##### COO Communities {-}
 ```{r chng-inc-comm-map}
 myLfltGrey() %>% 
         myLfltOpts() %>% 

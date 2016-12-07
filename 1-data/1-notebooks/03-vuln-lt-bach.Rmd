@@ -185,7 +185,7 @@ coo_vuln_lt_bach_sf <-  read_rds(root_file('1-data/4-interim/vuln-lt-bach-sf.rds
 
 ```
 
-##### Seattle CCD 
+##### Seattle CCD {-}
 ```{r vuln-lt-bach-seaccd-map}
 
 tr <- 
@@ -230,7 +230,7 @@ myLfltGrey() %>%
 
 ```
 
-##### COO Communities
+##### COO Communities {-}
 ```{r vuln-lt-bach-comm-map}
 myLfltGrey() %>% 
         myLfltOpts() %>% 

@@ -58,7 +58,6 @@ proj_dark_grey <- col2hex("grey25")
 
 ### Population Belonging to A Community of Color (%), 2010-2014
 
-#### Plot
 ```{r vuln-poc-acs}
 
 # Download the Census table for the project's geographies
@@ -183,11 +182,11 @@ coo_vuln_poc_sf <-  read_rds(root_file('1-data/4-interim/vuln-poc-sf.rds'))
 
 ```
 
-#### Maps
+#### Maps {-}
 
 These maps show the proportion of the population that belongs to a community of color for each census tract in Seattle CCD.
 
-##### Seattle CCD 
+##### Seattle CCD {-}
 ```{r vuln-poc-seaccd-map}
 
 tr <- 
@@ -231,7 +230,7 @@ myLfltGrey() %>%
 
 ```
 
-##### COO Communities
+##### COO Communities {-}
 ```{r vuln-poc-comm-map}
 myLfltGrey() %>% 
         myLfltOpts() %>% 

@@ -58,7 +58,6 @@ proj_dark_grey <- col2hex("grey25")
 
 ### Change in Share of White Population (%), 2005-2009 to 2010-2014
 
-#### Plot
 ```{r chng-white-2014-acs}
 
 # Download the Census table for the project's geographies, 2010-2014
@@ -575,11 +574,11 @@ coo_chng_white_sf <-  read_rds(root_file('1-data/4-interim/chng-white-sf.rds'))
 
 ```
 
-#### Maps
+#### Maps {-}
 
 _Add a description sentence_
 
-##### Seattle CCD 
+##### Seattle CCD {-}
 ```{r chng-white-seaccd-map}
 
 tr <- 
@@ -624,7 +623,7 @@ myLfltGrey() %>%
 
 ```
 
-#####COO Communities
+##### COO Communities {-}
 ```{r chng-white-comm-map}
 myLfltGrey() %>% 
         myLfltOpts() %>% 

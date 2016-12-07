@@ -41,7 +41,9 @@ pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","or
 pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
 ```
 
-###Seattle Boundary
+Below is a collection of spatial datasets used in this project.
+
+### Seattle Boundary
 
 ```{r misc-sea-bound, fig.cap="Seattle\'s geographic boundary"}
 
@@ -65,7 +67,7 @@ myLfltGrey(data = as(sea_sf,'Spatial')) %>%
 
 ```
 
-###King County Subdivision Boundary
+### King County Subdivision Boundary
 
 ```{r misc-sea-ccd, fig.cap="Seattle Subdivision of King County\'s geographic boundary"}
 
@@ -143,7 +145,7 @@ show_tr_ccd_wtr_sf()
 
 ```
 
-###Puget Sound Waterbodies
+### Puget Sound Waterbodies
 
 These are useful for "clipping" census geographies whose boundaries extend into waterbodies.
 
@@ -194,7 +196,7 @@ show_wtr()
 
 ```
 
-### KC Tracts Without (Western) Waterbodies 
+### KC Tracts Without (Western) Waterbodies
 ```{r misc-tracts-ccd-no-wtr}
 
 if(!file.exists(root_file('1-data/4-interim/tr-kc-sf.rds'))){
