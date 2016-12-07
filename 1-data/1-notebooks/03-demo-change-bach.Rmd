@@ -512,7 +512,7 @@ chng_bach_2009_acs <- read_rds(root_file('1-data/4-interim/chng-bach-2009-acs.rd
 
 # Sanity check: the University of Washington Tract appears to have a very high margin of error (likely due to the small sample size), so it should be removed
 
-chng_bach_2009_noUW_acs <- chng_inc_2009_acs[standard.error(chng_inc_2009_acs)<.5,]
+chng_bach_2009_noUW_acs <- chng_bach_2009_acs[standard.error(chng_bach_2009_acs)<.5,]
 
 
 par(mar = c(1,4,1,1))
