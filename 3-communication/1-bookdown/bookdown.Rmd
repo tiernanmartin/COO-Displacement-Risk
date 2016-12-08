@@ -1,3 +1,21 @@
+--- 
+title: Communities of Opportunity Displacement Risk Assessment
+author: Tiernan Martin, [Futurewise](http://www.futurewisewa.org/)
+date: Fall 2016
+subtitle: A User Guide
+df_print: tibble
+site: bookdown::bookdown_site
+output: bookdown::gitbook
+documentclass: book
+description: "This is a report."
+---
+
+# Preface {-}
+
+This is a work in-progress.
+
+<!--chapter:end:index.Rmd-->
+
 # (APPENDIX) Appendices {-}
 
 ```{r data-methods-setup, echo=FALSE, warning=FALSE, message=FALSE}
@@ -86,4 +104,7 @@ demo_chng_income_fp <- root_file('1-data/1-notebooks/03-demo-change-inc.Rmd')
 `r knit_child(demo_chng_bach_fp)`
 `r knit_child(demo_chng_own_fp)`
 `r knit_child(demo_chng_income_fp)`
+
+
+<!--chapter:end:data-methods.Rmd-->
 
