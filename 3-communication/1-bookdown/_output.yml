@@ -1,5 +1,5 @@
 bookdown::gitbook:
-  css: css/bookdownleaflet.css
+  css: [css/style.css, css/bookdownleaflet.css]
   split_by: section
   config:
     toc:
