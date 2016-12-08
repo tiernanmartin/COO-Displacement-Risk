@@ -133,10 +133,14 @@ chng_inc_2014_acs <- read_rds(root_file('1-data/4-interim/chng-inc-2014-acs.rds'
 # Plot the data
 # -----------------------------------------------------------------------------
 
+# Sanity check: the University of Washington Tract appears to have a very high margin of error (likely due to the small sample size), so it should be removed
+
+chng_inc_2014_noUW_acs <- chng_inc_2014_acs[standard.error(chng_inc_2014_acs)<.14,]
+
 par(mar = c(1,4,1,1))
-plot(chng_inc_2014_acs[order(estimate(chng_inc_2014_acs)),1],ylab = 'Moderate/High Income Households (%)',yaxt = 'n',xaxt = 'n',bty = 'n')
-yticks_val <- scales::pretty_breaks(n=5)(chng_inc_2014_acs@estimate)
-yticks <- scales::pretty_breaks(n=5)(chng_inc_2014_acs@estimate)
+plot(chng_inc_2014_noUW_acs[order(estimate(chng_inc_2014_noUW_acs)),1],ylab = 'Moderate/High Income Households (%)',yaxt = 'n',xaxt = 'n',bty = 'n')
+yticks_val <- scales::pretty_breaks(n=5)(chng_inc_2014_noUW_acs@estimate)
+yticks <- scales::pretty_breaks(n=5)(chng_inc_2014_noUW_acs@estimate)
 axis(2, at=yticks_val,labels = 100*yticks)
 
 ```
@@ -510,7 +514,7 @@ chng_inc_2009_acs <- read_rds(root_file('1-data/4-interim/chng-inc-2009-acs.rds'
 
 # Sanity check: the University of Washington Tract appears to have a very high margin of error (likely due to the small sample size), so it should be removed
 
-chng_inc_2009_noUW_acs <- chng_inc_2009_acs[standard.error(chng_inc_2009_acs)<.5,]
+chng_inc_2009_noUW_acs <- chng_inc_2009_acs[standard.error(chng_inc_2009_acs)<.14,]
 
 par(mar = c(1,4,1,1))
 plot(chng_inc_2009_noUW_acs[order(estimate(chng_inc_2009_noUW_acs)),1],ylab = 'Moderate/High Income Households (%)',yaxt = 'n',xaxt = 'n',bty = 'n')

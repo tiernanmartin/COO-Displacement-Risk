@@ -134,10 +134,14 @@ vuln_lt_bach_acs <- read_rds(root_file('1-data/4-interim/vuln-lt-bach-acs.rds'))
 # Plot the data
 # -----------------------------------------------------------------------------
 
+# Sanity check: the University of Washington Tract appears to have a very high margin of error (likely due to the small sample size), so it should be removed
+
+vuln_lt_bach_noUW_acs <- vuln_lt_bach_acs[standard.error(vuln_lt_bach_acs)<.15,]
+
 par(mar = c(1,4,1,1))
-plot(vuln_lt_bach_acs[order(estimate(vuln_lt_bach_acs)),1],ylab = 'Adults With Less Than a Bachelor Degree (%)',yaxt = 'n',xaxt = 'n',bty = 'n')
-yticks_val <- scales::pretty_breaks(n=5)(vuln_poc_acs@estimate)
-yticks <- scales::pretty_breaks(n=5)(vuln_poc_acs@estimate)
+plot(vuln_lt_bach_noUW_acs[order(estimate(vuln_lt_bach_noUW_acs)),1],ylab = 'Adults With Less Than a Bachelor Degree (%)',yaxt = 'n',xaxt = 'n',bty = 'n')
+yticks_val <- scales::pretty_breaks(n=5)(vuln_lt_bach_noUW_acs@estimate)
+yticks <- scales::pretty_breaks(n=5)(vuln_lt_bach_noUW_acs@estimate)
 axis(2, at=yticks_val,labels = 100*yticks)
 
 ```
