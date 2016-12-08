@@ -137,9 +137,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li class="chapter" data-level="" data-path="census-geographies-acs-geo-sets.html"><a href="census-geographies-acs-geo-sets.html#matching-tracts-between-the-years"><i class="fa fa-check"></i>Matching Tracts between the years</a></li>
 </ul></li>
 <li class="chapter" data-level="A.4" data-path="king-county-parcels.html"><a href="king-county-parcels.html"><i class="fa fa-check"></i><b>A.4</b> King County Parcels</a><ul>
-<li class="chapter" data-level="A.4.1" data-path="king-county-parcels.html"><a href="king-county-parcels.html#introduction-1"><i class="fa fa-check"></i><b>A.4.1</b> Introduction</a></li>
-<li class="chapter" data-level="A.4.2" data-path="king-county-parcels.html"><a href="king-county-parcels.html#parcels-in-seattle-ccd"><i class="fa fa-check"></i><b>A.4.2</b> Parcels in Seattle CCD</a></li>
-<li class="chapter" data-level="A.4.3" data-path="king-county-parcels.html"><a href="king-county-parcels.html#assigning-census-tracts-to-parcels"><i class="fa fa-check"></i><b>A.4.3</b> Assigning Census Tracts to Parcels</a></li>
+<li class="chapter" data-level="" data-path="king-county-parcels.html"><a href="king-county-parcels.html#introduction-1"><i class="fa fa-check"></i>Introduction</a></li>
 </ul></li>
 <li class="chapter" data-level="A.5" data-path="vulnerability.html"><a href="vulnerability.html"><i class="fa fa-check"></i><b>A.5</b> Vulnerability</a><ul>
 <li class="chapter" data-level="" data-path="vulnerability.html"><a href="vulnerability.html#introduction-2"><i class="fa fa-check"></i>Introduction</a></li>
@@ -175,140 +173,75 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
             <section class="normal" id="section-">
 <div id="king-county-parcels" class="section level2">
 <h2><span class="header-section-number">A.4</span> King County Parcels</h2>
-<div id="introduction-1" class="section level3">
-<h3><span class="header-section-number">A.4.1</span> Introduction</h3>
-<p>Tax parcels are the pieces of land associated with property value. King County appraises parcels in order to determine an estimate of the fair market value, which is then used in the process of determening taxation amounts. For the purposes of this assessment, parcels are the geographic unit of the indicator of housing market conditions: residential property value.</p>
-<p>More information about the parcel dataset is available at the King County GIS Center:</p>
-<ul>
-<li><a href="http://www.kingcounty.gov/operations/GIS/GISData.aspx">KCGIS Center</a></li>
-<li><a href="http://www5.kingcounty.gov/sdc/Metadata.aspx?Layer=parcel">Parcel Shapefile Metadata</a></li>
-</ul>
+<div id="introduction-1" class="section level3 unnumbered">
+<h3>Introduction</h3>
+<p><em>NOTE: this text is placeholder and must be changed</em></p>
+<div id="calendar-year-2014-tax-year-2015" class="section level4 unnumbered">
+<h4>Calendar Year 2014 / Tax Year 2015</h4>
+<pre><code>FALSE Simple feature collection with 608771 features and 5 fields
+FALSE geometry type:  POINT
+FALSE dimension:      XY
+FALSE bbox:           xmin: -122.5314 ymin: 47.08658 xmax: -121.0889 ymax: 47.77919
+FALSE epsg (SRID):    4326
+FALSE proj4string:    +proj=longlat +datum=WGS84 +no_defs
+FALSE First 5 features:
+FALSE    MAJOR MINOR        PIN Shape_Length Shape_Area
+FALSE 1 000020  0001 0000200001    3659.4337 211274.789
+FALSE 2 000020  0003 0000200003     339.8138   5890.132
+FALSE 3 000020  0006 0000200006     341.1195   6027.293
+FALSE 4 000020  0007 0000200007     360.5192   7179.715
+FALSE 5 000020  0008 0000200008     319.9363   6132.757
+FALSE                         geometry
+FALSE 1 POINT(-122.240094355803 47....
+FALSE 2 POINT(-122.241955252586 47....
+FALSE 3 POINT(-122.242922180006 47....
+FALSE 4 POINT(-122.243143523332 47....
+FALSE 5 POINT(-122.243383349757 47....</code></pre>
 </div>
-<div id="parcels-in-seattle-ccd" class="section level3">
-<h3><span class="header-section-number">A.4.2</span> Parcels in Seattle CCD</h3>
-<p>The entire dataset of King County parcels contains 602,803 records, which makes it challenging to work with because of the file size. The methodology of this project is to compare communities to the Seattle subdivision of King County, so the first step is to extract only the parcels in that geography.</p>
-<p>The unique identifier for each parcel is called a <code>PIN</code>, and it is a combination of two numeric codes: a six-digit <code>MAJOR</code> (e.g., 092503) and a four-digit <code>MINOR</code> (e.g., 5891). After creating the <code>PIN</code> the <code>PropType</code> variable from the <a href="http://info.kingcounty.gov/Assessor/DataDownload/default.aspx">KC assessor’s parcel dataset</a> is joined to the spatial dataset from the KCGIS Center.</p>
-<p>The spatial dataset’s size is reduced by converting the polygon into points using the <code>rgeos::gCentroid()</code> function. <code>sp::over()</code> is then used to determine which parcels are overlayed by the Seattle CCD polygon (see this <a href="https://cran.r-project.org/web/packages/sp/vignettes/over.pdf">excellent tutorial</a> for more details on <code>sp::over()</code>). The subset is exported, retaining its <code>SpatialPointsDataFrame</code> class.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Seattle subdivision of King County, WA (Seattle CCD)</span>
-sea_ccd &lt;-<span class="st"> </span><span class="kw">readOGR</span>(<span class="dt">dsn =</span> <span class="kw">root_file</span>(<span class="st">&#39;1-data/4-interim/seattle_ccd.gpkg&#39;</span>),<span class="dt">layer =</span> <span class="st">&quot;seattle&quot;</span>,<span class="dt">verbose =</span> <span class="ot">FALSE</span>) %&gt;%<span class="st"> </span><span class="kw">spTransform</span>(crs_proj)
-
-<span class="co"># Parcels (tabular data only)</span>
-if(!<span class="kw">file.exists</span>(<span class="kw">root_file</span>(<span class="st">&#39;1-data/3-external/EXTR_Parcel.csv&#39;</span>))){
-        url &lt;-<span class="st"> &#39;http://aqua.kingcounty.gov/extranet/assessor/Parcel.zip&#39;</span> <span class="co"># direct URL to the file download</span>
-        
-        temp &lt;-<span class="st"> </span><span class="kw">tempfile</span>() <span class="co"># create a temporary file to hold the compressed download</span>
-        
-        <span class="kw">download</span>(url, <span class="dt">dest =</span> temp, <span class="dt">mode=</span><span class="st">&#39;wb&#39;</span>) <span class="co"># download the file</span>
-        
-        <span class="kw">unzip</span> (temp, <span class="dt">exdir =</span> <span class="kw">root_file</span>(<span class="st">&#39;1-data/3-external/&#39;</span>)) <span class="co"># extract the file to the project folder</span>
-}
-
-prcl_all_df &lt;-<span class="st"> </span>
-<span class="st">        </span><span class="kw">read_csv</span>(<span class="kw">root_file</span>(<span class="st">&#39;1-data/3-external/EXTR_Parcel.csv&#39;</span>),<span class="dt">progress =</span> <span class="ot">FALSE</span>) %&gt;%<span class="st"> </span>
-<span class="st">        </span><span class="kw">mutate</span>(<span class="dt">PIN =</span> <span class="kw">paste0</span>(Major,Minor)) %&gt;%<span class="st"> </span>
-<span class="st">        </span><span class="kw">select</span>(PIN, PropType,CurrentZoning,CurrentUseDesignation)
-
-<span class="kw">colnames</span>(prcl_all_df) %&lt;&gt;%<span class="st"> </span><span class="kw">toupper</span>() 
-
-<span class="co"># Parcels (sp): most recent (August, 2016)</span>
-
-if(!<span class="kw">file.exists</span>(<span class="kw">root_file</span>(<span class="st">&#39;1-data/3-external/parcel/parcel.shp&#39;</span>))){
-        url &lt;-<span class="st"> &#39;ftp://ftp.kingcounty.gov/gis-web/web/GISData/parcel_SHP.zip&#39;</span> <span class="co"># direct URL to the file download</span>
-        
-        temp &lt;-<span class="st"> </span><span class="kw">tempfile</span>() <span class="co"># create a temporary file to hold the compressed download</span>
-        
-        <span class="kw">download</span>(url, <span class="dt">dest =</span> temp, <span class="dt">mode=</span><span class="st">&#39;wb&#39;</span>) <span class="co"># download the file</span>
-        
-        <span class="kw">unzip</span> (temp, <span class="dt">exdir =</span> <span class="kw">root_file</span>(<span class="st">&#39;1-data/3-external/&#39;</span>)) <span class="co"># extract the file to the project folder</span>
-}
-
-<span class="co"># Load the parcel file</span>
-<span class="co"># WARNING: large file with long load time</span>
-
-<span class="co"># Make the data</span>
-if(!<span class="kw">file.exists</span>(<span class="kw">root_file</span>(<span class="st">&#39;1-data/4-interim/prcl-ccd-ptdf-sp.gpkg&#39;</span>))){
-        prcl_all_sp &lt;-<span class="st"> </span><span class="kw">readOGR</span>(<span class="dt">dsn =</span> <span class="kw">root_file</span>(<span class="st">&#39;1-data/3-external/parcel/&#39;</span>),<span class="dt">layer =</span> <span class="st">&#39;parcel&#39;</span>,<span class="dt">verbose =</span> <span class="ot">FALSE</span>) 
-        
-        prcl_all_sp@data %&lt;&gt;%<span class="st"> </span><span class="kw">mutate</span>(<span class="dt">PIN =</span> <span class="kw">as.character</span>(PIN))
-        
-        <span class="co"># prcl_all_sp %&lt;&gt;% spTransform(crs_proj)   # this reprojection is prohibively slow </span>
-        
-        join_df &lt;-<span class="st"> </span>prcl_all_sp@data %&gt;%<span class="st"> </span><span class="kw">as.data.frame</span>() %&gt;%<span class="st"> </span><span class="kw">left_join</span>(.,prcl_all_df, <span class="dt">by =</span> <span class="st">&quot;PIN&quot;</span>)
-        
-        
-        <span class="co"># Collect the centroids of all the KC parcels (and transform their CRS to match the project CRS)</span>
-        prcl_all_pt_sp &lt;-<span class="st"> </span>prcl_all_sp %&gt;%<span class="st"> </span>rgeos::<span class="kw">gCentroid</span>(<span class="dt">byid =</span> T) %&gt;%<span class="st"> </span><span class="kw">spTransform</span>(crs_proj)
-        
-        
-        
-        prcl_all_ptdf_sp &lt;-<span class="st"> </span><span class="kw">SpatialPointsDataFrame</span>(prcl_all_pt_sp,join_df,<span class="dt">match.ID =</span> <span class="ot">FALSE</span>)
-        
-        sea_ccd_poly &lt;-<span class="st"> </span><span class="kw">SpatialPolygons</span>(<span class="dt">Srl =</span> sea_ccd@polygons,<span class="dt">proj4string =</span> crs_proj) 
-        
-        <span class="co"># Using the sp::over </span>
-        pts_over &lt;-<span class="st"> </span>prcl_all_pt_sp %&gt;%<span class="st"> </span>sp::<span class="kw">over</span>(sea_ccd_poly) 
-        <span class="co"># prcl_ccd_sp &lt;- prcl_all_sp[which(!is.na(pts_over)),] %&gt;% spTransform(crs_proj) # slow</span>
-        prcl_ccd_pt_sp &lt;-<span class="st"> </span>prcl_all_pt_sp[<span class="kw">which</span>(!<span class="kw">is.na</span>(pts_over)),]
-        prcl_ccd_ptdf_sp &lt;-<span class="st"> </span>prcl_all_ptdf_sp[<span class="kw">which</span>(!<span class="kw">is.na</span>(pts_over)),]
-        
-        prcl_ccd_ptdf_sp %&gt;%<span class="st"> </span>
-<span class="st">                </span><span class="kw">writeOGR</span>(<span class="dt">dsn =</span> <span class="kw">root_file</span>(<span class="st">&#39;1-data/4-interim/prcl-ccd-ptdf-sp.gpkg&#39;</span>),
-                         <span class="dt">layer =</span> <span class="st">&#39;prcl_ccd_ptdf_sp&#39;</span>,<span class="dt">driver =</span> <span class="st">&#39;GPKG&#39;</span>,
-                         <span class="dt">verbose =</span> <span class="ot">FALSE</span>,
-                         <span class="dt">overwrite_layer =</span> <span class="ot">TRUE</span>)
-        
-        
-        <span class="kw">rm</span>(prcl_all_sp)
-}
-
-<span class="co"># Load the data</span>
-if(!<span class="kw">exists</span>(<span class="st">&#39;prcl_ccd_ptdf_sp&#39;</span>)){
-        prcl_ccd_ptdf_sp &lt;-<span class="st"> </span>
-<span class="st">        </span><span class="kw">readOGR</span>(<span class="dt">dsn =</span> <span class="kw">root_file</span>(<span class="st">&#39;1-data/4-interim/prcl-ccd-ptdf-sp.gpkg&#39;</span>),
-                <span class="dt">layer =</span> <span class="st">&#39;prcl_ccd_ptdf_sp&#39;</span>,
-                <span class="dt">verbose =</span> <span class="ot">FALSE</span>
-        )
-}</code></pre></div>
+<div id="calendar-year-2004-tax-year-2005" class="section level4 unnumbered">
+<h4>Calendar Year 2004 / Tax Year 2005</h4>
+<pre><code>FALSE Simple feature collection with 590074 features and 9 fields
+FALSE geometry type:  POINT
+FALSE dimension:      XY
+FALSE bbox:           xmin: -122.5315 ymin: 47.08616 xmax: -121.0883 ymax: 47.77937
+FALSE epsg (SRID):    4326
+FALSE proj4string:    +proj=longlat +datum=WGS84 +no_defs
+FALSE First 5 features:
+FALSE         AREA   PERIMETER PARCEL_ PARCEL_ID        PIN  MAJOR MINOR
+FALSE 1 9279942.73  16226.5088       2         1 0226036666 022603  6666
+FALSE 2  321689.02   3713.6566       3         2 0226039063 022603  9063
+FALSE 3   20431.99    578.4496       4         3 0226037777 022603  7777
+FALSE 4  608666.13  12420.5665       5         4 0226039065 022603  9065
+FALSE 5 3438057.51 138459.7562       6         5 0226035555 022603  5555
+FALSE   Shape_Length Shape_Area                       geometry
+FALSE 1   16226.5087 9279942.46 POINT(-122.394594322705 47....
+FALSE 2    3713.6563  321689.16 POINT(-122.393855699618 47....
+FALSE 3     578.4495   20431.98 POINT(-122.393892939209 47....
+FALSE 4   12420.5668  608666.03 POINT(-122.390100565779 47....
+FALSE 5  138459.7505 3438057.71 POINT(-122.384640000676 47....</code></pre>
 </div>
-<div id="assigning-census-tracts-to-parcels" class="section level3">
-<h3><span class="header-section-number">A.4.3</span> Assigning Census Tracts to Parcels</h3>
-<p>The <code>sp::over()</code> function is used again, but this time to pass the unique identifier from the census tracts (<code>GEOID</code>) to each parcel that it overlay. This method resolves the issue of parcels that are overlayed by multiple tracts because it uses the centroid of the parcel instead of the polygon. Where the centroid is overlayed by two contiguous tract polygon boundaries only the first tract <code>GEOID</code> will be passed on.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Make the data</span>
-if(!<span class="kw">file.exists</span>(<span class="kw">root_file</span>(<span class="st">&#39;1-data/4-interim/prcl-ccd-tr-sp.gpkg&#39;</span>))){
-        <span class="co"># Seattle CCD tracts</span>
-        if(!<span class="kw">exists</span>(<span class="st">&#39;tr_ccd_sp&#39;</span>)){
-                tr_ccd_sp &lt;-<span class="st"> </span><span class="kw">readOGR</span>(<span class="dt">dsn =</span> <span class="kw">root_file</span>(<span class="st">&#39;1-data/4-interim/tr-ccd-sp.gpkg&#39;</span>),
-                                     <span class="dt">layer =</span> <span class="st">&#39;tr_ccd_sp&#39;</span>,
-                                     <span class="dt">verbose =</span> <span class="ot">FALSE</span>)
-        }
-        
-        <span class="co"># Trim the data to just the GEOID variable</span>
-        tr_ccd_geoid_sp &lt;-<span class="st"> </span><span class="kw">SpatialPolygonsDataFrame</span>(tr_ccd_sp,tr_ccd_sp@data[<span class="st">&#39;GEOID&#39;</span>]) %&gt;%<span class="st"> </span>
-<span class="st">                </span><span class="kw">spTransform</span>(crs_proj)
-        
-        <span class="co"># Extract the census tract GEOID using a spatial overlay</span>
-        prcl_ccd_tr_sp &lt;-<span class="st"> </span><span class="kw">SpatialPointsDataFrame</span>(prcl_ccd_ptdf_sp@coords,
-                                                 <span class="kw">cbind</span>(prcl_ccd_ptdf_sp@data,
-                                                      sp::<span class="kw">over</span>(prcl_ccd_ptdf_sp,tr_ccd_geoid_sp)))
-        prcl_ccd_tr_sp@data %&lt;&gt;%<span class="st"> </span>
-<span class="st">                </span><span class="kw">mutate</span>(<span class="dt">GEOID =</span> <span class="kw">as.character</span>(GEOID)) %&gt;%<span class="st"> </span>
-<span class="st">                </span><span class="kw">select</span>(GEOID,<span class="kw">everything</span>())
-        
-        <span class="kw">writeOGR</span>(<span class="dt">obj =</span> prcl_ccd_tr_sp,
-                 <span class="dt">dsn =</span> <span class="kw">root_file</span>(<span class="st">&#39;1-data/4-interim/prcl-ccd-tr-sp.gpkg&#39;</span>),
-                 <span class="dt">layer =</span> <span class="st">&#39;prcl_ccd_tr_sp&#39;</span>,
-                 <span class="dt">driver =</span> <span class="st">&#39;GPKG&#39;</span>,
-                 <span class="dt">verbose =</span> <span class="ot">FALSE</span>,
-                 <span class="dt">overwrite_layer =</span> <span class="ot">TRUE</span>)
-}
-
-<span class="co"># Load the data</span>
-if(!<span class="kw">exists</span>(<span class="st">&#39;prcl_ccd_tr_sp&#39;</span>)){
-        prcl_ccd_tr_sp &lt;-<span class="st"> </span>
-<span class="st">                </span><span class="kw">readOGR</span>(<span class="dt">dsn =</span> <span class="kw">root_file</span>(<span class="st">&#39;1-data/4-interim/prcl-ccd-tr-sp.gpkg&#39;</span>),
-                        <span class="dt">layer =</span> <span class="st">&#39;prcl_ccd_tr_sp&#39;</span>,
-                        <span class="dt">verbose =</span> <span class="ot">FALSE</span>)
-}</code></pre></div>
+<div id="calendar-year-1999-tax-year-2000" class="section level4 unnumbered">
+<h4>Calendar Year 1999 / Tax Year 2000</h4>
+<pre><code>FALSE Simple feature collection with 564733 features and 9 fields
+FALSE geometry type:  POINT
+FALSE dimension:      XY
+FALSE bbox:           xmin: -122.5315 ymin: 47.08616 xmax: -121.0883 ymax: 47.77937
+FALSE epsg (SRID):    4326
+FALSE proj4string:    +proj=longlat +datum=WGS84 +no_defs
+FALSE First 5 features:
+FALSE        AREA PERIMETER PARCEL_ PARCEL_ID        PIN  MAJOR MINOR
+FALSE 1  43451.39  878.2284       2         1 0626059338 062605  9338
+FALSE 2 210349.47 1929.5020       3         2 0626059095 062605  9095
+FALSE 3 268852.28 2719.8124       4         3 0626059256 062605  9256
+FALSE 4 263595.77 2155.8471       5         4 0626059002 062605  9002
+FALSE 5  20998.36 1288.4010       6         5 0626059184 062605  9184
+FALSE   Shape_Length Shape_Area                       geometry
+FALSE 1     878.2284   43451.39 POINT(-122.223870995313 47....
+FALSE 2    1929.5020  210349.47 POINT(-122.221752053852 47....
+FALSE 3    2719.8124  268852.28 POINT(-122.2188628261 47.77...
+FALSE 4    2155.8471  263595.77 POINT(-122.215511809228 47....
+FALSE 5    1288.4010   20998.36 POINT(-122.214092245005 47....</code></pre>
+</div>
 </div>
 </div>
             </section>

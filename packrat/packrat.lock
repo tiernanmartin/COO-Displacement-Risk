@@ -119,12 +119,12 @@ Requires: bitops
 Package: cleangeo
 Source: github
 Version: 0.2-1
-Hash: 10f7fe61d02f78195c509c0dc5c7c589
+Hash: a2df4adee138d9bb8120420f5aa3aeb1
 Requires: maptools, rgeos, sp
 GithubRepo: cleangeo
 GithubUsername: eblondel
 GithubRef: master
-GithubSha1: 4e12860a807fd095cc9f5b3e2a409fc0a84f8ee1
+GithubSha1: 28a1f4361a08b916c264f68a33586869d0cecfb8
 
 Package: coda
 Source: CRAN
@@ -376,8 +376,8 @@ Hash: 4a0a1b1764bfe2c41c6fc21790408caf
 
 Package: maptools
 Source: CRAN
-Version: 0.8-39
-Hash: f88d489894305e514eacb380f4cb2008
+Version: 0.8-40
+Hash: 842029044a25722afd915450ee4606c2
 Requires: foreign, sp
 
 Package: markdown
