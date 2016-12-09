@@ -191,7 +191,7 @@ if(!file.exists(root_file('1-data/4-interim/coo-geos-sf.rds'))){
                 rbind(sea_ccd_sf) %>% 
                 rbind(kc_sf) %>% 
                 mutate(JOIN_ID = ifelse(is.na(GEOID6),NAME,GEOID6),
-                       JOIN_IF_FCT = factor(JOIN_ID,
+                       JOIN_ID_FCT = factor(JOIN_ID,
                                                levels = sort(JOIN_ID),
                                                ordered = TRUE),
                        NAME_FCT = factor(NAME,
