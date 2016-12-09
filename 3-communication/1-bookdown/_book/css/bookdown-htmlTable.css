@@ -1,0 +1,10 @@
+
+/* required styles */
+
+.book .book-body .page-wrapper .page-inner section.normal .gmisc_table tr {
+	background-color: #fff !important;
+	}
+.book .book-body .page-wrapper .page-inner section.normal .gmisc_table th {
+	padding: 2px 4px !important;
+	border: none !important;
+	}
