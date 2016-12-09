@@ -232,7 +232,9 @@ my_pct <- function(x) round_any(x*100,1) %>% paste0("%")
 
 popup_tbl_df <- 
         coo_vuln_poc_sf %>%
-        mutate(POC_PCT_EST = my_pct(POC_PCT_EST)) %>% 
+        mutate(POC_PCT_EST = my_pct(POC_PCT_EST),
+               POC_CNT_EST = scales::comma(POC_CNT_EST),
+               POP_TOTAL_CNT_EST = scales::comma(POP_TOTAL_CNT_EST)) %>% 
         select(-geometry) %>% 
         select('%' = POC_PCT_EST,
                '#' = POC_CNT_EST,
