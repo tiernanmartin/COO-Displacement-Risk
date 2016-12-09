@@ -10,6 +10,7 @@ always_allow_html: yes
 
 ```{r vuln-poc-setup, echo = FALSE, warning=FALSE,message=FALSE,comment=FALSE}
 library(plyr)
+library(scales)
 library(knitr)
 library(rprojroot)
 library(rgdal)
@@ -35,6 +36,7 @@ library(miscgis)
 library(operator.tools)
 library(leaflet.extras)
 library(viridisLite)
+library(htmlTable)
 library(sf)
 root <- rprojroot::is_rstudio_project
 root_file <- root$make_fix_file()
@@ -135,9 +137,11 @@ vuln_poc_acs <- read_rds(root_file('1-data/4-interim/vuln-poc-acs.rds'))
 # Plot the data
 # -----------------------------------------------------------------------------
 
+# Select the desired column and reorder
 vuln_poc_pct_acs <- vuln_poc_acs[,1]
 vuln_poc_pct_order_acs <- vuln_poc_pct_acs[order(estimate(vuln_poc_pct_acs)),]
 
+# Plot
 par(mar = c(1,4,1,1))
 plot(vuln_poc_pct_order_acs,
      ylab = 'People of Color (%)',yaxt = 'n',xaxt = 'n',bty = 'n')
@@ -157,8 +161,6 @@ if(!file.exists(root_file('1-data/4-interim/vuln-poc-sf.rds'))){
 coo_geos_sf <- 
         read_rds(root_file('1-data/4-interim/coo-geos-sf.rds'))
 
-coo_geos_sf_ordered <- coo_geos_sf %>% arrange(desc(JOIN_ID)) %>% select(-JOIN_ID)
-
 #
 # Convert the `acs` object into a dataframe, join to sf object
 # -----------------------------------------------------------------------------
@@ -169,17 +171,37 @@ coo_vuln_poc_sf <-
                 geography(vuln_poc_acs)["tract"],
                 estimate(vuln_poc_acs), 
                 1.645 * standard.error(vuln_poc_acs)) %>% 
-        `colnames<-`(., c("NAME","GEOID6", "POC_PCT_EST","POC_PCT_MOE")) %>% 
+        `colnames<-`(., c("NAME","GEOID6", "POC_PCT_EST","POC_CNT_EST","POP_TOTAL_CNT_EST","POC_PCT_MOE","POC_CNT_MOE","POP_TOTAL_CNT_MOE")) %>% 
         mutate(JOIN_ID = case_when(.$NAME %in% 'King County, Washington' ~ 'KC',
-                                  .$NAME %in% 'Seattle CCD, King County, Washington' ~ 'SEACCD',
-                                  !is.na(.$GEOID6) ~ .$GEOID6),
-               UPPER = POC_PCT_EST + POC_PCT_MOE, 
-               LOWER = POC_PCT_EST - POC_PCT_MOE, 
-               POC_PCT_UPPER = if_else(UPPER > 1, 1, UPPER), 
-               POC_PCT_LOWER = if_else(LOWER < 0, 0, LOWER)) %>% 
-        select(JOIN_ID,everything(),-NAME,-GEOID6,-UPPER,-LOWER) %>% 
-        arrange(desc(JOIN_ID)) %>%
-        bind_cols(coo_geos_sf_ordered) %>% 
+                                   .$NAME %in% 'Seattle CCD, King County, Washington' ~ 'SEACCD',
+                                   !is.na(.$GEOID6) ~ .$GEOID6)) %>%
+        gather(VAR_TYPE,VALUE, matches('EST|MOE')) %>% 
+        mutate(VAR = str_replace_all(VAR_TYPE,'_EST|_MOE',''),
+               TYPE = str_extract_all(VAR_TYPE,'EST|MOE',simplify = FALSE) %>% unlist(use.names = FALSE)) %>%
+        spread(TYPE,VALUE) %>%
+        arrange(NAME,VAR) %>%
+        group_by(NAME,VAR) %>% 
+        select(-VAR_TYPE) %>% 
+        summarise_all(first_not_na) %>% 
+        mutate(UPPER = EST + MOE,
+               LOWER = EST - MOE) %>%
+        ungroup %>% 
+        gather(TYPE,VAL,EST:LOWER) %>% 
+        mutate(VAR_TYPE = paste(VAR,TYPE,sep = "_")) %>% 
+        arrange(VAR_TYPE) %>% 
+        spread(VAR_TYPE,VAL) %>% 
+        group_by(NAME,VAR) %>% 
+        summarise_all(first_not_na) %>% 
+        ungroup %>% 
+        select(-VAR,-TYPE) %>% 
+        group_by(NAME) %>% 
+        summarise_all(first_not_na) %>% 
+        select(JOIN_ID,
+               matches('POC_PCT'),
+               matches('POC_CNT'),
+               everything(),
+               -NAME,-GEOID6) %>% as.data.frame() %>% 
+        full_join(coo_geos_sf,by = 'JOIN_ID') %>% 
         st_sf()
 
 #
@@ -203,6 +225,22 @@ These maps show the proportion of the population that belongs to a community of 
 tr <- 
         coo_vuln_poc_sf %>% 
         filter(GEOGRAPHY == 'tract' & SEACCD_LGL)
+
+seaccd_row <- which(coo_vuln_poc_sf$JOIN_ID %in% 'SEACCD')[[1]]
+
+popup_tbl_df <- 
+        coo_vuln_poc_sf %>%
+        mutate(POC_PCT_EST = scales::percent(POC_PCT_EST)) %>% 
+        select(-geometry) %>% 
+        select('%' = POC_PCT_EST,
+               '#' = POC_CNT_EST,
+               '#' = POP_TOTAL_CNT_EST) %>% 
+        as.data.frame(check.names = FALSE) %>% 
+        `row.names<-`(coo_vuln_poc_sf$JOIN_ID)
+
+popup_tbl <- lapply(seq_along(1:nrow(popup_tbl_df)), 
+                    function(row) htmlTable::htmlTable(popup_tbl_df[c(row,seaccd_row),],
+                                                                               cgroup = c("PoC", "Total Pop."),n.cgroup = c(2,1)))[coo_vuln_poc_sf$GEOGRAPHY %in% 'tract' & coo_vuln_poc_sf$SEACCD_LGL]
 
 tr_comm <- 
         coo_vuln_poc_sf %>% 
@@ -228,7 +266,7 @@ myLfltGrey() %>%
                 opacity = 1,
                 weight = .5,
                 smoothFactor = 0,
-                popup = lapply(rownames(tr), function(row) htmlTable::htmlTable(tr[row,1:2]))) %>%
+                popup = popup_tbl) %>%
         addPolylines(data = comm_bounds,
                 fillOpacity = 0,
                 color = proj_dark_grey,
