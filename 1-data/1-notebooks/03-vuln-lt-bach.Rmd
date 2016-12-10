@@ -223,8 +223,7 @@ myLfltGrey() %>%
                 opacity = 1,
                 weight = 2,
                 smoothFactor = 0) %>%
-        addLabelOnlyMarkers(data = as(comm_cntr, "Spatial"),label = ~ NAME_FULL, labelOptions = labelOptions(noHide = TRUE,direction = 'left',textOnly = TRUE)) %>%  
-        # addAwesomeMarkers(data = as(comm_cntr, "Spatial"),options = markerOptions(opacity = 0),label = ~ NAME_FULL, labelOptions = labelOptions(noHide = TRUE,direction = 'left', textOnly = TRUE)) %>% 
+        addLabelOnlyMarkers(data = as(comm_cntr, "Spatial"),label = ~ NAME_FULL, labelOptions = labelOptions(noHide = TRUE,direction = 'left', textOnly = TRUE)) %>%  
         addLegend(title = "LESS THAN<br>BACH. DEGREE",
                   position = 'topright',
                   pal = pal_lt_bach, 
@@ -234,7 +233,7 @@ myLfltGrey() %>%
         styleWidget(style = "text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF")
 
 ```
-
+ 
 ##### COO Communities {-}
 ```{r vuln-lt-bach-comm-map}
 myLfltGrey() %>% 
@@ -252,7 +251,7 @@ myLfltGrey() %>%
                 opacity = 1,
                 weight = 2,
                 smoothFactor = 0) %>%
-        addAwesomeMarkers(data = as(comm_cntr, "Spatial"),options = markerOptions(opacity = 0),label = ~ NAME_FULL, labelOptions = labelOptions(noHide = TRUE,direction = 'left', textOnly = TRUE)) %>% 
+        addLabelOnlyMarkers(data = as(comm_cntr, "Spatial"),label = ~ NAME_FULL, labelOptions = labelOptions(noHide = TRUE,direction = 'left', textOnly = TRUE)) %>% 
         addLegend(title = "LESS THAN<br>BACH. DEGREE",
                   position = 'topright',
                   pal = pal_lt_bach, 

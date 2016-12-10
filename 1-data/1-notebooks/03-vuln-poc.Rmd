@@ -249,7 +249,14 @@ if(!file.exists(root_file('1-data/4-interim/vuln-poc-seaccd-popup-tbl.rds'))){
                 write_rds(root_file('1-data/4-interim/vuln-poc-seaccd-popup-tbl.rds'))
 }
 
-popup_tbl <- read_rds(root_file('1-data/4-interim/vuln-poc-seaccd-popup-tbl.rds'))
+if(!file.exists(root_file('1-data/4-interim/vuln-poc-comm-popup-tbl.rds'))){
+        lapply(seq_along(1:nrow(popup_tbl_df)), 
+                    function(row) htmlTable::htmlTable(popup_tbl_df[c(row,seaccd_row),],
+                                                                               cgroup = c("PoC", "Total Pop."),n.cgroup = c(2,1)))[coo_vuln_poc_sf$GEOGRAPHY %in% 'tract' & coo_vuln_poc_sf$SEACCD_LGL &!is.na(coo_vuln_poc_sf$NAME)] %>% 
+                write_rds(root_file('1-data/4-interim/vuln-poc-comm-popup-tbl.rds'))
+}
+
+popup_tbl_seaccd <- read_rds(root_file('1-data/4-interim/vuln-poc-seaccd-popup-tbl.rds'))
         
 tr_comm <- 
         coo_vuln_poc_sf %>% 
@@ -275,14 +282,14 @@ myLfltGrey() %>%
                 opacity = 1,
                 weight = .5,
                 smoothFactor = 0,
-                popup = popup_tbl) %>%
+                popup = popup_tbl_seaccd) %>%
         addPolylines(data = comm_bounds,
                 fillOpacity = 0,
                 color = proj_dark_grey,
                 opacity = 1,
                 weight = 2,
                 smoothFactor = 0) %>%
-        addAwesomeMarkers(data = as(comm_cntr, "Spatial"),options = markerOptions(opacity = 0),label = ~ NAME_FULL, labelOptions = labelOptions(noHide = TRUE,direction = 'left', textOnly = TRUE)) %>%
+        addLabelOnlyMarkers(data = as(comm_cntr, "Spatial"),label = ~ NAME_FULL, labelOptions = labelOptions(noHide = TRUE,direction = 'left', textOnly = TRUE)) %>%
         addLegend(title = "People of<br>Color",
                   position = 'topright',
                   pal = pal_poc,
@@ -295,6 +302,9 @@ myLfltGrey() %>%
 
 ##### COO Communities {-}
 ```{r vuln-poc-comm-map}
+
+popup_tbl_comm <- read_rds(root_file('1-data/4-interim/vuln-poc-comm-popup-tbl.rds'))
+
 myLfltGrey() %>% 
         myLfltOpts() %>% 
         addPolygons(data = as(tr_comm,'Spatial'),
@@ -303,14 +313,15 @@ myLfltGrey() %>%
                 color = col2hex('white'),
                 opacity = 1,
                 weight = .5,
-                smoothFactor = 0) %>%
-        addPolygons(data = as(comm,'Spatial'),
+                smoothFactor = 0,
+                popup = popup_tbl_comm) %>%
+        addPolylines(data = comm_bounds,
                 fillOpacity = 0,
                 color = proj_dark_grey,
                 opacity = 1,
                 weight = 2,
-                smoothFactor = 0) %>%
-        addAwesomeMarkers(data = as(comm_cntr, "Spatial"),options = markerOptions(opacity = 0),label = ~ NAME_FULL, labelOptions = labelOptions(noHide = TRUE,direction = 'left', textOnly = TRUE)) %>% 
+                smoothFactor = 0) %>% 
+        addLabelOnlyMarkers(data = as(comm_cntr, "Spatial"),label = ~ NAME_FULL, labelOptions = labelOptions(noHide = TRUE,direction = 'left', textOnly = TRUE)) %>% 
         addLegend(title = "People of<br>Color",
                   position = 'topright',
                   pal = pal_poc, 

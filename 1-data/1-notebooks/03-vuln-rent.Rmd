@@ -205,7 +205,7 @@ myLfltGrey() %>%
                 opacity = 1,
                 weight = 2,
                 smoothFactor = 0) %>%
-        addAwesomeMarkers(data = as(comm_cntr, "Spatial"),options = markerOptions(opacity = 0),label = ~ NAME_FULL, labelOptions = labelOptions(noHide = TRUE,direction = 'left', textOnly = TRUE)) %>% 
+        addLabelOnlyMarkers(data = as(comm_cntr, "Spatial"),label = ~ NAME_FULL, labelOptions = labelOptions(noHide = TRUE,direction = 'left', textOnly = TRUE)) %>% 
         addLegend(title = "Renters",
                   position = 'topright',
                   pal = pal_rent, 
@@ -233,7 +233,7 @@ myLfltGrey() %>%
                 opacity = 1,
                 weight = 2,
                 smoothFactor = 0) %>%
-        addAwesomeMarkers(data = as(comm_cntr, "Spatial"),options = markerOptions(opacity = 0),label = ~ NAME_FULL, labelOptions = labelOptions(noHide = TRUE,direction = 'left', textOnly = TRUE)) %>% 
+        addLabelOnlyMarkers(data = as(comm_cntr, "Spatial"),label = ~ NAME_FULL, labelOptions = labelOptions(noHide = TRUE,direction = 'left', textOnly = TRUE)) %>% 
         addLegend(title = "Renters",
                   position = 'topright',
                   pal = pal_poc, 
