@@ -110,7 +110,7 @@ if(!file.exists(root_file('1-data/4-interim/vuln-low-inc-acs.rds'))){
         acs.colnames(vuln_low_total_inc) <- "HH_TOTAL_CNT"
         
         
-        # Indicator count (Add all pops with bach. or higher)
+        # Indicator count (Add all households making less than $75K/yr)
         
         low_inc <- get_col('\\$10,|\\$14,|\\$19,|\\$24,|\\$29,|\\$34,|\\$39,|\\$44,|\\$49,|\\$59,|\\$74,')
         
@@ -217,24 +217,6 @@ coo_vuln_low_inc_sf <-
                -NAME,-GEOID6) %>% as.data.frame() %>% 
         full_join(coo_geos_sf,by = 'JOIN_ID') %>% 
         st_sf()
-# coo_vuln_low_inc_sf <- 
-#         data.frame(
-#                 geography(vuln_low_inc_acs)["NAME"],
-#                 geography(vuln_low_inc_acs)["tract"],
-#                 estimate(vuln_low_inc_acs), 
-#                 1.645 * standard.error(vuln_low_inc_acs)) %>% 
-#         `colnames<-`(., c("NAME","GEOID6", "LOW_INC_PCT_EST","LOW_INC_PCT_MOE")) %>% 
-#         mutate(JOIN_ID = case_when(.$NAME %in% 'King County, Washington' ~ 'KC',
-#                                   .$NAME %in% 'Seattle CCD, King County, Washington' ~ 'SEACCD',
-#                                   !is.na(.$GEOID6) ~ .$GEOID6),
-#                UPPER = LOW_INC_PCT_EST + LOW_INC_PCT_MOE, 
-#                LOWER = LOW_INC_PCT_EST - LOW_INC_PCT_MOE, 
-#                LOW_INC_PCT_UPPER = if_else(UPPER > 1, 1, UPPER), 
-#                LOW_INC_PCT_LOWER = if_else(LOWER < 0, 0, LOWER)) %>% 
-#         select(JOIN_ID,everything(),-NAME,-GEOID6,-UPPER,-LOWER) %>% 
-#         arrange(desc(JOIN_ID)) %>%
-#         bind_cols(coo_geos_sf_ordered) %>% 
-#         st_sf()
 
 #
 # Save the object
