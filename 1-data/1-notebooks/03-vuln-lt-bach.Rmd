@@ -85,47 +85,60 @@ if(!file.exists(root_file('1-data/4-interim/vuln-lt-bach-acs.rds'))){
         
         vuln_lt_bach_tbl_guide <- 
                 data.frame(terse = acs.colnames(vuln_lt_bach_acs1),
-                       pretty = acs.colnames(acs.fetch(endyear = 2014, 
-                          geography = geo.make(us = TRUE), 
-                          table.number = vuln_lt_bach_tbl,col.names = 'pretty')))
+                           pretty = acs.colnames(acs.fetch(endyear = 2014, 
+                                                           geography = geo.make(us = TRUE), 
+                                                           table.number = vuln_lt_bach_tbl,col.names = 'pretty')))
         # Pull out the specific columns that are important
         
         get_col <- function(pattern){
                 vuln_lt_bach_tbl_guide %>% filter(str_detect(pretty,pattern)) %>% select(terse) %>% unlist(use.names = FALSE) %>% as.character()
         }
         
+        # Indicator universe total
+        
         total <- get_col('Total:')
+        
+        vuln_lt_bach_total <- vuln_lt_bach_acs1[,total]
+        
+        acs.colnames(vuln_lt_bach_total) <- "ADULT_TOTAL_CNT"
+        
+        
+        # Indicator count (All adults (25 y/o or older) with less that a BA)
         
         bach_plus <- get_col('Bachelor|Master|Professional|Doctorate')
         
-        # Add all pops with bach. or higher
-        
-        acs_col_bach_plus <- 
+        vuln_bach_plus <- 
                 acs::apply(X = vuln_lt_bach_acs1[,bach_plus],
                            MARGIN = 2,
                            FUN = sum,
                            verbose = FALSE)
         
-        acs.colnames(acs_col_bach_plus) <- "BACH_PLUS"
+        acs.colnames(vuln_bach_plus) <- "BACH_PLUS"
         
-        acs_col_lt_bach <- vuln_lt_bach_acs1[,total] - acs_col_bach_plus[,"BACH_PLUS"]
+        vuln_lt_bach <- vuln_lt_bach_total - vuln_bach_plus
         
-        acs.colnames(acs_col_lt_bach) <- "LT_BACH"
-       
-        # Find the proportion of renters to the Total population
-        acs_col_pct_lt_bach <-  
-                acs::apply(X = acs_col_lt_bach[,"LT_BACH"],
+        acs.colnames(vuln_lt_bach) <- "LT_BACH_CNT"
+        
+        
+        # Share of adults with less than a BA
+        
+        vuln_lt_bach_pct <-  
+                acs::apply(X = vuln_lt_bach,
                            MARGIN = 1,
                            FUN = divide.acs,
-                           denominator = vuln_lt_bach_acs1[,total],
+                           denominator = vuln_lt_bach_total,
                            method = "proportion",
                            verbose = FALSE)
         
-        acs.colnames(acs_col_pct_lt_bach) <- 'PCT_LT_BACH'
+        acs.colnames(vuln_lt_bach_pct) <- 'LT_BACH_PCT'
+        
+        # Combine the acs objects
+        
+        vuln_lt_bach_acs <- Reduce('cbind',c(vuln_lt_bach_pct,vuln_lt_bach,vuln_lt_bach_total))
         
         # Save the object
-
-acs_col_pct_lt_bach %>% saveRDS(root_file('1-data/4-interim/vuln-lt-bach-acs.rds'))
+        
+        vuln_lt_bach_acs %>% saveRDS(root_file('1-data/4-interim/vuln-lt-bach-acs.rds'))
 }
 
 vuln_lt_bach_acs <- read_rds(root_file('1-data/4-interim/vuln-lt-bach-acs.rds'))
@@ -134,9 +147,17 @@ vuln_lt_bach_acs <- read_rds(root_file('1-data/4-interim/vuln-lt-bach-acs.rds'))
 # Plot the data
 # -----------------------------------------------------------------------------
 
+# Select the desired column and reorder
+vuln_lt_bach_ord_pct <- vuln_lt_bach_acs[order(estimate(vuln_lt_bach_acs[,'LT_BACH_PCT'])),'LT_BACH_PCT']
+
+# For some reason the column name gets dropped, and it needs to be redefined before 
+# the object is passed to plot() 
+
+acs.colnames(vuln_lt_bach_ord_pct) <- 'LT_BACH_PCT'
+
 # Sanity check: the University of Washington Tract appears to have a very high margin of error (likely due to the small sample size), so it should be removed
 
-vuln_lt_bach_noUW_acs <- vuln_lt_bach_acs[standard.error(vuln_lt_bach_acs)<.15,]
+vuln_lt_bach_noUW_acs <- vuln_lt_bach_ord_pct[standard.error(vuln_lt_bach_ord_pct)<.15,]
 
 par(mar = c(1,4,1,1))
 plot(vuln_lt_bach_noUW_acs[order(estimate(vuln_lt_bach_noUW_acs)),1],ylab = 'Adults With Less Than a Bachelor Degree (%)',yaxt = 'n',xaxt = 'n',bty = 'n')
@@ -150,39 +171,58 @@ axis(2, at=yticks_val,labels = 100*yticks)
 
 if(!file.exists(root_file('1-data/4-interim/vuln-lt-bach-sf.rds'))){
         # Read in the `sf` object and re-order the records to by `JOIN_ID` 
-# -----------------------------------------------------------------------------
+        # -----------------------------------------------------------------------------
 
-if(!exists('coo_geos_sf')){coo_geos_sf <- read_rds(root_file('1-data/4-interim/coo-geos-sf.rds'))}        
+        if(!exists('coo_geos_sf')){coo_geos_sf <- read_rds(root_file('1-data/4-interim/coo-geos-sf.rds'))}        
+
+        #
+        # Convert the `acs` object into a dataframe, join to sf object
+        # -----------------------------------------------------------------------------
         
-coo_geos_sf_ordered <- coo_geos_sf %>% arrange(JOIN_ID) %>% select(-JOIN_ID)
-
-#
-# Convert the `acs` object into a dataframe, join to sf object
-# -----------------------------------------------------------------------------
-
-coo_vuln_lt_bach_sf <- 
-        data.frame(
-                geography(vuln_lt_bach_acs)["NAME"],
-                geography(vuln_lt_bach_acs)["tract"],
-                estimate(vuln_lt_bach_acs), 
-                1.645 * standard.error(vuln_lt_bach_acs)) %>% 
-        `colnames<-`(., c("NAME","GEOID6", "LT_BACH_PCT_EST","LT_BACH_PCT_MOE")) %>% 
-        mutate(JOIN_ID = case_when(.$NAME %in% 'King County, Washington' ~ 'KC',
-                                  .$NAME %in% 'Seattle CCD, King County, Washington' ~ 'SEACCD',
-                                  !is.na(.$GEOID6) ~ .$GEOID6),
-               UPPER = LT_BACH_PCT_EST + LT_BACH_PCT_MOE, 
-               LOWER = LT_BACH_PCT_EST - LT_BACH_PCT_MOE, 
-               LT_BACH_PCT_UPPER = if_else(UPPER > 1, 1, UPPER), 
-               LT_BACH_PCT_LOWER = if_else(LOWER < 0, 0, LOWER)) %>% 
-        select(JOIN_ID,everything(),-NAME,-GEOID6,-UPPER,-LOWER) %>% 
-        arrange(desc(JOIN_ID)) %>%
-        bind_cols(coo_geos_sf_ordered) %>% 
-        st_sf()
+        coo_vuln_lt_bach_sf <- 
+                data.frame(
+                        geography(vuln_lt_bach_acs)["NAME"],
+                        geography(vuln_lt_bach_acs)["tract"],
+                        estimate(vuln_lt_bach_acs), 
+                        1.645 * standard.error(vuln_lt_bach_acs)) %>% 
+                `colnames<-`(., c("NAME","GEOID6","LT_BACH_PCT_EST","LT_BACH_CNT_EST","ADULT_TOTAL_CNT_EST","LT_BACH_PCT_MOE","LT_BACH_CNT_MOE","ADULT_TOTAL_CNT_MOE")) %>% 
+                mutate(JOIN_ID = case_when(.$NAME %in% 'King County, Washington' ~ 'KC',
+                                           .$NAME %in% 'Seattle CCD, King County, Washington' ~ 'SEACCD',
+                                           !is.na(.$GEOID6) ~ .$GEOID6)) %>%
+                gather(VAR_TYPE,VALUE, matches('EST|MOE')) %>% 
+                mutate(VAR = str_replace_all(VAR_TYPE,'_EST|_MOE',''),
+                       TYPE = str_extract_all(VAR_TYPE,'EST|MOE',simplify = FALSE) %>% unlist(use.names = FALSE)) %>%
+                spread(TYPE,VALUE) %>%
+                arrange(NAME,VAR) %>%
+                group_by(NAME,VAR) %>% 
+                select(-VAR_TYPE) %>% 
+                summarise_all(first_not_na) %>% 
+                mutate(UPPER = EST + MOE,
+                       LOWER = EST - MOE) %>%
+                ungroup %>% 
+                gather(TYPE,VAL,EST:LOWER) %>% 
+                mutate(VAR_TYPE = paste(VAR,TYPE,sep = "_")) %>% 
+                arrange(VAR_TYPE) %>% 
+                spread(VAR_TYPE,VAL) %>% 
+                group_by(NAME,VAR) %>% 
+                summarise_all(first_not_na) %>% 
+                ungroup %>% 
+                select(-VAR,-TYPE) %>% 
+                group_by(NAME) %>% 
+                summarise_all(first_not_na) %>% 
+                select(JOIN_ID,
+                       matches('LT_BACH_PCT'),
+                       matches('LT_BACH_CNT'),
+                       everything(),
+                       -NAME,-GEOID6) %>% as.data.frame() %>% 
+                full_join(coo_geos_sf,by = 'JOIN_ID') %>% 
+                st_sf()
 
 #
 # Save the object
 # -----------------------------------------------------------------------------
 coo_vuln_lt_bach_sf %>% write_rds(root_file('1-data/4-interim/vuln-lt-bach-sf.rds'))
+
 }
 
 coo_vuln_lt_bach_sf <-  read_rds(root_file('1-data/4-interim/vuln-lt-bach-sf.rds'))
@@ -196,6 +236,38 @@ coo_vuln_lt_bach_sf <-  read_rds(root_file('1-data/4-interim/vuln-lt-bach-sf.rds
 tr <- 
         coo_vuln_lt_bach_sf %>% 
         filter(GEOGRAPHY == 'tract' & SEACCD_LGL)
+
+seaccd_row <- which(coo_vuln_lt_bach_sf$JOIN_ID %in% 'SEACCD')[[1]]
+
+my_pct <- function(x) round_any(x*100,1) %>% paste0("%")
+
+popup_tbl_df <- 
+        coo_vuln_lt_bach_sf %>% 
+        mutate(LT_BACH_PCT_EST = my_pct(LT_BACH_PCT_EST),
+               LT_BACH_CNT_EST = scales::comma(LT_BACH_CNT_EST),
+               ADULT_TOTAL_CNT_EST = scales::comma(ADULT_TOTAL_CNT_EST)) %>% 
+        select(-geometry) %>% 
+        select('%' = LT_BACH_PCT_EST,
+               '#' = LT_BACH_CNT_EST,
+               '#' = ADULT_TOTAL_CNT_EST) %>% 
+        as.data.frame(check.names = FALSE) %>% 
+        `row.names<-`(coo_vuln_lt_bach_sf$JOIN_ID)
+
+if(!file.exists(root_file('1-data/4-interim/vuln-lt-bach-seaccd-popup-tbl.rds'))){
+        lapply(seq_along(1:nrow(popup_tbl_df)), 
+               function(row) htmlTable::htmlTable(popup_tbl_df[c(row,seaccd_row),],
+                                                  cgroup = c("No B.A.", "Adults"),n.cgroup = c(2,1)))[coo_vuln_lt_bach_sf$GEOGRAPHY %in% 'tract' & coo_vuln_lt_bach_sf$SEACCD_LGL] %>% 
+                write_rds(root_file('1-data/4-interim/vuln-lt-bach-seaccd-popup-tbl.rds'))
+}
+
+if(!file.exists(root_file('1-data/4-interim/vuln-lt-bach-comm-popup-tbl.rds'))){
+        lapply(seq_along(1:nrow(popup_tbl_df)), 
+               function(row) htmlTable::htmlTable(popup_tbl_df[c(row,seaccd_row),],
+                                                  cgroup = c("No B.A.", "Adults"),n.cgroup = c(2,1)))[coo_vuln_lt_bach_sf$GEOGRAPHY %in% 'tract' & coo_vuln_lt_bach_sf$SEACCD_LGL &!is.na(coo_vuln_lt_bach_sf$NAME)] %>% 
+                write_rds(root_file('1-data/4-interim/vuln-lt-bach-comm-popup-tbl.rds'))
+}
+
+popup_tbl_seaccd <- read_rds(root_file('1-data/4-interim/vuln-lt-bach-seaccd-popup-tbl.rds'))
 
 tr_comm <- 
         coo_vuln_lt_bach_sf %>% 
@@ -241,6 +313,9 @@ myLfltGrey() %>%
  
 ##### COO Communities {-}
 ```{r vuln-lt-bach-comm-map}
+
+popup_tbl_comm <- read_rds(root_file('1-data/4-interim/vuln-lt-bach-comm-popup-tbl.rds'))
+
 myLfltGrey() %>% 
         myLfltOpts() %>% 
         addPolygons(data = as(tr_comm,'Spatial'),
