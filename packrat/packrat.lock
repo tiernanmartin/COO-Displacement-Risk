@@ -333,14 +333,14 @@ Hash: 3d6e7608e65bbf5cb170dab1e3c9ed8b
 
 Package: leaflet
 Source: github
-Version: 1.0.2.9008
-Hash: 777b790fd54215bac55af156304ecf95
+Version: 1.0.2.9009
+Hash: 4ffbc6317dd3cb136737b9e2670a3492
 Requires: RColorBrewer, base64enc, htmltools, htmlwidgets, magrittr,
     markdown, png, raster, scales, sp
 GithubRepo: leaflet
 GithubUsername: rstudio
 GithubRef: master
-GithubSha1: c62fedc39016c76e1fab891e20791411f0fbc731
+GithubSha1: 36a9ee3bae4ef246a2ec7ba48f966bdea8183286
 
 Package: leaflet.extras
 Source: github
@@ -405,14 +405,14 @@ Requires: htmltools, shiny
 
 Package: miscgis
 Source: github
-Version: 0.1.3-0
-Hash: 626db716533335806119f5f92f0b889f
-Requires: dplyr, leaflet, leaflet.extras, miniUI, operator.tools, sf,
-    shinydashboard, sp, tigris
+Version: 0.1.3-2
+Hash: 7c761da0370aa5c0b1be1464ba19e56e
+Requires: acs, dplyr, leaflet, leaflet.extras, miniUI, operator.tools,
+    sf, shinydashboard, sp, tigris
 GithubRepo: miscgis
 GithubUsername: tiernanmartin
 GithubRef: master
-GithubSha1: c970aff02bf2f47bf49c24d666fb6a98f5771a6e
+GithubSha1: c4f9b2bc4bd41e4b982fdc703e2aa82f978fa3d8
 
 Package: mnormt
 Source: CRAN
@@ -598,14 +598,10 @@ Hash: 0c8802e6b42b01a1320ef70752564f99
 Requires: httpuv, jsonlite, mime
 
 Package: sf
-Source: github
-Version: 0.2-5
-Hash: 8df23057d77b55129e6609c33c37e83f
+Source: CRAN
+Version: 0.2-7
+Hash: 8e593c1ed5ac5daa045d26d82ce7d61d
 Requires: DBI, Rcpp
-GithubRepo: sfr
-GithubUsername: edzer
-GithubRef: master
-GithubSha1: 1b1c83eba26ca5d0ec2add8e4f1e3244d0ef31f8
 
 Package: shiny
 Source: CRAN

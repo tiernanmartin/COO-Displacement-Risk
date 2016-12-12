@@ -137,17 +137,13 @@ vuln_poc_acs <- read_rds(root_file('1-data/4-interim/vuln-poc-acs.rds'))
 # Plot the data
 # -----------------------------------------------------------------------------
 
-# Select the desired column and reorder
-vuln_poc_pct_acs <- vuln_poc_acs[,1]
-vuln_poc_pct_order_acs <- vuln_poc_pct_acs[order(estimate(vuln_poc_pct_acs)),]
-
 # Plot
-par(mar = c(1,4,1,1))
-plot(vuln_poc_pct_order_acs,
-     ylab = 'People of Color (%)',yaxt = 'n',xaxt = 'n',bty = 'n')
-yticks_val <- scales::pretty_breaks(n=5)(vuln_poc_pct_order_acs@estimate)
-yticks <- scales::pretty_breaks(n=5)(vuln_poc_pct_order_acs@estimate)
-axis(2, at=yticks_val,labels = 100*yticks)
+
+myAcsPlot(acs = vuln_poc_acs,
+          sort_fun = estimate,
+          col = 'POC_PCT',
+          ylab = 'People of Color (%)',
+          .pct = TRUE)
 
 
 ```

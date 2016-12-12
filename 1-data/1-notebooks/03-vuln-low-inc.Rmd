@@ -159,11 +159,12 @@ vuln_low_inc_noUW_acs <- vuln_low_inc_acs[standard.error(vuln_low_inc_acs[,'LOW_
 
 acs.colnames(vuln_low_inc_noUW_acs) <- 'LOW_INC_PCT'
 
-par(mar = c(1,4,1,1))
-plot(vuln_low_inc_noUW_acs[order(estimate(vuln_low_inc_noUW_acs)),1],ylab = 'People of Color (%)',yaxt = 'n',xaxt = 'n',bty = 'n')
-yticks_val <- scales::pretty_breaks(n=5)(vuln_low_inc_noUW_acs@estimate)
-yticks <- scales::pretty_breaks(n=5)(vuln_low_inc_noUW_acs@estimate)
-axis(2, at=yticks_val,labels = 100*yticks)
+myAcsPlot(acs = vuln_low_inc_noUW_acs,
+          sort_fun = estimate,
+          col = 'LOW_INC_PCT',
+          ylab = 'Low-Income Households (%)',
+          .pct = TRUE)
+
 
 
 ```

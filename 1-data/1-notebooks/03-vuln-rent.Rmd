@@ -137,19 +137,11 @@ vuln_rent_acs <- read_rds(root_file('1-data/4-interim/vuln-rent-acs.rds'))
 # Plot the data
 # -----------------------------------------------------------------------------
 
-# Select the desired column and reorder
-vuln_rent_ord_pct <- vuln_rent_acs[order(estimate(vuln_rent_acs[,'RENT_PCT'])),'RENT_PCT']
-
-# For some reason the column name gets dropped, and it needs to be redefined before 
-# the object is passed to plot() 
-
-acs.colnames(vuln_rent_ord_pct) <- 'RENT_PCT'
-
-par(mar = c(1,4,1,1))
-plot(vuln_rent_ord_pct,ylab = 'Renters (%)',yaxt = 'n',xaxt = 'n',bty = 'n')
-yticks_val <- scales::pretty_breaks(n=5)(vuln_rent_ord_pct@estimate)
-yticks <- scales::pretty_breaks(n=5)(vuln_rent_ord_pct@estimate)
-axis(2, at=yticks_val,labels = 100*yticks)
+myAcsPlot(acs = vuln_rent_acs,
+          sort_fun = estimate,
+          col = 'RENT_PCT',
+          ylab = 'Renters (%)',
+          .pct = TRUE)
 
 ```
 
