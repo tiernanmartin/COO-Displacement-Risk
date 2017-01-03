@@ -19,25 +19,19 @@ misc_fp <- root_file('1-data/1-notebooks/01-misc.Rmd')
 
 `r knit_child(misc_fp)`
 
-## Census Geographies: Spatial Data
+## Census Data
 
-```{r data-methods-hra-census-acs}
+```{r data-methods-census}
+
+census_acs_fp <- root_file('1-data/1-notebooks/02-census-acs.Rmd')
 
 census_geos_fp <- root_file('1-data/1-notebooks/02-census-geos.Rmd')
 ```
 
+`r knit_child(census_acs_fp)`
 `r knit_child(census_geos_fp)`
 
-
-## Census Geographies: ACS Geo Sets
-
-```{r data-methods-census-acs}
-census_acs_fp <- root_file('1-data/1-notebooks/02-census-acs.Rmd')
-```
-
-`r knit_child(census_acs_fp)`
-
-## King County Parcels
+## King County Assessor Data
 
 ```{r data-methods-kc-parcels}
 kc_parcels_fp <- root_file('1-data/1-notebooks/02-king-county-parcels.Rmd')
@@ -45,9 +39,9 @@ kc_parcels_fp <- root_file('1-data/1-notebooks/02-king-county-parcels.Rmd')
 
 `r knit_child(kc_parcels_fp)`
 
-## Vulnerability
+## Indicators
 
-```{r data-methods-vuln}
+```{r data-methods-indicators}
 vuln_intro_fp <- root_file('1-data/1-notebooks/03-vuln-intro.Rmd')
 
 vuln_poc_fp <- root_file('1-data/1-notebooks/03-vuln-poc.Rmd')
@@ -57,17 +51,6 @@ vuln_lt_bach_fp <- root_file('1-data/1-notebooks/03-vuln-lt-bach.Rmd')
 vuln_rent_fp <- root_file('1-data/1-notebooks/03-vuln-rent.Rmd')
 
 vuln_low_inc_fp <- root_file('1-data/1-notebooks/03-vuln-low-inc.Rmd')
-```
-
-`r knit_child(vuln_intro_fp)`
-`r knit_child(vuln_poc_fp)`
-`r knit_child(vuln_lt_bach_fp)`
-`r knit_child(vuln_rent_fp)`
-`r knit_child(vuln_low_inc_fp)`
-
-## Demographic Change
-
-```{r data-methods-demo-chng}
 
 demo_chng_intro_fp <- root_file('1-data/1-notebooks/03-demo-change-intro.Rmd')
 
@@ -81,9 +64,15 @@ demo_chng_income_fp <- root_file('1-data/1-notebooks/03-demo-change-inc.Rmd')
 
 ```
 
+`r knit_child(vuln_intro_fp)`
+`r knit_child(vuln_poc_fp)`
+`r knit_child(vuln_lt_bach_fp)`
+`r knit_child(vuln_rent_fp)`
+`r knit_child(vuln_low_inc_fp)`
 `r knit_child(demo_chng_intro_fp)`
 `r knit_child(demo_chng_white_fp)`
 `r knit_child(demo_chng_bach_fp)`
 `r knit_child(demo_chng_own_fp)`
 `r knit_child(demo_chng_income_fp)`
 
+## Typology
