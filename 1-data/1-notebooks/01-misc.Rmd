@@ -43,50 +43,73 @@ pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","or
 
 Below is a collection of spatial datasets used in this project.
 
-### Seattle Boundary {-}
+### King County Boundary
+```{r misc-kc, fig.cap="King County\'s geographic boundary"}
 
-```{r misc-sea-bound, fig.cap="Seattle\'s geographic boundary"}
-
-if(!file.exists(root_file('1-data/4-interim/seattle-sf.rds'))){
-        tigris::places(state = "WA") %>%
-                tigris::filter_place(place = "Seattle") %>%
-                spTransform(CRSobj = crs_proj) %>% 
+if(!file.exists(root_file('./1-data/4-interim/kc-noclip-sf.rds'))){
+        tigris::counties(state = "53") %>% 
                 st_as_sf() %>% 
-                miscgis::coerce_to_geom(sf::st_multipolygon) %>% 
-                write_rds(root_file('1-data/4-interim/seattle-sf.rds'))
-        
+                st_transform(crs_proj@projargs) %>% 
+                st_cast('MULTIPOLYGON') %>% 
+                filter(NAME %in% 'King') %>% 
+                write_rds(root_file('./1-data/4-interim/kc-noclip-sf.rds'))
 }
 
-sea_sf <- read_rds(root_file('1-data/4-interim/seattle-sf.rds'))
+kc_noclip_sf <- read_rds(root_file('./1-data/4-interim/kc-noclip-sf.rds'))
 
-green <- miscgis::miscgis_pals$tableau_cat[["green"]]
-
-myLfltGrey(data = as(sea_sf,'Spatial')) %>% 
+myLfltGrey(data = as(kc_noclip_sf,'Spatial')) %>% 
         myLfltOpts() %>% 
-        addPolygons(color = green,opacity = 1,fillColor = green,fillOpacity = .5)
-
+        addPolygons(color = red,opacity = 1,fillColor = red,fillOpacity = .5)
 ```
+
 
 ### King County Subdivision Boundary {-}
 
 ```{r misc-sea-ccd, fig.cap="Seattle Subdivision of King County\'s geographic boundary"}
 
-if(!file.exists(root_file('1-data/4-interim/seattle-ccd-sf.rds'))){
+if(!file.exists(root_file('1-data/4-interim/seattle-ccd-noclip-sf.rds'))){
         tigris::county_subdivisions(state = "53",county = "033") %>% 
-                subset(NAME == "Seattle") %>% 
-                spTransform(CRSobj = crs_proj) %>% 
                 st_as_sf() %>% 
-                miscgis::coerce_to_geom(sf::st_multipolygon) %>% 
-                write_rds(root_file('1-data/4-interim/seattle-ccd-sf.rds'))
+                st_transform(crs_proj@projargs) %>% 
+                st_cast('MULTIPOLYGON') %>% 
+                filter(NAME %in% "Seattle") %>% 
+                mutate(NAME = 'Seattle CCD') %>% 
+                write_rds(root_file('1-data/4-interim/seattle-ccd-noclip-sf.rds'))
 }
 
-sea_ccd_sf <- read_rds(root_file('1-data/4-interim/seattle-ccd-sf.rds'))
+sea_ccd_noclip_sf <- read_rds(root_file('1-data/4-interim/seattle-ccd-noclip-sf.rds'))
 
-myLfltGrey(data = as(sea_ccd_sf,'Spatial')) %>% 
+myLfltGrey(data = as(sea_ccd_noclip_sf,'Spatial')) %>% 
         myLfltOpts() %>% 
         addPolygons(color = blue,opacity = 1,fillColor = blue,fillOpacity = .5)
 
 ```
+
+
+### Seattle Boundary {-}
+
+```{r misc-sea-bound, fig.cap="Seattle\'s geographic boundary"}
+
+if(!file.exists(root_file('1-data/4-interim/seattle-noclip-sf.rds'))){
+        tigris::places(state = "WA") %>%
+                tigris::filter_place(place = "Seattle") %>%
+                st_as_sf() %>% 
+                st_transform(crs_proj@projargs) %>% 
+                st_cast('MULTIPOLYGON') %>% 
+                write_rds(root_file('1-data/4-interim/seattle-noclip-sf.rds'))
+        
+}
+
+sea_noclip_sf <- read_rds(root_file('1-data/4-interim/seattle-noclip-sf.rds'))
+
+green <- miscgis::miscgis_pals$tableau_cat[["green"]]
+
+myLfltGrey(data = as(sea_noclip_sf,'Spatial')) %>% 
+        myLfltOpts() %>% 
+        addPolygons(color = green,opacity = 1,fillColor = green,fillOpacity = .5)
+
+```
+
 
 ### Tracts in King County {-}
 Although this assessment is primarily focused on three communities within the Seattle CCD subdivision of King County, one of the indicators (housing market conditions) uses neighboring tracts to determine displacement risk. Some of the neighboring tracts are part of other county subdivision, but rather than targeting just those specific tracts, this method collects data for all King County tracts and then runs the analysis on the appropriate subsets.
@@ -95,9 +118,9 @@ In the absence of a straight-forward method for identifying all the census tract
 
 Tract boundaries sometimes change over time, particularly on years when the decennial census is conducted. While this project will primarily use the current set of boundaries, it is necessary to collect the tract boundaries of the 2000-2009 time period so that these datasets can be visually represented in choropleth diagrams.
 
-```{r misc-tr-kc-wtr, fig.height=2, fig.width=2, fig.show='hold', dpi=150}
+```{r misc-tr-kc-noclip, fig.height=2, fig.width=2, fig.show='hold', dpi=150}
 # 2015 tract boundaries
-if(!file.exists(root_file('1-data/4-interim/tr-kc-wtr-2015-sf.rds'))){
+if(!file.exists(root_file('1-data/4-interim/tr-kc-noclip-2015-sf.rds'))){
         
         # Seattle CCD tracts 
         # Note: because this selection includes all tracts "within or partially-within" the Seattle CC,
@@ -119,16 +142,16 @@ if(!file.exists(root_file('1-data/4-interim/tr-kc-wtr-2015-sf.rds'))){
         # All 2015 KC tracts with Seattle CCD subdivision column
         
         tigris::tracts(state = '53',county = '033', year = 2015) %>%
-                spTransform(CRSobj = crs_proj) %>% 
                 st_as_sf() %>% 
+                st_transform(crs_proj@projargs) %>% 
                 st_cast('MULTIPOLYGON') %>% 
                 mutate(SEACCD_LGL = ifelse(GEOID %in% tr_ccd_geoid_2012,TRUE,FALSE)) %>% 
-                write_rds(root_file('1-data/4-interim/tr-kc-wtr-2015-sf.rds'))
+                write_rds(root_file('1-data/4-interim/tr-kc-noclip-2015-sf.rds'))
               
 }
 
 # pre-2010 tract boundaries
-if(!file.exists(root_file('1-data/4-interim/tr-kc-wtr-2009-sf.rds'))){
+if(!file.exists(root_file('1-data/4-interim/tr-kc-noclip-2009-sf.rds'))){
         
         # Seattle CCD tracts 
         # Note: because this selection includes all tracts "within or partially-within" the Seattle CC,
@@ -162,11 +185,11 @@ if(!file.exists(root_file('1-data/4-interim/tr-kc-wtr-2009-sf.rds'))){
                 layer = 'tl_2009_53033_tract00',
                 verbose = FALSE,
                 stringsAsFactors = FALSE) %>% 
-                spTransform(CRSobj = crs_proj) %>%
-                st_as_sf() %>%
+                st_as_sf() %>% 
+                st_transform(crs_proj@projargs) %>% 
                 st_cast('MULTIPOLYGON') %>% 
                 mutate(SEACCD_LGL = ifelse(CTIDFP00 %in% tr_ccd_geoid_2009,TRUE,FALSE)) %>% 
-                write_rds(root_file('1-data/4-interim/tr-kc-wtr-2009-sf.rds'))
+                write_rds(root_file('1-data/4-interim/tr-kc-noclip-2009-sf.rds'))
                 
         
         # Note: the `tigris` package is returning an error for attempts to
@@ -181,11 +204,11 @@ if(!file.exists(root_file('1-data/4-interim/tr-kc-wtr-2009-sf.rds'))){
 }
 
 
-tr_kc_wtr_2015_sf <- read_rds(root_file('1-data/4-interim/tr-kc-wtr-2015-sf.rds'))
+tr_kc_noclip_2015_sf <- read_rds(root_file('1-data/4-interim/tr-kc-noclip-2015-sf.rds'))
 
-tr_kc_wtr_2009_sf <- read_rds(root_file('1-data/4-interim/tr-kc-wtr-2009-sf.rds'))
+tr_kc_noclip_2009_sf <- read_rds(root_file('1-data/4-interim/tr-kc-noclip-2009-sf.rds'))
 
-show_tr_ccd_wtr_2009_sf <- function(){
+show_tr_ccd_noclip_2009_sf <- function(){
         
         blue_orange <- c(blue,orange) %>% unlist
         
@@ -193,7 +216,7 @@ show_tr_ccd_wtr_2009_sf <- function(){
         
         myLfltGrey() %>% 
                 myLfltOpts() %>% 
-                addPolygons(data = as(tr_kc_wtr_2009_sf,"Spatial"),
+                addPolygons(data = as(tr_kc_noclip_2009_sf,"Spatial"),
                             weight = .5,
                             color = ~ pal(SEACCD_LGL),
                             opacity = 1,
@@ -202,7 +225,7 @@ show_tr_ccd_wtr_2009_sf <- function(){
                 addLegend(position = 'bottomright',colors = blue_orange,labels = c('Seattle CCD','Other Tracts'),title = 'pre-2010') %>% 
                 miscgis::styleWidget(style = "float:left;margin:1px")
 }
-show_tr_ccd_wtr_2015_sf <- function(){
+show_tr_ccd_noclip_2015_sf <- function(){
         
         blue_orange <- c(blue,orange) %>% unlist
         
@@ -210,7 +233,7 @@ show_tr_ccd_wtr_2015_sf <- function(){
         
         myLfltGrey() %>% 
                 myLfltOpts() %>% 
-                addPolygons(data = as(tr_kc_wtr_2015_sf,"Spatial"),
+                addPolygons(data = as(tr_kc_noclip_2015_sf,"Spatial"),
                             weight = .5,
                             color = ~ pal(SEACCD_LGL),
                             opacity = 1,
@@ -221,13 +244,13 @@ show_tr_ccd_wtr_2015_sf <- function(){
 }
 
 
-show_tr_ccd_wtr_2009_sf()
-show_tr_ccd_wtr_2015_sf()
+show_tr_ccd_noclip_2009_sf()
+show_tr_ccd_noclip_2015_sf()
 
 
 ```
 
-### Puget Sound Waterbodies {-}
+### King County Waterbodies {-}
 
 These are useful for "clipping" census geographies whose boundaries extend into waterbodies.
 
@@ -248,55 +271,128 @@ if(!file.exists(fp_wtr)){
         unzip (temp, exdir = root_file('1-data/3-external/')) # extract the ESRI geodatabase file to a project folder
 }
 
-wtr_sp <-
+wtr_sf <-
         suppressWarnings(readOGR(dsn = fp_wtr,      # create a waterbodies shape
                 layer = "NHD_MajorWaterbodies",verbose = FALSE,pointDropZ = TRUE)) %>%
         gBuffer(byid=TRUE, width=0) %>% # clean up self-intersecting polygons
-        spTransform(CRSobj = crs_proj)  # transform the projection to match the project projection
-wtr_sf <-  
-        wtr_sp %>% 
+        spTransform(CRSobj = crs_proj) %>%   # transform the projection to match the project projection
         st_as_sf() %>% 
-        miscgis::coerce_to_geom(st_multipolygon)
+        st_cast('MULTIPOLYGON')
 
-wtr_sf %>% 
+wtr_kc_sf <- 
+        wtr_sf %>% 
+        st_intersects(x = kc_sf,y = .) %>% 
+        unlist(use.names = F) %>% 
+        wtr_sf[.,]
+
+# All King County waterbodies
+wtr_kc_sf %>% write_rds(root_file('1-data/4-interim/wtr-kc-sf.rds'))
+
+# All waterbodies near Seattle CCD (the Puget Sound area)
+wtr_kc_sf %>% 
         st_intersects(x = sea_ccd_sf,y = .) %>% 
         unlist(use.names = F) %>% 
-        wtr_sf[.,] %>% 
-        write_rds(root_file('1-data/4-interim/wtr-sf.rds'))
+        wtr_kc_sf[.,] %>% 
+        write_rds(root_file('1-data/4-interim/wtr-puget-sf.rds'))
 }
 
-wtr_sf <- read_rds(root_file('1-data/4-interim/wtr-sf.rds'))
+wtr_kc_sf <- read_rds(root_file('1-data/4-interim/wtr-kc-sf.rds'))
 
-show_wtr <- function(){
-        myLfltGrey(data = as(wtr_sf,'Spatial')) %>% 
+wtr_puget_sf <- read_rds(root_file('1-data/4-interim/wtr-puget-sf.rds'))
+
+show_wtr_kc <- function(){
+        myLfltGrey(data = as(wtr_kc_sf,'Spatial')) %>% 
                 myLfltOpts() %>% 
                 addPolygons(color = blue, opacity = 1, 
                             weight = .5, fillColor = blue,fillOpacity = .5)        
 }
 
-show_wtr()
+show_wtr_kc()
 
 ```
 
-### KC Tracts Without (Western) Waterbodies {-}
-```{r misc-tracts-ccd-no-wtr, fig.height=2, fig.width=2, fig.show='hold', dpi=150}
+### Census Geometries Without (Western) Waterbodies {-}
 
+The same four types of cenus geometries shown above (King County, Seattle CCD, City of Seattle, and all King county tracts) with the major waterbodies removed.
+
+```{r misc-clip-geoms}
+
+# Clip King County
+if(!file.exists(root_file('1-data/4-interim/kc-sf.rds'))){
+        kc_noclip_sf %>% 
+                mutate(geom = st_difference(geom, st_union(wtr_kc_sf))) %>% 
+                write_rds(root_file('1-data/4-interim/kc-sf.rds'))
+}
+
+# Clip Seattle CCD
+if(!file.exists(root_file('1-data/4-interim/seattle-ccd-sf.rds'))){
+        sea_ccd_noclip_sf %>% 
+                mutate(geom = st_difference(geom, st_union(wtr_kc_sf))) %>% 
+                st_cast('MULTIPOLYGON') %>% 
+                write_rds(root_file('1-data/4-interim/seattle-ccd-sf.rds'))
+}
+
+# Clip Seattle
+if(!file.exists(root_file('1-data/4-interim/seattle-sf.rds'))){
+        sea_noclip_sf %>% 
+                mutate(geom = st_difference(geom, st_union(wtr_kc_sf))) %>% 
+                st_cast('MULTIPOLYGON') %>% 
+                write_rds(root_file('1-data/4-interim/seattle-sf.rds'))
+}
+
+# Clip King County tracts (2015)
 if(!file.exists(root_file('1-data/4-interim/tr-kc-2015-sf.rds'))){
-        tr_kc_wtr_2015_sf %>% 
+        tr_kc_noclip_2015_sf %>% 
                 filter(TRACTCE %!in% '990100') %>% # remove the Puget Sound tract
-                mutate(geometry = st_difference(geometry,st_union(wtr_sf))) %>% 
-                coerce_to_geom(st_multipolygon) %>% 
+                mutate(geom = st_difference(geom, st_union(wtr_kc_sf))) %>% 
+                st_cast('MULTIPOLYGON') %>% 
                 write_rds(root_file('1-data/4-interim/tr-kc-2015-sf.rds'))
 }
 
+# Clip King County tracts (2009)
 if(!file.exists(root_file('1-data/4-interim/tr-kc-2009-sf.rds'))){
-        tr_kc_wtr_2009_sf %>% 
+        tr_kc_noclip_2009_sf %>% 
                 filter(TRACTCE00 %!in% '990100') %>% # remove the Puget Sound tract
-                mutate(geometry = st_difference(geometry,st_union(wtr_sf))) %>% 
-                coerce_to_geom(st_multipolygon) %>% 
+                mutate(geom = st_difference(geom, st_union(wtr_kc_sf))) %>% 
+                st_cast('MULTIPOLYGON') %>% 
                 write_rds(root_file('1-data/4-interim/tr-kc-2009-sf.rds'))
 }
 
+```
+
+
+```{r misc-show-clipped-geoms-1}
+
+kc_sf <- read_rds(root_file('1-data/4-interim/kc-sf.rds'))
+
+sea_ccd_sf <- read_rds(root_file('1-data/4-interim/seattle-ccd-sf.rds'))
+
+sea_sf <- read_rds(root_file('1-data/4-interim/seattle-sf.rds'))
+
+show_kc_sf <- function(){
+        myLfltGrey(data = as(kc_sf,'Spatial')) %>% 
+                myLfltOpts() %>% 
+                addPolygons(color = red,opacity = 1,fillColor = red,fillOpacity = .5)
+}
+
+show_sea_ccd_sf <- function(){
+        myLfltGrey(data = as(sea_ccd_sf,'Spatial')) %>% 
+                myLfltOpts() %>% 
+                addPolygons(color = blue,opacity = 1,fillColor = blue,fillOpacity = .5)
+}
+
+show_sea_sf <- function(){
+        myLfltGrey(data = as(sea_sf,'Spatial')) %>% 
+                myLfltOpts() %>% 
+                addPolygons(color = green,opacity = 1,fillColor = green,fillOpacity = .5)
+}
+show_kc_sf()
+show_sea_ccd_sf()
+show_sea_sf()
+```
+
+
+```{r show-clipped-geoms-2, fig.height=2, fig.width=2, fig.show='hold', dpi=150}
 
 tr_kc_2015_sf <- read_rds(root_file('1-data/4-interim/tr-kc-2015-sf.rds'))
 
@@ -342,7 +438,49 @@ show_tr_kc_2009_sf()
 
 show_tr_kc_2015_sf()
 
+```
 
+
+### Mixed Census Geometries Simple Feature Object
+
+Add a brief explanation of the `sf` package
+
+```{r misc-combined}
+
+if(!file.exists(root_file('./1-data/4-interim/coo-acs-2015-geoms-sf.rds'))){
+        list(
+                kc_sf %>% 
+                        select(geom) %>% mutate(NAME = 'KC', NAME_FULL = 'King County, Washington',GEOID6 = NA_character_, SEACCD_LGL = NA),
+                sea_ccd_sf %>% 
+                        select(geom) %>% mutate(NAME = 'SEACCD', NAME_FULL = 'Seattle CCD, King County, Washington', GEOID6 = NA_character_, SEACCD_LGL = NA),
+                tr_kc_2015_sf %>% 
+                        select(NAME,NAME_FULL = NAMELSAD,GEOID6 = GEOID,SEACCD_LGL,geom) %>% mutate(NAME_FULL = paste0(NAME_FULL,', King County, Washington'),GEOID6 = str_sub(GEOID6,6,11))
+        ) %>% 
+                reduce(rbind.sf) %>%
+                write_rds(root_file('./1-data/4-interim/coo-acs-2015-geoms-sf.rds'))
+        
+}
+
+if(!file.exists(root_file('./1-data/4-interim/coo-acs-2009-geoms-sf.rds'))){
+        list(
+                kc_sf %>% 
+                        select(geom) %>% mutate(NAME = 'KC', NAME_FULL = 'King County, Washington',GEOID6 = NA_character_, SEACCD_LGL = NA),
+                sea_ccd_sf %>% 
+                        select(geom) %>% mutate(NAME = 'SEACCD', NAME_FULL = 'Seattle CCD, King County, Washington', GEOID6 = NA_character_, SEACCD_LGL = NA),
+                tr_kc_2009_sf %>% 
+                        select(NAME = NAME00, NAME_FULL = NAMELSAD00,GEOID6 = TRACTCE00,SEACCD_LGL,geom) %>% mutate(NAME_FULL = paste0(NAME_FULL,', King County, Washington'))
+        ) %>% 
+                reduce(rbind.sf) %>% 
+                write_rds(root_file('./1-data/4-interim/coo-acs-2009-geoms-sf.rds'))
+        
+}
+
+
+coo_geoms_2015_sf <- read_rds(root_file('./1-data/4-interim/coo-acs-2015-geoms-sf.rds'))
+
+coo_geoms_2009_sf <- read_rds(root_file('./1-data/4-interim/coo-acs-2009-geoms-sf.rds'))
+
+print(coo_geoms_2015_sf,n =10)
 
 ```
 

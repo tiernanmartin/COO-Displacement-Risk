@@ -42,65 +42,348 @@ opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
 
 ```
 
-### ACS Geo Set {-}
-This geoset is mixture of geography type including:
+### Introduction {-}
 
-  * tracts, King County
-  * combined tracts, each COO community individually and all three combined together
-  * county subdivision, Seattle CCD
+The US Census provides invaluable information about American communities. The datasets provided by the Census encompas many disparate topics, comprehensively cover the entire US population, and are freely available to download. However, there are some barriers to using these data sets. When dealing with small geographies like a neighborhood, the statistical uncertainty may be high because the information comes from a small sample of the population. This complicates common data processing steps like combining or calculating the proportion of given indicator. Additionally, because census tract boundaries are subject to change every ten years, datasets must be normalized to account for this change before any comparative analysis can begin. Lastly, the census datasets represent information that is specific to a given geography (e.g. people in Tukwila, or households in King County) and are, therefore, _spatial_ in nature. Spatial data, from the Census or other sources, present their own challenges that researchers must address in their choice of methods.
+
+This analysis addresses these challenges by leveraging the capabilities of R, an opensource statistical programming language. While other software exists for working with Census data, there are several R-based tools that can be combined together efficiently and effectively. The method for downloading, organizing, and processing the data are summarized in the following steps:
+
+  1. Define census geographies of interest
+  2. Identify relevant tables from American Community Survey
+  3. Download tables using the `acs` R package
+  4. Normalize the pre-2010 dataset using Brown University's [Longitudinal Tract Database](http://www.s4.brown.edu/us2010/Researcher/LTDB.htm)
+  5. Approximate the COO site communities by combining census tracts
+
+### ACS Geographies {-}
+
+There are many ways to collect US Census data, but this method uses the `R` package called `acs` to extract data with the official US Census API. This method is efficient, reproducible, and allows users to download census tables for a group of dissimilar geographies. To learn more about this, see the `acs` package [documentation](http://eglenn.scripts.mit.edu/citystate/wp-content/uploads/2013/06/wpid-working_with_acs_R3.pdf).
+
+This analysis uses the following three types of census geographies:
+
+  * Counties (King)
+  * County subdivisions (Seattle CCD)
+  * Census tracts (all tracts within King County)
   
-```{r census-acs, echo = TRUE}
-
-# Setup the ACS geographies: King County (tracts), Seattle CCD (), COO Communities (tracts)
-# -----------------------------------------------------------------------------
-
-coo_geos_sf <- read_rds(root_file('1-data/4-interim/coo-geos-sf.rds')) 
-
-get_geoid <- function(x,nm){
-        x %>% filter(NAME %in% nm & !is.na(GEOID6)) %>% select(GEOID6) %>% unlist(use.names = FALSE) %>% as.numeric
-}
-
-tr_rv <- get_geoid(coo_geos_sf,'RV')
-tr_wc <- get_geoid(coo_geos_sf,'WC')
-tr_stkw <- get_geoid(coo_geos_sf,'STKW')
-tr_coo <- get_geoid(coo_geos_sf, c('RV','WC','STKW'))
-
-# King County (Puget Sound excluded)
-tr_kc <- read_rds(root_file('1-data/4-interim/tr-kc-sf.rds')) %>% select(TRACTCE) %>% unlist(use.names = FALSE) %>% as.numeric
-
-
-
-
-# Final Object: 2010-2014
-coo_geo_acs <- c(
-        acs::geo.make(state = "WA",county = "King"),
-        acs::geo.make(state = "WA", county = "King",county.subdivision = "Seattle CCD"),
-        acs::geo.make(state = "WA",county = "King", tract = tr_kc),
-        acs::geo.make(state = "WA",county = "King", tract = tr_rv, combine = TRUE, combine.term = 'RV'),
-        acs::geo.make(state = "WA",county = "King", tract =tr_wc, combine = TRUE, combine.term = 'WC'),
-        acs::geo.make(state = "WA",county = "King", tract = tr_stkw, combine = TRUE, combine.term = 'STKW'),
-        acs::geo.make(state = "WA",county = "King", tract = tr_coo, combine = TRUE, combine.term = 'COO')
-) %>%  
-        write_rds(root_file('1-data/4-interim/coo-geo-acs.rds'))
-
-
-```
-
-### Matching Tracts between the years {-}
-
-Census tract change over time and this must be accounted for before a temporal comparison be take place. Brown University's [Longitudinal Tract Database](http://www.s4.brown.edu/us2010/Researcher/LTDB.htm) provides "crosswalk" datasets that clarify which tract change from decade to decade and what type of change occurred (e.g., consolidation, split, many-to-many, none).
-
-Using the 2000-2010 crosswalk, a customized set of ACS geographies is prepared to ensure that the data between observation periods are comparable. This dataset is included in this repository, but may also be downloaded [here](https://s4.ad.brown.edu/Projects/Diversity/Researcher/ltdb3.htm).
-
-
-```{r census-2009-acs, echo=TRUE}
+```{r census-acs-geoset}
 
 # Save an acs object
-c(
+
+if(!file.exists(root_file('1-data/4-interim/coo-geoset-acs.rds'))){
+        c(
         acs::geo.make(state = "WA",county = "King"),
         acs::geo.make(state = "WA", county = "King",county.subdivision = "Seattle CCD"),
         acs::geo.make(state = "WA",county = "King", tract = '*')
-) %>%  
-        write_rds(root_file('1-data/4-interim/coo-geo-2009-acs.rds'))
+) %>%
+        write_rds(root_file('1-data/4-interim/coo-geoset-acs.rds'))
+}
+
 
 ```
+
+### ACS Tables {-}
+
+The following tables from the American Community Survey (ACS) are used to created indicators in this assessment
+
+```{r census-acs-tables-preview}
+
+tribble(
+        ~ 'Table Name',                                                                     ~ 'Topic',                                 ~ 'Universe',
+              'B03002',                                           'HISPANIC OR LATINO ORIGIN BY RACE',                           'Total population',
+              'B25033',  'TOTAL POPULATION IN OCCUPIED HOUSING UNITS BY TENURE BY UNITS IN STRUCTURE', 'Total population in occupied housing units',
+              'B15002',          'SEX BY EDUCATIONAL ATTAINMENT FOR THE POPULATION 25 YEARS AND OVER',               'Population 25 years and over',
+              'B19001', 'HOUSEHOLD INCOME IN THE PAST 12 MONTHS (IN 2015 INFLATION-ADJUSTED DOLLARS)',                          'Households'
+) %>% kable()
+
+```
+
+
+Prior to normalization, the tables are stored in two separate dataframes: one for the 2005-2009 data, and another for the 2011-2015 data:
+
+```{r census-get-tables}
+
+# A function that combines pairs of ACS table numbers with endyears,
+# then downloads the corresponding datasets and stores them in a tibble
+
+fetch_all_acs <- function(tables,endyears,geography){
+        
+        fetch_calls <- 
+                crossing('table.number' = tables, 'endyear' = endyears) %>% 
+                purrr::map_rows(list, .to = 'RESULT') %>% 
+                extract2('RESULT')
+        
+        acs_tibble <- 
+                fetch_calls %>% 
+                map(
+                        .f = ~ acs.fetch(endyear = extract2(.x,'endyear'),
+                                         table.number = extract2(.x,'table.number'),
+                                         span = 5,
+                                         geography = geography)
+                ) %>% 
+                tibble('ENDYEAR' = map_int({.},endyear)) %>% 
+                set_colnames(c('ACS','ENDYEAR'))
+        
+        return(acs_tibble)
+}
+
+tables <- c( 'B03002', 'B25033', 'B15002', 'B19001')
+
+endyears <- c( 2009, 2015)
+
+coo_geo_acs <- read_rds(root_file('1-data/4-interim/coo-geoset-acs.rds'))
+
+# Execute the function
+
+if(!file.exists(root_file('1-data/4-interim/coo-acs-raw-data.rds'))){
+        fetch_all_acs(tables,endyears,coo_geo_acs) %>% 
+                write_rds(root_file('1-data/4-interim/coo-acs-raw-data.rds'))
+}else{
+        acs_tibble <- read_rds(root_file('1-data/4-interim/coo-acs-raw-data.rds'))
+}
+
+# Functions for working with acs objects that are stored in tibbles
+
+get_acs_col <- function(acs_list,acs_fun,col){
+        acs_list %>% unlist %>% acs_fun() %>% extract2(col)
+}
+
+distribute_acs <- function(acs){
+        # browser()
+       
+        if(class(acs) %in% "acs"){
+                
+                acs %>%
+                        apply(2,function(x){apply(x,1,list) %>% as_tibble}) %>%
+                        set_colnames(acs.colnames(acs)) %>% 
+                        mutate(NAME = map_chr(.x = {extract2(.,1)},.f = ~ get_acs_col(.x, geography,'NAME')),
+                               GEOID6 = map_chr(.x = {extract2(.,1)},.f = ~ get_acs_col(.x, geography,'tract'))) %>% 
+                        select(NAME,GEOID6,everything())
+                
+        }else{
+                acs %>% 
+                        extract2(1) %>% 
+                        apply(2,function(x){apply(x,1,list) %>% as_tibble}) %>%
+                        set_colnames(acs.colnames(acs)) %>% 
+                        mutate(GEOID6 = map_chr(.x = {extract2(.,1)},.f = ~ unlist(.x) %>% geography() %>% extract2('tract'))) %>% 
+                        select(GEOID6,everything())
+        }
+        
+        
+}
+
+# Separate the acs objects by year
+# and join to the simple feature objects
+
+if(!file.exists(root_file('./1-data/4-interim/coo-acs-2009-sf.rds'))){
+        
+        # Load the sf object
+        
+        coo_geoms_2009_sf <- read_rds(root_file('./1-data/4-interim/coo-acs-2009-geoms-sf.rds'))
+        
+        # Distribute the acs into a dataframe,
+        # join it to the sf object,
+        # add an 'ENDYEAR' variable
+        # save as an sf object
+        
+        acs_tibble %>% 
+                filter(ENDYEAR %in% 2009) %>% 
+                extract2('ACS') %>% 
+                map(distribute_acs) %>% 
+                reduce(left_join) %>% 
+                rename(NAME_FULL = NAME) %>% 
+                left_join(coo_geoms_2009_sf, by = c('GEOID6','NAME_FULL')) %>%
+                mutate(ENDYEAR = map_int(B03002_001, endyear)) %>% 
+                select(NAME,NAME_FULL,GEOID6, SEACCD_LGL,ENDYEAR,everything(),geom) %>% 
+                st_as_sf() %>% 
+                write_rds(root_file('./1-data/4-interim/coo-acs-2009-sf.rds'))
+}else{
+        acs_2009_sf <- read_rds(root_file('./1-data/4-interim/coo-acs-2009-sf.rds'))
+}
+
+if(!file.exists(root_file('./1-data/4-interim/coo-acs-2015-sf.rds'))){
+        # Load the sf object
+        
+        coo_geoms_2015_sf <- read_rds(root_file('./1-data/4-interim/coo-acs-2015-geoms-sf.rds'))
+        
+        # Distribute the acs into a dataframe,
+        # join it to the sf object,
+        # add an 'ENDYEAR' variable
+        # save as an sf object
+        
+        acs_tibble %>% 
+                filter(ENDYEAR %in% 2015) %>% 
+                extract2('ACS') %>% 
+                map(distribute_acs) %>% 
+                reduce(left_join) %>% 
+                rename(NAME_FULL = NAME) %>% 
+                left_join(coo_geoms_2015_sf, by = c('GEOID6','NAME_FULL')) %>%
+                mutate(ENDYEAR = map_int(B03002_001, endyear)) %>% 
+                select(NAME,NAME_FULL,GEOID6, SEACCD_LGL,ENDYEAR,everything(),geom) %>% 
+                st_as_sf() %>% 
+                write_rds(root_file('./1-data/4-interim/coo-acs-2015-sf.rds'))
+}else{
+        acs_2015_sf <- read_rds(root_file('./1-data/4-interim/coo-acs-2015-sf.rds'))
+}
+
+
+```
+
+#### Census Tables, 2005-2009
+```{r census-show-2000-table}
+
+printable_acs_sf <- function(acs_sf){
+        is_type <- function(x) x %>% extract2(1) %>% typeof %!in% c('S4','list')
+
+        acs_sf %>% 
+                unclass() %>% 
+                as_tibble() %>% 
+                mutate_if(is_type,unlist)
+}
+
+acs_2009_sf %>% printable_acs_sf
+```
+
+
+#### Census Tables, 2011-2015
+```{r census-show-2010-table}
+acs_2015_sf %>% printable_acs_sf
+```
+
+#### Data Structure: `acs` objects distributed in `sf` objects
+
+In this method, each row contains a different census geography and each column contains a single column of a single census table. For instance, column `B03002_003` contains the third column of the 'Hispanic or Latino, By Race' table, which contains the estimate of people who identify as "Not Hispanic or Latino: White alone":
+
+```{r census-example-row}
+acs_2009_sf %>% select(NAME_FULL,GEOID6,ENDYEAR,B03002_003) %>% slice(3) %>% printable_acs_sf
+```
+
+Each "cell" of the dataframe contains a single `acs-class` object^[More information on the `acs-class` can be found in the `acs` package [documentation](https://cran.r-project.org/web/packages/acs/acs.pdf) and the package author's [user guide](http://eglenn.scripts.mit.edu/citystate/wp-content/uploads/2013/06/wpid-working_with_acs_R3.pdf).
+], which itself contains a set of metadata including the estimate value, standard error, geographic identifier, and other useful information: 
+
+```{r census-example-cell}
+acs_2009_sf %>% slice(3) %>% extract2('B03002_003') %>% extract2(1) 
+acs_2009_sf %>% slice(3) %>% extract2('B03002_003') %>% extract2(1) %>% str() 
+```
+
+Storing `acs` objects in a simple feature dataframe^[More information on the simple features can be found [here](https://en.wikipedia.org/wiki/Simple_Features), while the implementation of this data structure in R is documented [here](https://cran.r-project.org/web/packages/sf/sf.pdf) and [here](https://edzer.github.io/sfr/articles/sf1.html).] is unconventional but it follows a general principle of computing: [don't repeat yourself (DRY)](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself). The dataframe structure keeps related `acs` objects and geometries together, yielding benefits when the time comes to operate on the data. 
+
+For example, if census tracts need to be normalized before temporal comparison (as is the case in this project), that process can occur in a single, comprehensive step rather than individually for each census table. This efficiency gain is particularly important if census tables are added or removed, which may occur fequently in the exploratory phase of an analysis.
+
+
+### Normalized pre-2010 Data {-}
+
+Ultimately the ACS data will be combined into a single simple feature object, but before that can happen the pre-2010 must be normalized. The LTDB 2000-2010 Crosswalk file is a tabular tool that clarifies which tracts change from decade to decade, what type of change occurred (e.g., consolidation, split, many-to-many, none), and what weighting metric should be used to inpute the pre-2010 values. This information makes it possible to conduct meaningful temporal analysis on tracts whose boundaries changed between the two decades. More information regarding the normalization method can be found at the [Longitudinal Tract Database website](http://www.s4.brown.edu/us2010/Researcher/LTDB.htm).
+
+Once the pre-2010 data has been normalized, the data for the two observations periods can be combined into a single dataframe:
+
+```{r census-normalized}
+
+# Create the crosswalk object
+
+if(!file.exists(root_file('1-data/4-interim/cw-2000-2010.rds'))){
+        
+        # A function for identifying duplicated GEOIDs
+        
+        in_dups <- function(df,col)df[[col]] %in% df[[col]][duplicated(df[[col]])]
+        
+        # Create the object
+        read_csv(
+                root_file('1-data/3-external/crosswalk_2000_2010.csv'),
+                col_types = cols(cbsa10 = col_character(),
+                                 ccflag10 = col_character(),
+                                 changetype = col_character(),
+                                 metdiv10 = col_character(),
+                                 placefp10 = col_character())
+        ) %>%
+                rename(GEOID_2000 = trtid00,
+                       GEOID_2010 = trtid10) %>% 
+                mutate(KC = str_sub(GEOID_2000,1,5)) %>%
+                filter(KC == '53033') %>%
+                mutate(GEOID6_2000 = str_sub(GEOID_2000,6,11),
+                       GEOID6_2010 = str_sub(GEOID_2010,6,11),
+                       CHANGE_TYPE = changetype,
+                       WEIGHT = round(weight,5)) %>% 
+                select(matches('GEOID'),CHANGE_TYPE, WEIGHT) %>% 
+                mutate(GEOID6_BOTH = paste0(GEOID6_2000,GEOID6_2010),
+                       DUP_2010_LGL = in_dups(.,'GEOID6_2010')) %>% 
+                select(matches('GEOID'),DUP_2010_LGL,everything()) %>% 
+                write_rds(root_file('1-data/4-interim/cw-2000-2010.rds'))
+}else{
+        cw <- read_rds(root_file('1-data/4-interim/cw-2000-2010.rds'))
+}
+
+normalize_acs <- function(acs_2015_sf, acs_2009_sf, crosswalk, tables){
+        
+        # browser()
+        
+        # Unpack the acs object
+        
+        acs <- acs_2015_sf %>% extract2(3) %>% extract2(1)
+        
+        # Get the GEOID6
+        
+        geoid6 <- acs %>% geography %>% extract2('tract')
+        
+        # Subset the crosswalk object
+        
+        cw_sel <- crosswalk %>% filter(GEOID6_2010 %in% geoid6)
+        
+        
+        # Combine the census table column names into a regex string
+        
+        tbls_regex <- paste0(tables,collapse = '|')
+        
+        # Inner_join to the acs_2009_sf,
+        # apply the weighting,
+        # and combine the records
+        
+        acs_tbl_2009 <- 
+                left_join(cw_sel,acs_2009_sf, by = c('GEOID6_2000' = 'GEOID6')) %>% 
+                gather(TBL_NAME, ACS_OBJ, matches(tbls_regex)) %>% 
+                mutate(WEIGHTED = map2(ACS_OBJ,WEIGHT, ~ .x * .y),
+                       TBL_NAME = paste0(TBL_NAME,'_2009_NORML')) %>%
+                group_by(TBL_NAME) %>% 
+                do(ACS_OBJ_COMB = col_to_acs(.$WEIGHTED) %>% apply(1,sum)) %>% 
+                spread(TBL_NAME,ACS_OBJ_COMB) %>% 
+                mutate(GEOID6_2009_NORML = geoid6) %>% 
+                select(GEOID6_2009_NORML,everything())
+        
+        return(acs_tbl_2009)
+        
+        
+}
+
+col_to_acs <- function(acs_tibble_col){acs_tibble_col %>% unlist(use.names = FALSE) %>% reduce(rbind.acs)}
+
+# Apply the normalization method to the pre-2010 data
+if(!file.exists(root_file('./1-data/4-interim/coo-acs-norml-sf.rds'))){
+        
+acs_2015_sf_renamed <- 
+        acs_2015_sf %>% 
+        gather(TBL_NAME, ACS_OBJ, matches(paste0(tables,collapse = '|'))) %>% 
+        mutate(TBL_NAME = paste0(TBL_NAME,'_2015')) %>% 
+        spread(TBL_NAME, ACS_OBJ) %>% 
+        left_join(acs_2015_sf %>% select(GEOID6,NAME_FULL,geom), by = c('GEOID6','NAME_FULL'))
+
+acs_2015_sf %>% 
+        filter(nchar(GEOID6) == 6 & GEOID6 %!in% '990100') %>%
+        select(-NAME,-NAME_FULL,-SEACCD_LGL,-ENDYEAR,-geom) %>%
+        split(.$GEOID6) %>% 
+        map(.f = normalize_acs,
+            acs_2009_sf = acs_2009_sf,
+            crosswalk = cw,
+            tables = tables) %>% 
+        reduce(bind_rows) %>% 
+        left_join(acs_2015_sf_renamed,.,by = c('GEOID6' = 'GEOID6_2009_NORML')) %>% 
+        select(NAME:SEACCD_LGL,geom,matches('2015'),matches('2009'),-ENDYEAR) %>% 
+        filter(nchar(GEOID6) == 6 & GEOID6 %!in% '990100') %>%
+        write_rds(root_file('./1-data/4-interim/coo-acs-norml-sf.rds'))
+}else{
+        acs_norml_sf <- 
+                read_rds(root_file('./1-data/4-interim/coo-acs-norml-sf.rds'))
+                
+}
+
+acs_norml_sf %>% printable_acs_sf
+```
+
+
