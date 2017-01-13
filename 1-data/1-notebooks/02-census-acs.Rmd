@@ -373,13 +373,17 @@ acs_2015_sf %>%
             crosswalk = cw,
             tables = tables) %>% 
         reduce(bind_rows) %>% 
-        left_join(acs_2015_sf_renamed,.,by = c('GEOID6' = 'GEOID6_2009_NORML')) %>% 
+        full_join(acs_2015_sf_renamed,.,by = c('GEOID6' = 'GEOID6_2009_NORML')) %>% 
         select(NAME:SEACCD_LGL,geom,matches('2015'),matches('2009'),-ENDYEAR) %>% 
-        filter(nchar(GEOID6) == 6 & GEOID6 %!in% '990100') %>%
+        filter(GEOID6 %!in% '990100') %>%
+        st_as_sf() %>% 
         write_rds(root_file('./1-data/4-interim/coo-acs-norml-sf.rds'))
+
+
 }else{
         acs_norml_sf <- 
-                read_rds(root_file('./1-data/4-interim/coo-acs-norml-sf.rds'))
+                read_rds(root_file('./1-data/4-interim/coo-acs-norml-sf.rds')) %>% 
+                select(NAME:SEACCD_LGL,geom,matches('2015'),matches('2009'))
                 
 }
 
