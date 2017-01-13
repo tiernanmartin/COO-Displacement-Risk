@@ -31,6 +31,7 @@ library(readxl)
 library(acs)
 library(RColorBrewer)
 library(tidyverse)
+library(forcats)
 library(miscgis)
 library(operator.tools)
 library(leaflet.extras)
@@ -49,8 +50,6 @@ The primary geographic unit of this assessment is the [census tract](https://www
 Listed below are the geographic identifiers of the census tracts that approximate each site.
 
 ```{r census-acs-comms-files, results="asis"}
-
-if(!exists('acs_norml_sf')){acs_norml <- read_rds(root_file('./1-data/4-interim/coo-acs-norml-sf.rds'))}
 
 # Census tract boundaries for the 2015 data
 
@@ -116,7 +115,122 @@ read_rds(root_file('1-data/4-interim/coo-comm-tr-df.rds')) %>%
 
 ```
 
+To create the community approximations, the tract boundaries of each community are merged and each of the census table estimates are aggregated. In addition to combining the estimates, this method also recalculates the standard error for each census table. It should be noted that this method is only valid for census tables representing count data.^[This limitation is made explicit by the `acs` package creator, Ezra Haber Glenn, [here](http://eglenn.scripts.mit.edu/citystate/).]
+
 ```{r census-acs-comms-combined-geoms}
+
+if(!exists('acs_norml_sf')){acs_norml_sf <- read_rds(root_file('./1-data/4-interim/coo-acs-norml-sf.rds'))}
+
+# New columns: `COMMUNITY` and `COMMMUNITY_FULL`
+
+rv6 <- map_chr(rv,str_sub,6,11)
+
+wc6 <- map_chr(wc,str_sub,6,11)
+
+stctuk6 <- map_chr(stctuk,str_sub,6,11)
+
+coo6 <- c(rv6,wc6,stctuk6)
+
+# Aggregation function
+aggregate_comms <- function(col){
+        
+        class <- col %>% class() %>% unique %>% extract2(1)
+        
+        # CHARACTER COLUMNS
+        if(class %in% 'character'){NA_character_
+        }else 
+        
+        # LOGICAL COLUMNS 
+        if(class %in% 'logical'){ NA
+        }else
+        
+        # SFC COLUMNS 
+        if(class %in% 'sfc_MULTIPOLYGON'){ col %>% st_union %>% st_cast('MULTIPOLYGON')
+        }else
+        
+        # ACS COLUMNS
+        if(class %in% 'list' & extract2(col,1) %>% class %in% 'acs'){ 
+                col %>% reduce(suppressWarnings(rbind.acs)) %>% apply(1,sum) %>% list
+                }
+}
+
+if(!file.exists(root_file('./1-data/4-interim/acs_norml_all_geoms_sf.rds'))){
+        
+        acs_norml_comms_sf <- 
+        acs_norml_sf %>% 
+        mutate(COMMUNITY_FULL = case_when(.$GEOID6 %in% rv6 ~ 'Rainier Valley',
+                                             .$GEOID6 %in% wc6 ~ 'White Center',
+                                             .$GEOID6 %in% stctuk6 ~ 'SeaTac/Tukwila',
+                                             TRUE ~ NA_character_),
+               COMMUNITY = case_when(.$GEOID6 %in% rv6 ~ 'RV',
+                                             .$GEOID6 %in% wc6 ~ 'WC',
+                                             .$GEOID6 %in% stctuk6 ~ 'STKW',
+                                             TRUE ~ NA_character_)) %>% 
+        select(NAME,NAME_FULL,GEOID6,COMMUNITY_FULL,COMMUNITY,everything()) %>% 
+        ungroup %>% 
+        st_as_sf()
+
+comms <-
+        acs_norml_comms_sf %>% 
+        filter(!is.na(COMMUNITY)) %>% 
+        unclass %>% 
+        as_tibble %>% 
+        slice_rows('COMMUNITY') %>% 
+        dmap(aggregate_comms) %>% 
+        mutate(geom = st_sfc(geom)) %>% 
+        st_as_sf()
+
+all_coo <- 
+        acs_norml_comms_sf %>% 
+        filter(!is.na(COMMUNITY)) %>% 
+        unclass %>% 
+        as_tibble %>% 
+        dmap(aggregate_comms) %>% 
+        mutate(geom = st_sfc(geom)) %>% 
+        st_as_sf()
+
+acs_norml_all_geoms_sf <- 
+        list(acs_norml_comms_sf, comms, all_coo) %>% 
+        reduce(rbind.sf) %>% 
+        mutate(GEOGRAPHY = case_when(is.na(.$NAME) & !is.na(.$COMMUNITY) ~ 'community',
+                                     is.na(.$NAME) & is.na(.$COMMUNITY) ~ 'communities (multiple)',
+                                     .$NAME %in% 'SEACCD' ~ 'county subdivision',
+                                     .$NAME %in% 'KC' ~ 'county',
+                                     TRUE ~ 'tract')) %>% 
+        mutate(NAME = case_when(
+                       is.na(.$NAME) & .$GEOGRAPHY %in% 'communities (multiple)' ~ 'COO',
+                       is.na(.$NAME) & .$COMMUNITY %in% 'RV' ~ .$COMMUNITY,
+                       is.na(.$NAME) & .$COMMUNITY %in% 'WC' ~ .$COMMUNITY,
+                       is.na(.$NAME) & .$COMMUNITY %in% 'STKW' ~ .$COMMUNITY,
+                       TRUE ~ .$NAME)) %>% 
+        mutate(NAME_FULL = case_when(
+                .$NAME %in% 'COO' ~ 'Communities of Opportunity',
+                .$NAME %in% 'RV' ~ 'Rainier Valley',
+                .$NAME %in% 'WC' ~ 'White Center',
+                .$NAME %in% 'STKW' ~ 'SeaTac/Tukwila',
+                TRUE ~ .$NAME_FULL)) %>% 
+        mutate(GEOG_FCT = factor(GEOGRAPHY,
+                                         levels = c('tract',
+                                                    'community',
+                                                    'communities (multiple)',
+                                                    'county subdivision',
+                                                    'county'),
+                                         ordered = TRUE)) %>% 
+        select(NAME:SEACCD_LGL,GEOGRAPHY,GEOG_FCT,geom,matches('2015'),matches('2009')) 
+
+acs_norml_all_geoms_sf %>% 
+        write_rds(root_file('./1-data/4-interim/acs_norml_all_geoms_sf.rds'))
+        
+}else{
+        acs_norml_all_geoms_sf <- read_rds(root_file('./1-data/4-interim/acs_norml_all_geoms_sf.rds'))
+}
+
+acs_norml_all_geoms_sf %>% 
+        arrange(fct_rev(GEOG_FCT)) %>% 
+        select(NAME:GEOG_FCT,geom,matches('2015'),matches('2009')) %>% 
+        unclass %>% 
+        as_tibble()
+        
 
 ```
 
