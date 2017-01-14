@@ -43,6 +43,23 @@ opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
 
 ```
 
+```{r census-acs-comms-colors}
+green <- miscgis::miscgis_pals$tableau_cat[["green"]]
+blue <- miscgis::miscgis_pals$tableau_cat[["blue"]]
+orange <- miscgis::miscgis_pals$tableau_cat[["orange"]]
+red <- miscgis::miscgis_pals$tableau_cat[["red"]]
+teal <- miscgis::miscgis_pals$tableau_cat[["teal"]]
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+proj_light_grey <- col2hex("grey75")
+proj_grey <- col2hex("grey50")
+proj_dark_grey <- col2hex("grey25")
+
+```
+
+
 ### COO Communities {-}
 
 The primary geographic unit of this assessment is the [census tract](https://www.census.gov/geo/reference/gtc/gtc_ct.html). As is the case with many communities, the census geographies do not coincide exactly with the formal geographic boundary of the study's three sites, and should be considered as _spatial approximations_ of these communities.
@@ -65,8 +82,8 @@ stc_hus <- read_csv(root_file('1-data/3-external/manual/seatac-tr/DEC_10_SF1_H1/
                     col_types = cols(Id2 = col_character()), skip = 1)
 
 tuk_hus <- read_csv(root_file('1-data/3-external/manual/tukwila-tr/DEC_10_SF1_H1/DEC_10_SF1_H1_with_ann.csv'), 
-    col_types = cols(Id2 = col_character()), 
-    skip = 1)
+                    col_types = cols(Id2 = col_character()), 
+                    skip = 1)
 
 stc <-  paste(substr(x = stc_hus$Id2,1,2),substr(x = stc_hus$Id2,8,16),sep = "")
 
@@ -139,87 +156,93 @@ aggregate_comms <- function(col){
         # CHARACTER COLUMNS
         if(class %in% 'character'){NA_character_
         }else 
-        
-        # LOGICAL COLUMNS 
-        if(class %in% 'logical'){ NA
-        }else
-        
-        # SFC COLUMNS 
-        if(class %in% 'sfc_MULTIPOLYGON'){ col %>% st_union %>% st_cast('MULTIPOLYGON')
-        }else
-        
-        # ACS COLUMNS
-        if(class %in% 'list' & extract2(col,1) %>% class %in% 'acs'){ 
-                col %>% reduce(suppressWarnings(rbind.acs)) %>% apply(1,sum) %>% list
-                }
+                
+                # LOGICAL COLUMNS 
+                if(class %in% 'logical'){ NA
+                }else
+                        
+                        # SFC COLUMNS 
+                        if(class %in% 'sfc_MULTIPOLYGON'){ 
+                                col %>% 
+                                        st_union %>%
+                                        st_cast('MULTIPOLYGON') %>% 
+                                        st_buffer(.000001) %>% 
+                                        st_cast('MULTIPOLYGON')
+                                        
+                        }else
+                                
+                                # ACS COLUMNS
+                                if(class %in% 'list' & extract2(col,1) %>% class %in% 'acs'){ 
+                                        col %>% reduce(suppressWarnings(rbind.acs)) %>% apply(1,sum) %>% list
+                                }
 }
 
 if(!file.exists(root_file('./1-data/4-interim/acs_norml_all_geoms_sf.rds'))){
         
         acs_norml_comms_sf <- 
-        acs_norml_sf %>% 
-        mutate(COMMUNITY_FULL = case_when(.$GEOID6 %in% rv6 ~ 'Rainier Valley',
-                                             .$GEOID6 %in% wc6 ~ 'White Center',
-                                             .$GEOID6 %in% stctuk6 ~ 'SeaTac/Tukwila',
-                                             TRUE ~ NA_character_),
-               COMMUNITY = case_when(.$GEOID6 %in% rv6 ~ 'RV',
+                acs_norml_sf %>% 
+                mutate(COMMUNITY_FULL = case_when(.$GEOID6 %in% rv6 ~ 'Rainier Valley',
+                                                  .$GEOID6 %in% wc6 ~ 'White Center',
+                                                  .$GEOID6 %in% stctuk6 ~ 'SeaTac/Tukwila',
+                                                  TRUE ~ NA_character_),
+                       COMMUNITY = case_when(.$GEOID6 %in% rv6 ~ 'RV',
                                              .$GEOID6 %in% wc6 ~ 'WC',
                                              .$GEOID6 %in% stctuk6 ~ 'STKW',
                                              TRUE ~ NA_character_)) %>% 
-        select(NAME,NAME_FULL,GEOID6,COMMUNITY_FULL,COMMUNITY,everything()) %>% 
-        ungroup %>% 
-        st_as_sf()
-
-comms <-
-        acs_norml_comms_sf %>% 
-        filter(!is.na(COMMUNITY)) %>% 
-        unclass %>% 
-        as_tibble %>% 
-        slice_rows('COMMUNITY') %>% 
-        dmap(aggregate_comms) %>% 
-        mutate(geom = st_sfc(geom)) %>% 
-        st_as_sf()
-
-all_coo <- 
-        acs_norml_comms_sf %>% 
-        filter(!is.na(COMMUNITY)) %>% 
-        unclass %>% 
-        as_tibble %>% 
-        dmap(aggregate_comms) %>% 
-        mutate(geom = st_sfc(geom)) %>% 
-        st_as_sf()
-
-acs_norml_all_geoms_sf <- 
-        list(acs_norml_comms_sf, comms, all_coo) %>% 
-        reduce(rbind.sf) %>% 
-        mutate(GEOGRAPHY = case_when(is.na(.$NAME) & !is.na(.$COMMUNITY) ~ 'community',
-                                     is.na(.$NAME) & is.na(.$COMMUNITY) ~ 'communities (multiple)',
-                                     .$NAME %in% 'SEACCD' ~ 'county subdivision',
-                                     .$NAME %in% 'KC' ~ 'county',
-                                     TRUE ~ 'tract')) %>% 
-        mutate(NAME = case_when(
-                       is.na(.$NAME) & .$GEOGRAPHY %in% 'communities (multiple)' ~ 'COO',
-                       is.na(.$NAME) & .$COMMUNITY %in% 'RV' ~ .$COMMUNITY,
-                       is.na(.$NAME) & .$COMMUNITY %in% 'WC' ~ .$COMMUNITY,
-                       is.na(.$NAME) & .$COMMUNITY %in% 'STKW' ~ .$COMMUNITY,
-                       TRUE ~ .$NAME)) %>% 
-        mutate(NAME_FULL = case_when(
-                .$NAME %in% 'COO' ~ 'Communities of Opportunity',
-                .$NAME %in% 'RV' ~ 'Rainier Valley',
-                .$NAME %in% 'WC' ~ 'White Center',
-                .$NAME %in% 'STKW' ~ 'SeaTac/Tukwila',
-                TRUE ~ .$NAME_FULL)) %>% 
-        mutate(GEOG_FCT = factor(GEOGRAPHY,
+                select(NAME,NAME_FULL,GEOID6,COMMUNITY_FULL,COMMUNITY,everything()) %>% 
+                ungroup %>% 
+                st_as_sf()
+        
+        comms <-
+                acs_norml_comms_sf %>% 
+                filter(!is.na(COMMUNITY)) %>% 
+                unclass %>% 
+                as_tibble %>% 
+                slice_rows('COMMUNITY') %>% 
+                dmap(aggregate_comms) %>% 
+                mutate(geom = st_sfc(geom)) %>% 
+                st_as_sf()
+        
+        all_coo <- 
+                acs_norml_comms_sf %>% 
+                filter(!is.na(COMMUNITY)) %>% 
+                unclass %>% 
+                as_tibble %>% 
+                dmap(aggregate_comms) %>% 
+                mutate(geom = st_sfc(geom)) %>% 
+                st_as_sf()
+        
+        acs_norml_all_geoms_sf <- 
+                list(acs_norml_comms_sf, comms, all_coo) %>% 
+                reduce(rbind.sf) %>% 
+                mutate(GEOGRAPHY = case_when(is.na(.$NAME) & !is.na(.$COMMUNITY) ~ 'community',
+                                             is.na(.$NAME) & is.na(.$COMMUNITY) ~ 'communities (multiple)',
+                                             .$NAME %in% 'SEACCD' ~ 'county subdivision',
+                                             .$NAME %in% 'KC' ~ 'county',
+                                             TRUE ~ 'tract')) %>% 
+                mutate(NAME = case_when(
+                        is.na(.$NAME) & .$GEOGRAPHY %in% 'communities (multiple)' ~ 'COO',
+                        is.na(.$NAME) & .$COMMUNITY %in% 'RV' ~ .$COMMUNITY,
+                        is.na(.$NAME) & .$COMMUNITY %in% 'WC' ~ .$COMMUNITY,
+                        is.na(.$NAME) & .$COMMUNITY %in% 'STKW' ~ .$COMMUNITY,
+                        TRUE ~ .$NAME)) %>% 
+                mutate(NAME_FULL = case_when(
+                        .$NAME %in% 'COO' ~ 'Communities of Opportunity',
+                        .$NAME %in% 'RV' ~ 'Rainier Valley',
+                        .$NAME %in% 'WC' ~ 'White Center',
+                        .$NAME %in% 'STKW' ~ 'SeaTac/Tukwila',
+                        TRUE ~ .$NAME_FULL)) %>% 
+                mutate(GEOG_FCT = factor(GEOGRAPHY,
                                          levels = c('tract',
                                                     'community',
                                                     'communities (multiple)',
                                                     'county subdivision',
                                                     'county'),
                                          ordered = TRUE)) %>% 
-        select(NAME:SEACCD_LGL,GEOGRAPHY,GEOG_FCT,geom,matches('2015'),matches('2009')) 
-
-acs_norml_all_geoms_sf %>% 
-        write_rds(root_file('./1-data/4-interim/acs_norml_all_geoms_sf.rds'))
+                select(NAME:SEACCD_LGL,GEOGRAPHY,GEOG_FCT,geom,matches('2015'),matches('2009')) 
+        
+        acs_norml_all_geoms_sf %>% 
+                write_rds(root_file('./1-data/4-interim/acs_norml_all_geoms_sf.rds'))
         
 }else{
         acs_norml_all_geoms_sf <- read_rds(root_file('./1-data/4-interim/acs_norml_all_geoms_sf.rds'))
@@ -230,7 +253,79 @@ acs_norml_all_geoms_sf %>%
         select(NAME:GEOG_FCT,geom,matches('2015'),matches('2009')) %>% 
         unclass %>% 
         as_tibble()
-        
 
 ```
 
+#### Community Maps
+```{r census-acs-comms-map, fig.height=1.25, fig.width=1,  fig.show='hold', dpi=150}
+
+# Print Community Maps
+
+show_comm_map <- function(nm, color, float_dir){
+        
+        # Map Center
+        
+        cntr <- acs_norml_all_geoms_sf %>% 
+                filter(GEOGRAPHY %in% 'communities (multiple)') %>% 
+                st_centroid() %>% st_bbox()
+        lng <- cntr[['xmin']]
+        lat <- cntr[['ymin']]
+        
+        comm_sp <- 
+                acs_norml_all_geoms_sf %>% 
+                select(everything(),-matches('2015|2009')) %>% 
+                filter(GEOGRAPHY %in% 'tract' & COMMUNITY %in% nm) %>% 
+                as("Spatial")
+        
+        comm_cnt_sp <- 
+                acs_norml_all_geoms_sf %>% 
+                select(everything(),-matches('2015|2009')) %>% 
+                filter(GEOGRAPHY %in% 'community' & COMMUNITY %in% nm)  %>% 
+                mutate(geom = st_centroid(geom)) %>%
+                as("Spatial")
+        
+        comm_bounds_sp <- 
+                acs_norml_all_geoms_sf %>% 
+                select(everything(),-matches('2015|2009')) %>% 
+                filter(GEOGRAPHY %in% 'community' & COMMUNITY %in% nm)  %>%
+                as("Spatial") %>% 
+                as("SpatialLines")
+        
+        comm_sp %>% 
+                miscgis::myLfltGrey() %>%
+                myLfltOpts(tileLabels = FALSE, fullScreenBtn = FALSE, bumpTileLabels = FALSE) %>% 
+                addPolygons(smoothFactor = 0,
+                            color = col2hex("white"),
+                            weight = .5,
+                            opacity = 1,
+                            fillColor = color,
+                            fillOpacity = .65
+                ) %>% 
+                addPolylines(data = comm_bounds_sp,
+                             fillOpacity = 0,
+                             color = proj_dark_grey,
+                             opacity = 1,
+                             weight = 2,
+                             smoothFactor = 0) %>%
+                addAwesomeMarkers(data = comm_cnt_sp,
+                                  options = markerOptions(opacity = 0),
+                                  label = ~ NAME_FULL, 
+                                  labelOptions = labelOptions(noHide = TRUE,
+                                                              offset = c(0,0),
+                                                              direction = 'auto', 
+                                                              textOnly = TRUE)) %>% 
+                setView(lng,lat,zoom = 9) %>% 
+                miscgis::styleWidget(style = paste0("float:",float_dir,";margin:1px")) %>% 
+                print()
+}
+
+names <- c('RV','WC','STKW')
+
+colors <- c(blue, green, red)
+
+float_dirs <- c('left','left','none')
+
+pwalk(list(names, colors, float_dirs),show_comm_map)
+
+
+```
