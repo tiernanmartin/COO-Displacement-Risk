@@ -116,12 +116,12 @@ if(!file.exists(root_file('1-data/4-interim/coo-comm-tr-df.rds'))){
                 as_tibble() %>%
                 set_colnames(
                         c(
-                                "Rainier Valley (2009)",
-                                "Rainier Valley (2015)",
-                                "White Center (2009)",
-                                "White Center (2015)",
-                                "SeaTac/Tukwila (2009)",
-                                "SeaTac/Tukwila (2015)"
+                                "Rainier Valley<br>(2009)",
+                                "Rainier Valley<br>(2015)",
+                                "White Center<br>(2009)",
+                                "White Center<br>(2015)",
+                                "SeaTac/Tukwila<br>(2009)",
+                                "SeaTac/Tukwila<br>(2015)"
                         )
                 ) %>% 
                 write_rds(root_file('1-data/4-interim/coo-comm-tr-df.rds'))
@@ -265,11 +265,15 @@ show_comm_map <- function(nm, color, float_dir){
         
         # Map Center
         
+        st_centroid_qt <- quietly(st_centroid)
+        
         cntr <- acs_norml_all_geoms_sf %>% 
                 filter(GEOGRAPHY %in% 'communities (multiple)') %>% 
-                st_centroid() %>% st_bbox()
+                st_bbox()
+        halfway <- function(max,min){(max-min)/2 + min}
+        
         lng <- cntr[['xmin']]
-        lat <- cntr[['ymin']]
+        lat <- halfway(cntr[['ymax']],cntr[['ymin']])
         
         comm_sp <- 
                 acs_norml_all_geoms_sf %>% 
