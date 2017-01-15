@@ -140,6 +140,46 @@ if(!file.exists(root_file('1-data/4-interim/coo-acs-raw-data.rds'))){
         acs_tibble <- read_rds(root_file('1-data/4-interim/coo-acs-raw-data.rds'))
 }
 
+# A function to make table column name guide 
+# Note: this will be useful later in the analysis
+# (when the variable columns are created)
+
+make_colname_guide <- function(tables,endyears){
+        
+        fetch_calls <- 
+                crossing('table.number' = tables, 'endyear' = endyears, 'col.names' = c('auto','pretty')) %>% 
+                purrr::map_rows(list, .to = 'RESULT') %>% 
+                extract2('RESULT')
+        
+        acs_tibble <- 
+                fetch_calls %>% 
+                map(
+                        .f = ~ acs.fetch(endyear = extract2(.x,'endyear'),
+                                         table.number = extract2(.x,'table.number'),
+                                         col.names = extract2(.x,'col.names'),
+                                         span = 5,
+                                         geography = acs::geo.make(us = TRUE))
+                ) 
+        
+        acs_tibble %>% 
+                tibble('TABLE' = map(tables,rep,4) %>% flatten_chr(),
+                       'ENDYEAR' = map_int({.},endyear),
+                       'COLNAME' = map({.},acs.colnames),
+                       'COLTYPE' = rep(c('TERSE','PRETTY'),length({.})/2)) %>% 
+               spread(COLTYPE,COLNAME) %>% 
+               unnest(TERSE,PRETTY)
+               
+        
+}
+
+# Execute the function
+
+if(!file.exists(root_file('./1-data/4-interim/coo-acs-colnames.rds'))){
+        make_colname_guide(tables,endyears) %>% 
+                write_rds(root_file('./1-data/4-interim/coo-acs-colnames.rds'))
+}
+
+
 # Functions for working with acs objects that are stored in tibbles
 
 get_acs_col <- function(acs_list,acs_fun,col){
