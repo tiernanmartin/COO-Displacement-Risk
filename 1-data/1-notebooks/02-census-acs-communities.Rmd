@@ -319,7 +319,7 @@ show_comm_map <- function(nm, color, float_dir){
                                                               direction = 'auto', 
                                                               textOnly = TRUE)) %>% 
                 setView(lng,lat,zoom = 9) %>% 
-                miscgis::styleWidget(style = paste0("float:",float_dir,";margin:1px")) %>% 
+                miscgis::styleWidget(style = paste0("float:",float_dir,";margin:1px;","text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF")) %>% 
                 print()
 }
 
