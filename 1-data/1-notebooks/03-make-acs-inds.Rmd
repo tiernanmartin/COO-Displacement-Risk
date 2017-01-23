@@ -1,0 +1,247 @@
+---
+df_print: tibble
+output:
+  html_notebook:
+    code_folding: hide
+  pdf_document:
+    keep_tex: yes
+always_allow_html: yes
+---
+
+```{r make-acs-inds-setup, echo = FALSE, warning=FALSE,message=FALSE,comment=FALSE}
+library(plyr)
+library(knitr)
+library(rprojroot)
+library(rgdal)
+library(sp)
+library(rgeos)
+library(tigris)
+library(leaflet)
+library(ggthemes)
+library(magrittr)
+library(stringr)
+library(downloader)
+library(webshot)
+library(htmltools)
+library(gplots)
+library(ggmap)
+library(shiny)
+library(htmlwidgets)
+library(readxl)
+library(acs)
+library(RColorBrewer)
+library(tidyverse)
+library(miscgis)
+library(operator.tools)
+library(leaflet.extras)
+library(viridisLite)
+library(sf)
+root <- rprojroot::is_rstudio_project
+root_file <- root$make_fix_file()
+opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
+```
+
+Steps:
+
+  1. Load acs_sf
+  2. Build poc indicator, looking for opportunities to streamline
+  3. Build all acs indicator columns and save output
+
+```{r make-acs-load-objs}
+# Load acs object
+
+if(!exists('acs_norml_all_geoms_sf')){acs_norml_all_geoms_sf <- read_rds(root_file('./1-data/4-interim/acs_norml_all_geoms_sf.rds'))}
+
+
+# Load acs column name guide
+
+if(!exists('acs_colname_guide')){
+        acs_colname_guide <- read_rds(root_file('./1-data/4-interim/coo-acs-colnames.rds'))
+}
+
+```
+
+```{r make-acs-funs}
+
+# A function for condensing dataframes after the gather-spread process
+first_not_null <- function(x){
+        x[!map_lgl(x,is.null)]
+}
+
+# A function for extracting the value of SEACCD row, given a specific column name
+get_seaccd <- function(x,.col_nm){
+        x %>% filter(NAME %in% 'SEACCD') %>% extract2(.col_nm) %>% extract2(1)
+}
+
+# These functions return a logical indicating whether a geography
+# qualifies as 'vulnerable' or undergoing 'demographic change',
+# given the number of indicators where it exceeds the SEACCD value
+is_vuln <- function(x, n){
+        # browser()
+        x %>% select(matches('TYPO_VULN')) %>% unlist %>% which %>% length >= n
+        
+        
+}
+is_chng <- function(x, n){
+        # browser()
+        x %>% select(matches('TYPO_DEMO_CHNG')) %>% unlist %>% which %>% length >= n
+        
+        
+}
+
+```
+
+```{r make-acs-test}
+
+# test <- 
+#         acs_norml_all_geoms_sf %>% 
+#         unclass %>% 
+#         as_tibble %>% 
+#         select(-geom) %>% 
+#         group_by(GEOGRAPHY) %>% 
+#         slice(1:3) %>% 
+#         ungroup()
+```
+
+```{r make-acs-parameters}
+
+long_tbl <- 
+        acs_norml_all_geoms_sf %>% 
+        unclass %>% 
+        as_tibble %>% 
+        select(-geom) %>% 
+        gather('SUB_TBL','ACS',matches('2009|2015')) %>% 
+        mutate(TBL = str_sub(SUB_TBL,1,6),
+               YEAR = str_sub(SUB_TBL,12,15) %>% as.integer()) %>% 
+        select(NAME,TBL,YEAR,SUB_TBL,ACS) %>% 
+        group_by(NAME,TBL,YEAR)
+
+long_tbl_params <- 
+        tibble(   
+                'TBL' = extract2(long_tbl,'TBL') %>% sort %>% unique,
+                'VULN_CNT_COLS_REGEX' = c('Not Hispanic or Latino: White alone',
+                                     'Bachelor|Master|Professional|Doctorate',
+                                     '\\$10,|\\$14,|\\$19,|\\$24,|\\$29,|\\$34,|\\$39,|\\$44,|\\$49,|\\$59,|\\$74,',
+                                     'Renter occupied:$'),
+                'DEMO_CNT_COLS_REGEX' = c('Not Hispanic or Latino: White alone',
+                                               'Bachelor|Master|Professional|Doctorate',
+                                               '\\$99,|\\$124,|\\$149,|\\$199,|\\$200,',
+                                               'Owner\\soccupied:$'),
+                'TOT_COLS_REGEX' = rep('Total',4),
+                'VULN_REMOVE_CNT_FROM_TOT' = c(TRUE,
+                                          TRUE,
+                                          FALSE,
+                                          FALSE),
+                'DEMO_REMOVE_CNT_FROM_TOT' = c(FALSE,
+                                                    FALSE,
+                                                    FALSE,
+                                                    FALSE)
+        ) %>%
+        crossing('YEAR' = c(2015,2009)%>% as.integer()) %>% 
+        left_join(acs_colname_guide,by = c('TBL' = 'TABLE','YEAR' = 'ENDYEAR')) %>% 
+        group_by(TBL,YEAR) %>% 
+        nest() %>% 
+        mutate(VULN_REMOVE_CNT_FROM_TOT = map_lgl(data, ~ extract2(.x, 'VULN_REMOVE_CNT_FROM_TOT') %>% extract2(1)),
+               VULN_CNT_COLS_TERSE = map(data, ~ filter(.x, str_detect(PRETTY,VULN_CNT_COLS_REGEX)) %>% extract2('TERSE')),
+               DEMO_REMOVE_CNT_FROM_TOT = map_lgl(data, ~ extract2(.x, 'DEMO_REMOVE_CNT_FROM_TOT') %>% extract2(1)),
+               DEMO_CNT_COLS_TERSE = map(data, ~ filter(.x, str_detect(PRETTY,DEMO_CNT_COLS_REGEX)) %>% extract2('TERSE')),
+               TOT_COLS_TERSE = map_chr(data, ~ filter(.x, str_detect(PRETTY,TOT_COLS_REGEX)) %>% extract2('TERSE'))) %>% 
+        select(-data)
+```
+
+```{r make-acs-wide-by-table}
+
+if(!file.exists(root_file('./1-data/4-interim/coo-acs-ind-wide.rds'))){
+        left_join(long_tbl, long_tbl_params, by = c('TBL','YEAR')) %>% 
+                unnest(VULN_CNT_COLS_TERSE,.drop = FALSE) %>% 
+                unnest(DEMO_CNT_COLS_TERSE,.drop = FALSE) %>% 
+                nest %>% 
+                mutate(VULN_REMOVE_CNT_FROM_TOT = map_lgl(data, ~ extract2(.x, 'VULN_REMOVE_CNT_FROM_TOT') %>% extract2(1)),
+                       DEMO_REMOVE_CNT_FROM_TOT = map_lgl(data, ~ extract2(.x, 'DEMO_REMOVE_CNT_FROM_TOT') %>% extract2(1)),
+                       VULN_CNT = map(data, ~ filter(.x, str_detect(SUB_TBL,VULN_CNT_COLS_TERSE)) %>% 
+                                              filter(!duplicated(SUB_TBL)) %>% 
+                                              extract2('ACS') %>% 
+                                              reduce(cbind.acs) %>% 
+                                              apply(MARGIN = 2,sum)),
+                       DEMO_CNT = map(data, ~ filter(.x, str_detect(SUB_TBL,DEMO_CNT_COLS_TERSE)) %>% 
+                                              filter(!duplicated(SUB_TBL)) %>% 
+                                              extract2('ACS') %>% 
+                                              reduce(cbind.acs) %>% 
+                                              apply(MARGIN = 2,sum)),
+                       TOT = map(data, ~ filter(.x, str_detect(SUB_TBL,TOT_COLS_TERSE)) %>% 
+                                         filter(!duplicated(SUB_TBL)) %>% 
+                                         extract2('ACS') %>% 
+                                         reduce(cbind.acs))) %>% 
+                mutate(VULN_CNT = if_else(VULN_REMOVE_CNT_FROM_TOT,
+                                          map2(TOT,VULN_CNT, subtract),
+                                          VULN_CNT),
+                       DEMO_CNT = if_else(DEMO_REMOVE_CNT_FROM_TOT,
+                                          map2(TOT,DEMO_CNT, subtract),
+                                          DEMO_CNT)) %>% 
+                mutate(VULN_PCT = map2(VULN_CNT,TOT,divide.acs,method = 'proportion',verbose = FALSE),
+                       DEMO_PCT = map2(DEMO_CNT,TOT,divide.acs,method = 'proportion',verbose = FALSE)) %>% 
+                mutate(VULN_CNT_ = YEAR,
+                       VULN_PCT_ = YEAR,
+                       DEMO_CNT_ = YEAR,
+                       DEMO_PCT_ = YEAR,
+                       TOT_ = YEAR,
+                       SEACCD_LGL = NAME %in% 'SEACCD') %>% 
+                spread(VULN_CNT_,VULN_CNT, sep = '') %>% 
+                spread(VULN_PCT_,VULN_PCT, sep = '') %>% 
+                spread(DEMO_CNT_,DEMO_CNT, sep = '') %>% 
+                spread(DEMO_PCT_,DEMO_PCT, sep = '') %>% 
+                spread(TOT_,TOT, sep = '') %>% 
+                select(NAME,TBL,VULN_CNT_2009:TOT_2015) %>% 
+                group_by(NAME,TBL) %>% 
+                summarise_all(first_not_null) %>% 
+                ungroup %>% 
+                mutate(DEMO_CHNG_PCT = map2(DEMO_PCT_2015,DEMO_PCT_2009,subtract)) %>% 
+                write_rds('./1-data/4-interim/coo-acs-ind-wide.rds')
+}
+
+wide_tbl_inds <- read_rds(root_file('./1-data/4-interim/coo-acs-ind-wide.rds'))
+        
+
+```
+
+```{r make-acs-wide-by-name}
+
+if(!file.exists(root_file('./1-data/4-interim/coo-acs-ind-wide-by-name.rds'))){
+        wide_tbl_inds %>% 
+        group_by(TBL) %>% 
+        nest %>% 
+        mutate(VULN_PCT_2015_SEACCD = map(data, get_seaccd, .col_nm = 'VULN_PCT_2015'),
+               DEMO_CHNG_PCT_SEACCD = map(data, get_seaccd, .col_nm = 'DEMO_CHNG_PCT')) %>%
+        unnest(data,.drop = FALSE) %>% 
+        group_by(NAME, TBL) %>% 
+        mutate(TYPO_VULN_SEACCD_LGL = map2_lgl(VULN_PCT_2015,VULN_PCT_2015_SEACCD, ~ estimate(.x) > estimate(.y)),
+               TYPO_DEMO_CHNG_SEACCD_LGL = map2_lgl(DEMO_CHNG_PCT,DEMO_CHNG_PCT_SEACCD, ~ estimate(.x) > estimate(.y))) %>%
+        ungroup() %>% 
+        gather(IND,ACS,-NAME,-TBL) %>% 
+        unite(IND_FULL,IND,TBL,sep = '_') %>% 
+        spread(IND_FULL,ACS) %>% 
+        mutate_at(vars(matches('LGL')), unlist) %>% 
+        group_by(NAME) %>% 
+        nest %>% 
+        mutate(TYPO_VULN_LGL = map_lgl(data, is_vuln, n = 3),
+               TYPO_DEMO_CHNG_LGL = map_lgl(data, is_vuln, n = 2)) %>% 
+        unnest %>% 
+        select(NAME,
+               TYPO_VULN_LGL,
+               TYPO_DEMO_CHNG_LGL,
+               matches('VULN_SEACCD'),
+               matches('CHNG_SEACCD'),
+               everything()) %>% 
+write_rds(root_file('./1-data/4-interim/coo-acs-ind-wide-by-name.rds'))
+}
+        
+wide_tbl_inds_by_name <- read_rds(root_file('./1-data/4-interim/coo-acs-ind-wide-by-name.rds'))
+```
+
+
+
+
+
+
+
+
