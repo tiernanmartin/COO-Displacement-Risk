@@ -89,9 +89,10 @@ The following tables from the American Community Survey (ACS) are used to create
 tribble(
         ~ 'Table Name',                                                                     ~ 'Topic',                                 ~ 'Universe',
               'B03002',                                           'HISPANIC OR LATINO ORIGIN BY RACE',                           'Total population',
-              'B25033',  'TOTAL POPULATION IN OCCUPIED HOUSING UNITS BY TENURE BY UNITS IN STRUCTURE', 'Total population in occupied housing units',
               'B15002',          'SEX BY EDUCATIONAL ATTAINMENT FOR THE POPULATION 25 YEARS AND OVER',               'Population 25 years and over',
-              'B19001', 'HOUSEHOLD INCOME IN THE PAST 12 MONTHS (IN 2015 INFLATION-ADJUSTED DOLLARS)',                          'Households'
+              'B19001', 'HOUSEHOLD INCOME IN THE PAST 12 MONTHS (IN 2015 INFLATION-ADJUSTED DOLLARS)',                                 'Households',
+              'B25033',  'TOTAL POPULATION IN OCCUPIED HOUSING UNITS BY TENURE BY UNITS IN STRUCTURE', 'Total population in occupied housing units'
+              
 ) %>% kable()
 
 ```
@@ -125,7 +126,7 @@ fetch_all_acs <- function(tables,endyears,geography){
         return(acs_tibble)
 }
 
-tables <- c( 'B03002', 'B25033', 'B15002', 'B19001')
+tables <- c( 'B03002', 'B15002', 'B19001', 'B25033')
 
 endyears <- c( 2009, 2015)
 
@@ -175,7 +176,7 @@ make_colname_guide <- function(tables,endyears){
 # Execute the function
 
 if(!file.exists(root_file('./1-data/4-interim/coo-acs-colnames.rds'))){
-        make_colname_guide(tables,endyears) %>% 
+       make_colname_guide(tables,endyears) %>% 
                 write_rds(root_file('./1-data/4-interim/coo-acs-colnames.rds'))
 }
 
@@ -185,6 +186,24 @@ if(!file.exists(root_file('./1-data/4-interim/coo-acs-colnames.rds'))){
 get_acs_col <- function(acs_list,acs_fun,col){
         acs_list %>% unlist %>% acs_fun() %>% extract2(col)
 }
+
+get_geog <- function(acs){
+        acs %>% 
+                geography() %>% 
+                flatten() %>% 
+                map(.f = ~ !is.na(.x)) %>% 
+                rev %>% 
+                tibble('GEOG' = names(.),
+                       'LGL' = unlist(.)) %>% 
+                select(GEOG,LGL) %>% 
+                filter(LGL) %>% 
+                slice(1) %>% 
+                extract2('GEOG') %>% 
+                if_else(. %in% 'countysubdivision',
+                        'county subdivision',
+                        .)
+}
+
 
 distribute_acs <- function(acs){
         # browser()
@@ -231,8 +250,9 @@ if(!file.exists(root_file('./1-data/4-interim/coo-acs-2009-sf.rds'))){
                 reduce(left_join) %>% 
                 rename(NAME_FULL = NAME) %>% 
                 left_join(coo_geoms_2009_sf, by = c('GEOID6','NAME_FULL')) %>%
-                mutate(ENDYEAR = map_int(B03002_001, endyear)) %>% 
-                select(NAME,NAME_FULL,GEOID6, SEACCD_LGL,ENDYEAR,everything(),geom) %>% 
+                mutate(ENDYEAR = map_int(B03002_001, endyear),
+                       GEOGRAPHY = map_chr(B03002_001, get_geog)) %>% 
+                select(NAME,NAME_FULL,GEOID6,GEOGRAPHY,SEACCD_LGL,ENDYEAR,everything(),geom) %>% 
                 st_as_sf() %>% 
                 write_rds(root_file('./1-data/4-interim/coo-acs-2009-sf.rds'))
 }else{
@@ -256,7 +276,8 @@ if(!file.exists(root_file('./1-data/4-interim/coo-acs-2015-sf.rds'))){
                 reduce(left_join) %>% 
                 rename(NAME_FULL = NAME) %>% 
                 left_join(coo_geoms_2015_sf, by = c('GEOID6','NAME_FULL')) %>%
-                mutate(ENDYEAR = map_int(B03002_001, endyear)) %>% 
+                mutate(ENDYEAR = map_int(B03002_001, endyear),
+                       GEOGRAPHY = map_chr(B03002_001, get_geog)) %>% 
                 select(NAME,NAME_FULL,GEOID6, SEACCD_LGL,ENDYEAR,everything(),geom) %>% 
                 st_as_sf() %>% 
                 write_rds(root_file('./1-data/4-interim/coo-acs-2015-sf.rds'))
@@ -317,6 +338,9 @@ if(!file.exists(root_file('1-data/4-interim/cw-2000-2010.rds'))){
         in_dups <- function(df,col)df[[col]] %in% df[[col]][duplicated(df[[col]])]
         
         # Create the object
+        # Note: the last step before writing the object is the creation of a 
+        # dummy row that will allow non-tract geometries to be joined 
+        # and "normalized" (they will be weighted like the tracts whose boundaries did not change)
         read_csv(
                 root_file('1-data/3-external/crosswalk_2000_2010.csv'),
                 col_types = cols(cbsa10 = col_character(),
@@ -337,6 +361,29 @@ if(!file.exists(root_file('1-data/4-interim/cw-2000-2010.rds'))){
                 mutate(GEOID6_BOTH = paste0(GEOID6_2000,GEOID6_2010),
                        DUP_2010_LGL = in_dups(.,'GEOID6_2010')) %>% 
                 select(matches('GEOID'),DUP_2010_LGL,everything()) %>% 
+                mutate(GEOGRAPHY = 'tract') %>% 
+                bind_rows(
+                        tibble('GEOID_2000' = NA_character_,
+                               'GEOID_2010' = NA_character_,
+                               'GEOID6_2000' = NA_character_,
+                               'GEOID6_2010' = NA_character_,
+                               'GEOID6_BOTH' = NA_character_,
+                               'DUP_2010_LGL' = FALSE,
+                               'CHANGE_TYPE' = '1',
+                               'WEIGHT' = 1,
+                               'GEOGRAPHY' = 'county')
+                ) %>%
+                bind_rows(
+                        tibble('GEOID_2000' = NA_character_,
+                               'GEOID_2010' = NA_character_,
+                               'GEOID6_2000' = NA_character_,
+                               'GEOID6_2010' = NA_character_,
+                               'GEOID6_BOTH' = NA_character_,
+                               'DUP_2010_LGL' = FALSE,
+                               'CHANGE_TYPE' = '1',
+                               'WEIGHT' = 1,
+                               'GEOGRAPHY' = 'county subdivision')
+                ) %>%
                 write_rds(root_file('1-data/4-interim/cw-2000-2010.rds'))
 }else{
         cw <- read_rds(root_file('1-data/4-interim/cw-2000-2010.rds'))
@@ -354,9 +401,35 @@ normalize_acs <- function(acs_2015_sf, acs_2009_sf, crosswalk, tables){
         
         geoid6 <- acs %>% geography %>% extract2('tract')
         
+        # Get the NAME (this will be used to join later)
+        
+        name_full <- acs %>% 
+                geography %>% 
+                extract2('NAME')
+        
+        
+        # Geo type
+        
+        geog <- acs %>% 
+                geography() %>% 
+                flatten() %>% 
+                map(.f = ~ !is.na(.x)) %>% 
+                rev %>% 
+                tibble('GEOG' = names(.),
+                       'LGL' = unlist(.)) %>% 
+                select(GEOG,LGL) %>% 
+                filter(LGL) %>% 
+                slice(1) %>% 
+                extract2('GEOG') %>% 
+                if_else(. %in% 'countysubdivision',
+                        'county subdivision',
+                        .)
+        
         # Subset the crosswalk object
         
-        cw_sel <- crosswalk %>% filter(GEOID6_2010 %in% geoid6)
+        cw_sel <- crosswalk %>% 
+                filter(GEOID6_2010 %in% geoid6) %>% 
+                filter(GEOGRAPHY %in% geog)
         
         
         # Combine the census table column names into a regex string
@@ -368,15 +441,27 @@ normalize_acs <- function(acs_2015_sf, acs_2009_sf, crosswalk, tables){
         # and combine the records
         
         acs_tbl_2009 <- 
-                left_join(cw_sel,acs_2009_sf, by = c('GEOID6_2000' = 'GEOID6')) %>% 
+                left_join(cw_sel,acs_2009_sf, by = c('GEOID6_2000' = 'GEOID6', 'GEOGRAPHY')) %>% 
                 gather(TBL_NAME, ACS_OBJ, matches(tbls_regex)) %>% 
                 mutate(WEIGHTED = map2(ACS_OBJ,WEIGHT, ~ .x * .y),
                        TBL_NAME = paste0(TBL_NAME,'_2009_NORML')) %>%
                 group_by(TBL_NAME) %>% 
                 do(ACS_OBJ_COMB = col_to_acs(.$WEIGHTED) %>% apply(1,sum)) %>% 
                 spread(TBL_NAME,ACS_OBJ_COMB) %>% 
-                mutate(GEOID6_2009_NORML = geoid6) %>% 
-                select(GEOID6_2009_NORML,everything())
+                mutate(NAME_FULL = name_full) %>% 
+                select(NAME_FULL,everything())
+        
+        
+        # acs_tbl_2009 <- 
+        #         left_join(cw_sel,acs_2009_sf, by = c('GEOID6_2000' = 'GEOID6')) %>% 
+        #         gather(TBL_NAME, ACS_OBJ, matches(tbls_regex)) %>% 
+        #         mutate(WEIGHTED = map2(ACS_OBJ,WEIGHT, ~ .x * .y),
+        #                TBL_NAME = paste0(TBL_NAME,'_2009_NORML')) %>%
+        #         group_by(TBL_NAME) %>% 
+        #         do(ACS_OBJ_COMB = col_to_acs(.$WEIGHTED) %>% apply(1,sum)) %>% 
+        #         spread(TBL_NAME,ACS_OBJ_COMB) %>% 
+        #         mutate(GEOID6_2009_NORML = geoid6) %>% 
+        #         select(GEOID6_2009_NORML,everything())
         
         return(acs_tbl_2009)
         
@@ -395,20 +480,21 @@ acs_2015_sf_renamed <-
         spread(TBL_NAME, ACS_OBJ) %>% 
         left_join(acs_2015_sf %>% select(GEOID6,NAME_FULL,geom), by = c('GEOID6','NAME_FULL'))
 
-acs_2015_sf %>% 
-        filter(nchar(GEOID6) == 6 & GEOID6 %!in% '990100') %>%
-        select(-NAME,-NAME_FULL,-SEACCD_LGL,-ENDYEAR,-geom) %>%
-        split(.$GEOID6) %>% 
+acs_2015_sf %>%
+        filter(GEOID6 %!in% '990100') %>%
+        select(-NAME,-GEOID6,-SEACCD_LGL,-ENDYEAR,-geom) %>% 
+        split(.$NAME_FULL) %>%
         map(.f = normalize_acs,
             acs_2009_sf = acs_2009_sf,
             crosswalk = cw,
-            tables = tables) %>% 
-        reduce(bind_rows) %>% 
-        full_join(acs_2015_sf_renamed,.,by = c('GEOID6' = 'GEOID6_2009_NORML')) %>% 
-        select(NAME:SEACCD_LGL,geom,matches('2015'),matches('2009'),-ENDYEAR) %>% 
+            tables = tables) %>%
+        reduce(bind_rows) %>%
+        full_join(acs_2015_sf_renamed,.,by = 'NAME_FULL') %>%
+        select(NAME:SEACCD_LGL,geom,matches('2015'),matches('2009'),-ENDYEAR) %>%
         filter(GEOID6 %!in% '990100') %>%
         st_as_sf() %>% 
         write_rds(root_file('./1-data/4-interim/coo-acs-norml-sf.rds'))
+        
 
 
 }else{
