@@ -8,19 +8,67 @@ output:
 always_allow_html: yes
 ---
 
-### Introduction {-}
 
-_NOTE: this text is placeholder and must be changed_
+```{r demo-change-intro-setup, echo = FALSE, warning=FALSE,message=FALSE,comment=FALSE}
+library(plyr)
+library(knitr)
+library(rprojroot)
+library(rgdal)
+library(sp)
+library(rgeos)
+library(tigris)
+library(leaflet)
+library(ggthemes)
+library(magrittr)
+library(stringr)
+library(downloader)
+library(webshot)
+library(htmltools)
+library(gplots)
+library(ggmap)
+library(shiny)
+library(htmlwidgets)
+library(readxl)
+library(acs)
+library(RColorBrewer)
+library(tidyverse)
+library(miscgis)
+library(operator.tools)
+library(leaflet.extras)
+library(viridisLite)
+library(sf)
+root <- rprojroot::is_rstudio_project
+root_file <- root$make_fix_file()
+opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
+```
 
-We defined census tracts with gentrification-related demographic change from 2005-2009 to 2010-2014 as
-those that experienced either at least 3 of the following 4:
+```{r demo-change-intro-load-objs}
 
-  * The white population share either increased or it decreased less than X.0%
-  * The share of homeowners either increased or it decreased less than X%
+# Load census indicators as an sf object
+if(!exists('census_inds_sf')){census_inds_sf <- read_rds(root_file('./1-data/5-tidy/coo-acs-inds-not-acs-sf.rds'))}
+
+inds_seaccd <- 
+        crossing(c('VULN_PCT_2015_SEACCD','DEMO_CHNG_PCT_SEACCD'),
+                c('B03002_EST','B15002_EST', 'B19001_EST', 'B25033_EST')) %>% 
+        invoke_rows(str_c,.d = .,sep = '_',.collate = 'cols',.to = 'IND') %>% 
+        extract2('IND') %>% 
+        tibble('IND' = .,
+               'TOPIC' = c('race', 'housing', 'ed', 'income') %>% rep(2),
+               'CATEGORY' = c(rep('DEMO_CHNG',4),rep('VULN',4))) %>% 
+        mutate(VALUE = map_dbl(IND, ~ census_inds_sf %>% unclass %>% as_tibble %>% select(matches(.x)) %>% slice(1) %>% extract2(1)),
+               VALUE = scales::percent(VALUE),
+               NAME = str_c(TOPIC,CATEGORY,sep = '_')) %>% 
+        {set_names(x = .$VALUE, nm = .$NAME)}
+```
+
+### Demographic Change {-}
+
+#### Overview
+
+A tract is considered to have experienced gentrification-related "demographic change" during the observation period (2004-2015) if any **two of the following four** indicators exceed the values observed in the county subdivision:
+
+  * The white population share either increased or it decreased less than `r inds_seaccd[['race_DEMO_CHNG']]`
+  * The share of homeowners either increased more than `r inds_seaccd[['housing_DEMO_CHNG']]`
   * The share of the population 25 years and older with a bachelor’s degree increased more
-than X%
-  * The share of household earning more than 80% AMI increased or it decreased less than X%
-or experienced only 2 out of 4, which were:
-  * The white population share either increased or it decreased less than X%
-  * The share of the population 25 years and older with a bachelor’s degree increased more
-than X%
+than `r inds_seaccd[['ed_DEMO_CHNG']]`
+  * The share of household earning more than 80% AMI increased or it decreased less than `r inds_seaccd[['income_DEMO_CHNG']]`

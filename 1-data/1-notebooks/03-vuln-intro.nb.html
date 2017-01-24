@@ -172,21 +172,38 @@ $(document).ready(function () {
 
 
 <!-- rnb-text-begin -->
-<p><em>NOTE: this text is placeholder and must be changed</em></p>
-<div id="introduction" class="section level3 unnumbered">
-<h3>Introduction</h3>
-<p>Census tracts were assigned a “vulnerability score” between 0 and 4, with a weight of 1 for each of the following that is true:</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<div id="vulnerability" class="section level3 unnumbered">
+<h3>Vulnerability</h3>
+<div id="overview" class="section level4">
+<h4>Overview</h4>
+<p>Census data underlies two of the three typology indicator categories: vulnerability and demographic change.<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> Both of these categories are comprised of four indicators that compare the census topic of a given census tract to its county subdivision.</p>
+<p>A tract is considered “vulnerable” if it exceeds the county subdivision value for any <strong>three of the four</strong> indicators:</p>
 <ul>
-<li>Greater than XX% of households are renters</li>
-<li>Greater than XX% of the population are communities of color</li>
-<li>Greater than XX% of the population 25 years and older do not have a bachelor’s degree</li>
-<li>Greater than XX% of households have incomes at or below at or below 80% of the HUDadjusted median family income (MFI) [Note: HUD’s FY2015 MFI for the Seattle-Bellevue, WA HUD Metro FMR Area was $89,500.]</li>
+<li>Greater than 39.7% of the population belong to communities of color</li>
+<li>Greater than 51.6% of households are renters</li>
+<li>Greater than 55.4% of the population 25 years and older do not have a bachelor’s degree</li>
+<li>Greater than 46.3% of households have incomes at or below 80% of the HUD-adjusted median family income (MFI)<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a></li>
 </ul>
-<p>We defined vulnerable tracts as those with a vulnerability score of at least 3 out of 4.</p>
 <!-- rnb-text-end -->
 </div>
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>The other is indicator category is housing market trends<a href="#fnref1">↩</a></p></li>
+<li id="fn2"><p>HUD’s FY2015 MFI for the Seattle-Bellevue, WA HUD Metro FMR Area was $89,500; this does <em>not</em> account for household size.<a href="#fnref2">↩</a></p></li>
+</ol>
+</div>
 
-<div id="rmd-source-code">LS0tCmRmX3ByaW50OiB0aWJibGUKb3V0cHV0OgogIGh0bWxfbm90ZWJvb2s6CiAgICBjb2RlX2ZvbGRpbmc6IGhpZGUKICBwZGZfZG9jdW1lbnQ6CiAgICBrZWVwX3RleDogeWVzCmFsd2F5c19hbGxvd19odG1sOiB5ZXMKLS0tCgpfTk9URTogdGhpcyB0ZXh0IGlzIHBsYWNlaG9sZGVyIGFuZCBtdXN0IGJlIGNoYW5nZWRfCgojIyMgSW50cm9kdWN0aW9uIHstfQoKQ2Vuc3VzIHRyYWN0cyB3ZXJlIGFzc2lnbmVkIGEg4oCcdnVsbmVyYWJpbGl0eSBzY29yZeKAnSBiZXR3ZWVuIDAgYW5kIDQsIHdpdGggYSB3ZWlnaHQgb2YgMSBmb3IgZWFjaApvZiB0aGUgZm9sbG93aW5nIHRoYXQgaXMgdHJ1ZToKCiAgKiBHcmVhdGVyIHRoYW4gWFglIG9mIGhvdXNlaG9sZHMgYXJlIHJlbnRlcnMKICAqIEdyZWF0ZXIgdGhhbiBYWCUgb2YgdGhlIHBvcHVsYXRpb24gYXJlIGNvbW11bml0aWVzIG9mIGNvbG9yCiAgKiBHcmVhdGVyIHRoYW4gWFglIG9mIHRoZSBwb3B1bGF0aW9uIDI1IHllYXJzIGFuZCBvbGRlciBkbyBub3QgaGF2ZSBhIGJhY2hlbG9y4oCZcyBkZWdyZWUKICAqIEdyZWF0ZXIgdGhhbiBYWCUgb2YgaG91c2Vob2xkcyBoYXZlIGluY29tZXMgYXQgb3IgYmVsb3cgYXQgb3IgYmVsb3cgODAlIG9mIHRoZSBIVURhZGp1c3RlZAptZWRpYW4gZmFtaWx5IGluY29tZSAoTUZJKSBbTm90ZTogSFVEJ3MgRlkyMDE1IE1GSSBmb3IgdGhlClNlYXR0bGUtQmVsbGV2dWUsIFdBIEhVRCBNZXRybyBGTVIgQXJlYSB3YXMgJDg5LDUwMC5dCgpXZSBkZWZpbmVkIHZ1bG5lcmFibGUgdHJhY3RzIGFzIHRob3NlIHdpdGggYSB2dWxuZXJhYmlsaXR5IHNjb3JlIG9mIGF0IGxlYXN0IDMgb3V0IG9mIDQu</div>
+<div id="rmd-source-code">LS0tCmRmX3ByaW50OiB0aWJibGUKb3V0cHV0OgogIGh0bWxfbm90ZWJvb2s6CiAgICBjb2RlX2ZvbGRpbmc6IGhpZGUKICBwZGZfZG9jdW1lbnQ6CiAgICBrZWVwX3RleDogeWVzCmFsd2F5c19hbGxvd19odG1sOiB5ZXMKLS0tCgpgYGB7ciB2dWxuLWludHJvLXNldHVwLCBlY2hvID0gRkFMU0UsIHdhcm5pbmc9RkFMU0UsbWVzc2FnZT1GQUxTRSxjb21tZW50PUZBTFNFfQpsaWJyYXJ5KHBseXIpCmxpYnJhcnkoa25pdHIpCmxpYnJhcnkocnByb2pyb290KQpsaWJyYXJ5KHJnZGFsKQpsaWJyYXJ5KHNwKQpsaWJyYXJ5KHJnZW9zKQpsaWJyYXJ5KHRpZ3JpcykKbGlicmFyeShsZWFmbGV0KQpsaWJyYXJ5KGdndGhlbWVzKQpsaWJyYXJ5KG1hZ3JpdHRyKQpsaWJyYXJ5KHN0cmluZ3IpCmxpYnJhcnkoZG93bmxvYWRlcikKbGlicmFyeSh3ZWJzaG90KQpsaWJyYXJ5KGh0bWx0b29scykKbGlicmFyeShncGxvdHMpCmxpYnJhcnkoZ2dtYXApCmxpYnJhcnkoc2hpbnkpCmxpYnJhcnkoaHRtbHdpZGdldHMpCmxpYnJhcnkocmVhZHhsKQpsaWJyYXJ5KGFjcykKbGlicmFyeShSQ29sb3JCcmV3ZXIpCmxpYnJhcnkodGlkeXZlcnNlKQpsaWJyYXJ5KG1pc2NnaXMpCmxpYnJhcnkob3BlcmF0b3IudG9vbHMpCmxpYnJhcnkobGVhZmxldC5leHRyYXMpCmxpYnJhcnkodmlyaWRpc0xpdGUpCmxpYnJhcnkoc2YpCnJvb3QgPC0gcnByb2pyb290Ojppc19yc3R1ZGlvX3Byb2plY3QKcm9vdF9maWxlIDwtIHJvb3QkbWFrZV9maXhfZmlsZSgpCm9wdHNfY2h1bmskc2V0KGVjaG89RkFMU0UsIHdhcm5pbmc9RkFMU0UsIG1lc3NhZ2U9RkFMU0UsIGNvbW1lbnQ9RkFMU0UpCmBgYAoKYGBge3IgdnVsbi1pbnRyby1sb2FkLW9ianN9CgojIExvYWQgY2Vuc3VzIGluZGljYXRvcnMgYXMgYW4gc2Ygb2JqZWN0CmlmKCFleGlzdHMoJ2NlbnN1c19pbmRzX3NmJykpe2NlbnN1c19pbmRzX3NmIDwtIHJlYWRfcmRzKHJvb3RfZmlsZSgnLi8xLWRhdGEvNS10aWR5L2Nvby1hY3MtaW5kcy1ub3QtYWNzLXNmLnJkcycpKX0KCmluZHNfc2VhY2NkIDwtIAogICAgICAgIGNyb3NzaW5nKGMoJ1ZVTE5fUENUXzIwMTVfU0VBQ0NEJywnREVNT19DSE5HX1BDVF9TRUFDQ0QnKSwKICAgICAgICAgICAgICAgIGMoJ0IwMzAwMl9FU1QnLCdCMTUwMDJfRVNUJywgJ0IxOTAwMV9FU1QnLCAnQjI1MDMzX0VTVCcpKSAlPiUgCiAgICAgICAgaW52b2tlX3Jvd3Moc3RyX2MsLmQgPSAuLHNlcCA9ICdfJywuY29sbGF0ZSA9ICdjb2xzJywudG8gPSAnSU5EJykgJT4lIAogICAgICAgIGV4dHJhY3QyKCdJTkQnKSAlPiUgCiAgICAgICAgdGliYmxlKCdJTkQnID0gLiwKICAgICAgICAgICAgICAgJ1RPUElDJyA9IGMoJ3JhY2UnLCAnaG91c2luZycsICdlZCcsICdpbmNvbWUnKSAlPiUgcmVwKDIpLAogICAgICAgICAgICAgICAnQ0FURUdPUlknID0gYyhyZXAoJ0RFTU9fQ0hORycsNCkscmVwKCdWVUxOJyw0KSkpICU+JSAKICAgICAgICBtdXRhdGUoVkFMVUUgPSBtYXBfZGJsKElORCwgfiBjZW5zdXNfaW5kc19zZiAlPiUgdW5jbGFzcyAlPiUgYXNfdGliYmxlICU+JSBzZWxlY3QobWF0Y2hlcygueCkpICU+JSBzbGljZSgxKSAlPiUgZXh0cmFjdDIoMSkpLAogICAgICAgICAgICAgICBWQUxVRSA9IHNjYWxlczo6cGVyY2VudChWQUxVRSksCiAgICAgICAgICAgICAgIE5BTUUgPSBzdHJfYyhUT1BJQyxDQVRFR09SWSxzZXAgPSAnXycpKSAlPiUgCiAgICAgICAge3NldF9uYW1lcyh4ID0gLiRWQUxVRSwgbm0gPSAuJE5BTUUpfQpgYGAKCiMjIyBWdWxuZXJhYmlsaXR5IHstfQoKIyMjIyBPdmVydmlldwpDZW5zdXMgZGF0YSB1bmRlcmxpZXMgdHdvIG9mIHRoZSB0aHJlZSB0eXBvbG9neSBpbmRpY2F0b3IgY2F0ZWdvcmllczogdnVsbmVyYWJpbGl0eSBhbmQgZGVtb2dyYXBoaWMgY2hhbmdlLl5bVGhlIG90aGVyIGlzIGluZGljYXRvciBjYXRlZ29yeSBpcyBob3VzaW5nIG1hcmtldCB0cmVuZHNdIEJvdGggb2YgdGhlc2UgY2F0ZWdvcmllcyBhcmUgY29tcHJpc2VkIG9mIGZvdXIgaW5kaWNhdG9ycyB0aGF0IGNvbXBhcmUgdGhlIGNlbnN1cyB0b3BpYyBvZiBhIGdpdmVuIGNlbnN1cyB0cmFjdCB0byBpdHMgY291bnR5IHN1YmRpdmlzaW9uLiAKCkEgdHJhY3QgaXMgY29uc2lkZXJlZCAidnVsbmVyYWJsZSIgaWYgaXQgZXhjZWVkcyB0aGUgY291bnR5IHN1YmRpdmlzaW9uIHZhbHVlIGZvciBhbnkgKip0aHJlZSBvZiB0aGUgZm91cioqIGluZGljYXRvcnM6CgogICogR3JlYXRlciB0aGFuIGByIGluZHNfc2VhY2NkW1sncmFjZV9WVUxOJ11dYCBvZiB0aGUgcG9wdWxhdGlvbiBiZWxvbmcgdG8gY29tbXVuaXRpZXMgb2YgY29sb3IKICAqIEdyZWF0ZXIgdGhhbiBgciBpbmRzX3NlYWNjZFtbJ2hvdXNpbmdfVlVMTiddXWAgb2YgaG91c2Vob2xkcyBhcmUgcmVudGVycwogICogR3JlYXRlciB0aGFuIGByIGluZHNfc2VhY2NkW1snZWRfVlVMTiddXWAgb2YgdGhlIHBvcHVsYXRpb24gMjUgeWVhcnMgYW5kIG9sZGVyIGRvIG5vdCBoYXZlIGEgYmFjaGVsb3LigJlzIGRlZ3JlZQogICogR3JlYXRlciB0aGFuIGByIGluZHNfc2VhY2NkW1snaW5jb21lX1ZVTE4nXV1gIG9mIGhvdXNlaG9sZHMgaGF2ZSBpbmNvbWVzIGF0IG9yIGJlbG93IDgwJSBvZiB0aGUgSFVELWFkanVzdGVkIG1lZGlhbiBmYW1pbHkgaW5jb21lIChNRkkpXltIVUQncyBGWTIwMTUgTUZJIGZvciB0aGUKU2VhdHRsZS1CZWxsZXZ1ZSwgV0EgSFVEIE1ldHJvIEZNUiBBcmVhIHdhcyAkODksNTAwOyB0aGlzIGRvZXMgKm5vdCogYWNjb3VudCBmb3IgaG91c2Vob2xkIHNpemUuXQ==</div>
 
 
 
