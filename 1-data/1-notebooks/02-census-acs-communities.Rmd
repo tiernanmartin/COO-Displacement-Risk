@@ -256,6 +256,27 @@ acs_norml_all_geoms_sf %>%
 
 ```
 
+```{r census-not-acs-all-geoms}
+# This saves a version of the acs data that does not use `acs` format
+# This will be useful for summary tables and visualizations.
+
+if(!file.exists(root_file('./1-data/5-tidy/coo-census-not-acs-all-sf.rds'))){
+        acs_norml_all_geoms_sf %>% 
+                unclass %>% 
+                as_tibble() %>% 
+                gather(TBL,ACS,matches('2015|2009')) %>% 
+                mutate(EST = map_dbl(ACS,estimate) %>% round_any(1) %>% as.integer()) %>% 
+                mutate(TYPE = 'EST') %>% 
+                unite(TBL_EST,TBL,TYPE,sep = '_') %>% 
+                spread(TBL_EST,EST) %>% 
+                select(-ACS) %>% 
+                st_as_sf() %>% 
+                write_rds(root_file('./1-data/5-tidy/coo-census-not-acs-all-sf.rds'))
+}
+```
+
+
+
 #### Community Maps
 ```{r census-acs-comms-map, fig.height=1.25, fig.width=1,  fig.show='hold', dpi=150}
 

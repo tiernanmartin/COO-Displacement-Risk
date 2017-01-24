@@ -41,17 +41,13 @@ root_file <- root$make_fix_file()
 opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
 ```
 
-Steps:
-
-  1. Load acs_sf
-  2. Build poc indicator, looking for opportunities to streamline
-  3. Build all acs indicator columns and save output
-
 ```{r make-acs-load-objs}
-# Load acs object
+# Load acs sf object
 
 if(!exists('acs_norml_all_geoms_sf')){acs_norml_all_geoms_sf <- read_rds(root_file('./1-data/4-interim/acs_norml_all_geoms_sf.rds'))}
 
+# Save a copy with only the `geom` and `NAME` cols
+acs_geom_sf <- acs_norml_all_geoms_sf %>% select(-matches('2009|2015'))
 
 # Load acs column name guide
 
@@ -89,9 +85,24 @@ is_chng <- function(x, n){
         
 }
 
+# This function helps appropriately round integers and doubles
+# (counts and percents)
+
+estimate_rounded <- function(acs){
+        
+        # browser()
+        est <- acs %>% estimate %>% extract2(1)
+        
+        if(est>1.001){est %>% round_any(1) %>% as.integer()}else{est %>% as.double %>% round_any(.00001)}
+        
+}
 ```
 
 ```{r make-acs-test}
+# Note: this sample dataset was useful for building and troubleshooting
+# the following two data processing sequences. It provides a subset
+# of the acs geometries that includes each type 
+# (e.g., county, county subdivision, communities (multiple),community, and census tract )
 
 # test <- 
 #         acs_norml_all_geoms_sf %>% 
@@ -196,7 +207,7 @@ if(!file.exists(root_file('./1-data/4-interim/coo-acs-ind-wide.rds'))){
                 summarise_all(first_not_null) %>% 
                 ungroup %>% 
                 mutate(DEMO_CHNG_PCT = map2(DEMO_PCT_2015,DEMO_PCT_2009,subtract)) %>% 
-                write_rds('./1-data/4-interim/coo-acs-ind-wide.rds')
+                write_rds('./1-data/4-interim/coo-acs-ind-wide-sf.rds')
 }
 
 wide_tbl_inds <- read_rds(root_file('./1-data/4-interim/coo-acs-ind-wide.rds'))
@@ -208,34 +219,58 @@ wide_tbl_inds <- read_rds(root_file('./1-data/4-interim/coo-acs-ind-wide.rds'))
 
 if(!file.exists(root_file('./1-data/4-interim/coo-acs-ind-wide-by-name.rds'))){
         wide_tbl_inds %>% 
-        group_by(TBL) %>% 
-        nest %>% 
-        mutate(VULN_PCT_2015_SEACCD = map(data, get_seaccd, .col_nm = 'VULN_PCT_2015'),
-               DEMO_CHNG_PCT_SEACCD = map(data, get_seaccd, .col_nm = 'DEMO_CHNG_PCT')) %>%
-        unnest(data,.drop = FALSE) %>% 
-        group_by(NAME, TBL) %>% 
-        mutate(TYPO_VULN_SEACCD_LGL = map2_lgl(VULN_PCT_2015,VULN_PCT_2015_SEACCD, ~ estimate(.x) > estimate(.y)),
-               TYPO_DEMO_CHNG_SEACCD_LGL = map2_lgl(DEMO_CHNG_PCT,DEMO_CHNG_PCT_SEACCD, ~ estimate(.x) > estimate(.y))) %>%
-        ungroup() %>% 
-        gather(IND,ACS,-NAME,-TBL) %>% 
-        unite(IND_FULL,IND,TBL,sep = '_') %>% 
-        spread(IND_FULL,ACS) %>% 
-        mutate_at(vars(matches('LGL')), unlist) %>% 
-        group_by(NAME) %>% 
-        nest %>% 
-        mutate(TYPO_VULN_LGL = map_lgl(data, is_vuln, n = 3),
-               TYPO_DEMO_CHNG_LGL = map_lgl(data, is_vuln, n = 2)) %>% 
-        unnest %>% 
-        select(NAME,
-               TYPO_VULN_LGL,
-               TYPO_DEMO_CHNG_LGL,
-               matches('VULN_SEACCD'),
-               matches('CHNG_SEACCD'),
-               everything()) %>% 
-write_rds(root_file('./1-data/4-interim/coo-acs-ind-wide-by-name.rds'))
+                group_by(TBL) %>% 
+                nest %>% 
+                mutate(VULN_PCT_2015_SEACCD = map(data, get_seaccd, .col_nm = 'VULN_PCT_2015'),
+                       DEMO_CHNG_PCT_SEACCD = map(data, get_seaccd, .col_nm = 'DEMO_CHNG_PCT')) %>%
+                unnest(data,.drop = FALSE) %>% 
+                group_by(NAME, TBL) %>% 
+                mutate(TYPO_VULN_SEACCD_LGL = map2_lgl(VULN_PCT_2015,VULN_PCT_2015_SEACCD, ~ estimate(.x) > estimate(.y)),
+                       TYPO_DEMO_CHNG_SEACCD_LGL = map2_lgl(DEMO_CHNG_PCT,DEMO_CHNG_PCT_SEACCD, ~ estimate(.x) > estimate(.y))) %>%
+                ungroup() %>% 
+                gather(IND,ACS,-NAME,-TBL) %>% 
+                unite(IND_FULL,IND,TBL,sep = '_') %>% 
+                spread(IND_FULL,ACS) %>% 
+                mutate_at(vars(matches('LGL')), unlist) %>% 
+                group_by(NAME) %>% 
+                nest %>% 
+                mutate(TYPO_VULN_LGL = map_lgl(data, is_vuln, n = 3),
+                       TYPO_DEMO_CHNG_LGL = map_lgl(data, is_vuln, n = 2)) %>% 
+                unnest %>% 
+                select(NAME,
+                       TYPO_VULN_LGL,
+                       TYPO_DEMO_CHNG_LGL,
+                       matches('VULN_SEACCD'),
+                       matches('CHNG_SEACCD'),
+                       everything()) %>% 
+                left_join(acs_geom_sf, by = 'NAME') %>% 
+                st_as_sf() %>% 
+                write_rds(root_file('./1-data/4-interim/coo-acs-ind-wide-by-name-sf.rds'))
 }
-        
-wide_tbl_inds_by_name <- read_rds(root_file('./1-data/4-interim/coo-acs-ind-wide-by-name.rds'))
+       
+wide_tbl_inds_by_name_sf <- read_rds(root_file('./1-data/4-interim/coo-acs-ind-wide-by-name-sf.rds'))
+```
+
+```{r make-acs-inds-not-acs}
+
+if(!file.exists(root_file('./1-data/5-tidy/coo-acs-inds-not-acs-sf.rds'))){
+        wide_tbl_inds_by_name_sf %>%
+        unclass %>%
+        as_tibble() %>%
+        select(matches('NAME$|TYPO|DEMO|VULN')) %>% 
+        gather(TBL,ACS,-matches('NAME|LGL')) %>%
+        mutate(EST = map(ACS,estimate_rounded)) %>%
+        mutate(TYPE = 'EST') %>%
+        unite(TBL_EST,TBL,TYPE,sep = '_') %>%
+        spread(TBL_EST,EST) %>%
+        select(-ACS) %>%
+        mutate_at(matches('EST'),funs(unlist(.))) %>%
+        left_join(acs_geom_sf, by = 'NAME') %>% 
+        select(NAME,NAME_FULL:GEOG_FCT,matches('TYPO|DEMO|VULN'),everything()) %>% 
+        st_as_sf() %>% 
+        write_rds(root_file('./1-data/5-tidy/coo-acs-inds-not-acs-sf.rds'))
+}
+
 ```
 
 
