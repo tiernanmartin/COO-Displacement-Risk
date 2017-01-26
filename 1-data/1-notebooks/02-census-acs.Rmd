@@ -137,9 +137,10 @@ coo_geo_acs <- read_rds(root_file('1-data/4-interim/coo-geoset-acs.rds'))
 if(!file.exists(root_file('1-data/4-interim/coo-acs-raw-data.rds'))){
         fetch_all_acs(tables,endyears,coo_geo_acs) %>% 
                 write_rds(root_file('1-data/4-interim/coo-acs-raw-data.rds'))
-}else{
-        acs_tibble <- read_rds(root_file('1-data/4-interim/coo-acs-raw-data.rds'))
 }
+
+acs_tibble <- read_rds(root_file('1-data/4-interim/coo-acs-raw-data.rds'))
+
 
 # A function to make table column name guide 
 # Note: this will be useful later in the analysis
@@ -247,17 +248,18 @@ if(!file.exists(root_file('./1-data/4-interim/coo-acs-2009-sf.rds'))){
                 filter(ENDYEAR %in% 2009) %>% 
                 extract2('ACS') %>% 
                 map(distribute_acs) %>% 
-                reduce(left_join) %>% 
+                reduce(left_join, by = c("NAME", "GEOID6")) %>% 
                 rename(NAME_FULL = NAME) %>% 
                 left_join(coo_geoms_2009_sf, by = c('GEOID6','NAME_FULL')) %>%
                 mutate(ENDYEAR = map_int(B03002_001, endyear),
                        GEOGRAPHY = map_chr(B03002_001, get_geog)) %>% 
-                select(NAME,NAME_FULL,GEOID6,GEOGRAPHY,SEACCD_LGL,ENDYEAR,everything(),geom) %>% 
+                select(NAME,NAME_FULL,GEOID6,GEOGRAPHY,SEACCD_LGL,ENDYEAR,everything(),geometry) %>% 
                 st_as_sf() %>% 
                 write_rds(root_file('./1-data/4-interim/coo-acs-2009-sf.rds'))
-}else{
-        acs_2009_sf <- read_rds(root_file('./1-data/4-interim/coo-acs-2009-sf.rds'))
 }
+
+acs_2009_sf <- read_rds(root_file('./1-data/4-interim/coo-acs-2009-sf.rds'))
+
 
 if(!file.exists(root_file('./1-data/4-interim/coo-acs-2015-sf.rds'))){
         # Load the sf object
@@ -273,17 +275,18 @@ if(!file.exists(root_file('./1-data/4-interim/coo-acs-2015-sf.rds'))){
                 filter(ENDYEAR %in% 2015) %>% 
                 extract2('ACS') %>% 
                 map(distribute_acs) %>% 
-                reduce(left_join) %>% 
+                reduce(left_join, by = c("NAME", "GEOID6")) %>% 
                 rename(NAME_FULL = NAME) %>% 
                 left_join(coo_geoms_2015_sf, by = c('GEOID6','NAME_FULL')) %>%
                 mutate(ENDYEAR = map_int(B03002_001, endyear),
                        GEOGRAPHY = map_chr(B03002_001, get_geog)) %>% 
-                select(NAME,NAME_FULL,GEOID6, SEACCD_LGL,ENDYEAR,everything(),geom) %>% 
+                select(NAME,NAME_FULL,GEOID6, SEACCD_LGL,ENDYEAR,everything(),geometry) %>% 
                 st_as_sf() %>% 
                 write_rds(root_file('./1-data/4-interim/coo-acs-2015-sf.rds'))
-}else{
-        acs_2015_sf <- read_rds(root_file('./1-data/4-interim/coo-acs-2015-sf.rds'))
 }
+
+acs_2015_sf <- read_rds(root_file('./1-data/4-interim/coo-acs-2015-sf.rds'))
+
 
 
 ```
@@ -342,7 +345,7 @@ if(!file.exists(root_file('1-data/4-interim/cw-2000-2010.rds'))){
         # dummy row that will allow non-tract geometries to be joined 
         # and "normalized" (they will be weighted like the tracts whose boundaries did not change)
         read_csv(
-                root_file('1-data/3-external/crosswalk_2000_2010.csv'),
+                root_file('1-data/3-external/manual/crosswalk_2000_2010.csv'),
                 col_types = cols(cbsa10 = col_character(),
                                  ccflag10 = col_character(),
                                  changetype = col_character(),
@@ -385,9 +388,10 @@ if(!file.exists(root_file('1-data/4-interim/cw-2000-2010.rds'))){
                                'GEOGRAPHY' = 'county subdivision')
                 ) %>%
                 write_rds(root_file('1-data/4-interim/cw-2000-2010.rds'))
-}else{
-        cw <- read_rds(root_file('1-data/4-interim/cw-2000-2010.rds'))
 }
+
+cw <- read_rds(root_file('1-data/4-interim/cw-2000-2010.rds'))
+
 
 normalize_acs <- function(acs_2015_sf, acs_2009_sf, crosswalk, tables){
         
@@ -478,11 +482,11 @@ acs_2015_sf_renamed <-
         gather(TBL_NAME, ACS_OBJ, matches(paste0(tables,collapse = '|'))) %>% 
         mutate(TBL_NAME = paste0(TBL_NAME,'_2015')) %>% 
         spread(TBL_NAME, ACS_OBJ) %>% 
-        left_join(acs_2015_sf %>% select(GEOID6,NAME_FULL,geom), by = c('GEOID6','NAME_FULL'))
+        left_join(acs_2015_sf %>% select(GEOID6,NAME_FULL,geometry), by = c('GEOID6','NAME_FULL'))
 
 acs_2015_sf %>%
         filter(GEOID6 %!in% '990100') %>%
-        select(-NAME,-GEOID6,-SEACCD_LGL,-ENDYEAR,-geom) %>% 
+        select(-NAME,-GEOID6,-SEACCD_LGL,-ENDYEAR,-geometry) %>% 
         split(.$NAME_FULL) %>%
         map(.f = normalize_acs,
             acs_2009_sf = acs_2009_sf,
@@ -490,19 +494,20 @@ acs_2015_sf %>%
             tables = tables) %>%
         reduce(bind_rows) %>%
         full_join(acs_2015_sf_renamed,.,by = 'NAME_FULL') %>%
-        select(NAME:SEACCD_LGL,geom,matches('2015'),matches('2009'),-ENDYEAR) %>%
+        select(NAME:SEACCD_LGL,geometry,matches('2015'),matches('2009'),-ENDYEAR) %>%
         filter(GEOID6 %!in% '990100') %>%
         st_as_sf() %>% 
         write_rds(root_file('./1-data/4-interim/coo-acs-norml-sf.rds'))
         
 
 
-}else{
-        acs_norml_sf <- 
-                read_rds(root_file('./1-data/4-interim/coo-acs-norml-sf.rds')) %>% 
-                select(NAME:SEACCD_LGL,geom,matches('2015'),matches('2009'))
-                
 }
+
+acs_norml_sf <- 
+                read_rds(root_file('./1-data/4-interim/coo-acs-norml-sf.rds')) %>% 
+                select(NAME:SEACCD_LGL,geometry,matches('2015'),matches('2009'))
+                
+
 
 acs_norml_sf %>% unclass %>% as_tibble()
 ```
