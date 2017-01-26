@@ -200,7 +200,7 @@ if(!file.exists(root_file('./1-data/4-interim/acs_norml_all_geoms_sf.rds'))){
                 as_tibble %>% 
                 slice_rows('COMMUNITY') %>% 
                 dmap(aggregate_comms) %>% 
-                mutate(geom = st_sfc(geom)) %>% 
+                mutate(geometry = st_sfc(geometry)) %>% 
                 st_as_sf()
         
         all_coo <- 
@@ -209,7 +209,7 @@ if(!file.exists(root_file('./1-data/4-interim/acs_norml_all_geoms_sf.rds'))){
                 unclass %>% 
                 as_tibble %>% 
                 dmap(aggregate_comms) %>% 
-                mutate(geom = st_sfc(geom)) %>% 
+                mutate(geometry = st_sfc(geometry)) %>% 
                 st_as_sf()
         
         acs_norml_all_geoms_sf <- 
@@ -239,18 +239,19 @@ if(!file.exists(root_file('./1-data/4-interim/acs_norml_all_geoms_sf.rds'))){
                                                     'county subdivision',
                                                     'county'),
                                          ordered = TRUE)) %>% 
-                select(NAME:SEACCD_LGL,GEOGRAPHY,GEOG_FCT,geom,matches('2015'),matches('2009')) 
+                select(NAME:SEACCD_LGL,GEOGRAPHY,GEOG_FCT,geometry,matches('2015'),matches('2009')) 
         
         acs_norml_all_geoms_sf %>% 
                 write_rds(root_file('./1-data/4-interim/acs_norml_all_geoms_sf.rds'))
         
-}else{
-        acs_norml_all_geoms_sf <- read_rds(root_file('./1-data/4-interim/acs_norml_all_geoms_sf.rds'))
 }
+        
+acs_norml_all_geoms_sf <- read_rds(root_file('./1-data/4-interim/acs_norml_all_geoms_sf.rds'))
+
 
 acs_norml_all_geoms_sf %>% 
         arrange(fct_rev(GEOG_FCT)) %>% 
-        select(NAME:GEOG_FCT,geom,matches('2015'),matches('2009')) %>% 
+        select(NAME:GEOG_FCT,geometry,matches('2015'),matches('2009')) %>% 
         unclass %>% 
         as_tibble()
 
@@ -306,7 +307,7 @@ show_comm_map <- function(nm, color, float_dir){
                 acs_norml_all_geoms_sf %>% 
                 select(everything(),-matches('2015|2009')) %>% 
                 filter(GEOGRAPHY %in% 'community' & COMMUNITY %in% nm)  %>% 
-                mutate(geom = st_centroid(geom)) %>%
+                mutate(geometry = st_centroid(geometry)) %>%
                 as("Spatial")
         
         comm_bounds_sp <- 
