@@ -118,9 +118,10 @@ estimate_rounded <- function(acs){
 
 long_tbl <- 
         acs_norml_all_geoms_sf %>% 
+        slice(201:403) %>% 
         unclass %>% 
         as_tibble %>% 
-        select(-geom) %>% 
+        select(-geometry) %>% 
         gather('SUB_TBL','ACS',matches('2009|2015')) %>% 
         mutate(TBL = str_sub(SUB_TBL,1,6),
                YEAR = str_sub(SUB_TBL,12,15) %>% as.integer()) %>% 
@@ -207,7 +208,7 @@ if(!file.exists(root_file('./1-data/4-interim/coo-acs-ind-wide.rds'))){
                 summarise_all(first_not_null) %>% 
                 ungroup %>% 
                 mutate(DEMO_CHNG_PCT = map2(DEMO_PCT_2015,DEMO_PCT_2009,subtract)) %>% 
-                write_rds('./1-data/4-interim/coo-acs-ind-wide-sf.rds')
+                write_rds(root_file('./1-data/4-interim/coo-acs-ind-wide.rds'))
 }
 
 wide_tbl_inds <- read_rds(root_file('./1-data/4-interim/coo-acs-ind-wide.rds'))
@@ -257,7 +258,7 @@ if(!file.exists(root_file('./1-data/5-tidy/coo-acs-inds-not-acs-sf.rds'))){
         wide_tbl_inds_by_name_sf %>%
         unclass %>%
         as_tibble() %>%
-        select(matches('NAME$|TYPO|DEMO|VULN')) %>% 
+        select(matches('NAME$|TYPO|DEMO|VULN|TOT')) %>% 
         gather(TBL,ACS,-matches('NAME|LGL')) %>%
         mutate(EST = map(ACS,estimate_rounded)) %>%
         mutate(TYPE = 'EST') %>%
@@ -266,7 +267,7 @@ if(!file.exists(root_file('./1-data/5-tidy/coo-acs-inds-not-acs-sf.rds'))){
         select(-ACS) %>%
         mutate_at(matches('EST'),funs(unlist(.))) %>%
         left_join(acs_geom_sf, by = 'NAME') %>% 
-        select(NAME,NAME_FULL:GEOG_FCT,matches('TYPO|DEMO|VULN'),everything()) %>% 
+        select(NAME,NAME_FULL:GEOG_FCT,matches('TYPO|DEMO|VULN|TOT'),everything()) %>% 
         st_as_sf() %>% 
         write_rds(root_file('./1-data/5-tidy/coo-acs-inds-not-acs-sf.rds'))
 }
