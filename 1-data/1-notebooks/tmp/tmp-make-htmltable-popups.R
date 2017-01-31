@@ -2,14 +2,14 @@ if(!exists('inds')){inds <- read_rds(root_file('./1-data/5-tidy/coo-acs-inds-not
 
 inds %>% unclass %>% as_tibble() %>% View
 
-make_lbl <- function(x){
-        
-        if(x %>% as.numeric() > 1){
-                x %>% as.numeric() %>% scales::comma()
-        }else{
-                x %>% as.numeric() %>% multiply_by(100) %>% round_any(1) %>% paste0('%')
-        }
-}
+# make_lbl <- function(x){
+#         
+#         if(x %>% as.numeric() > 1){
+#                 x %>% as.numeric() %>% scales::comma()
+#         }else{
+#                 x %>% as.numeric() %>% multiply_by(100) %>% round_any(1) %>% paste0('%')
+#         }
+# }
 
 make_popup_tbl <- function(.category,.topic,.tbl_cols){
         #dataset - should be full
@@ -20,8 +20,7 @@ make_popup_tbl <- function(.category,.topic,.tbl_cols){
                 as_tibble() %>% 
                 filter(GEOGRAPHY %in% c('tract','county subdivision')) %>% 
                 filter(SEACCD_LGL|NAME %in% 'SEACCD') %>% 
-                group_by(GEOGRAPHY) %>% 
-                slice(1:3)
+                group_by(GEOGRAPHY) 
         
         if(.category %in% 'VULN'){
                 remove_cols <- '2009'
@@ -46,6 +45,9 @@ make_popup_tbl <- function(.category,.topic,.tbl_cols){
                 mutate(VAL_LBL = if_else(TYPE %in% 'PCT',
                                          VAL %>% multiply_by(100) %>% round_any(1) %>% paste0('%'),
                                          VAL %>% round_any(1) %>% scales::comma())) %>% 
+                mutate(VAL_LBL = if_else(TYPE %in% 'PCT' & VAL>=0 & str_detect(TBL, 'DEMO_CHNG'),
+                                         str_c('+',VAL_LBL),
+                                         VAL_LBL)) %>% 
                 select(-VAL,-TYPE) %>% 
                 filter(CAT %in% c(.category,'TOT') & TOPIC %in% .topic) %>% 
                 filter(!str_detect(TBL,remove_cols)) %>% 
@@ -163,12 +165,3 @@ tbl <-
 
 tbl %>% write_rds(root_file('./1-data/4-interim/htmltable-popups.rds'))
 
-
-
-
-
-tmp <- make_popup_tbl(.category = 'VULN',
-                      .topic = 'B25033',
-                      .tbl_cols = c('1','2'))
-
-.tbl_cols = c('a1','a2','a3','b1','b2','b3','c1')
