@@ -263,9 +263,9 @@ if(!file.exists(root_file('./1-data/5-tidy/coo-acs-inds-not-acs-sf.rds'))){
         mutate(EST = map(ACS,estimate_rounded)) %>%
         mutate(TYPE = 'EST') %>%
         unite(TBL_EST,TBL,TYPE,sep = '_') %>%
-        spread(TBL_EST,EST) %>%
+        spread(TBL_EST,EST) %>% 
         select(-ACS) %>%
-        mutate_at(matches('EST'),funs(unlist(.))) %>%
+        mutate_at(matches('EST'),funs(unlist(.)))  %>% 
         left_join(acs_geom_sf, by = 'NAME') %>% 
         select(NAME,NAME_FULL:GEOG_FCT,matches('TYPO|DEMO|VULN|TOT'),everything()) %>% 
         st_as_sf() %>% 

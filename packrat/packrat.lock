@@ -116,6 +116,11 @@ Version: 1.17.1
 Hash: 97cb6f6293cd18d17df77a6383cc6763
 Requires: bitops
 
+Package: callr
+Source: CRAN
+Version: 1.0.0
+Hash: f4152aceab8fa4f45b5bbde0dc118559
+
 Package: cleangeo
 Source: github
 Version: 0.2-1
@@ -125,6 +130,11 @@ GithubRepo: cleangeo
 GithubUsername: eblondel
 GithubRef: master
 GithubSha1: 28a1f4361a08b916c264f68a33586869d0cecfb8
+
+Package: clipr
+Source: CRAN
+Version: 0.3.2
+Hash: cab1335d98f5d12219e4b27562cd4cd7
 
 Package: coda
 Source: CRAN
@@ -275,6 +285,12 @@ Version: 3.0.1
 Hash: b7abe122479c203aa236499b7fc4b816
 Requires: caTools, gdata, gtools
 
+Package: gridExtra
+Source: CRAN
+Version: 2.2.1
+Hash: 8f54b57d4b0598ed5b27e0eafe86a670
+Requires: gtable
+
 Package: gtable
 Source: CRAN
 Version: 0.2.0
@@ -364,13 +380,13 @@ Hash: 3d6e7608e65bbf5cb170dab1e3c9ed8b
 Package: leaflet
 Source: github
 Version: 1.0.2.9010
-Hash: aa828ae8a17f73e1dbf65bdf17a559d5
+Hash: 9e50272e9245860e16c041e42af04dc3
 Requires: RColorBrewer, base64enc, crosstalk, htmltools, htmlwidgets,
-    magrittr, markdown, png, raster, scales, sp
+    magrittr, markdown, png, raster, scales, sp, viridis
 GithubRepo: leaflet
 GithubUsername: rstudio
 GithubRef: master
-GithubSha1: 7a8f0e78965767cebb0ce3d921377b96fe9c44c8
+GithubSha1: b9736ecbe3f4941c92d37506c7fd9d6923f22768
 
 Package: leaflet.extras
 Source: github
@@ -435,14 +451,14 @@ Requires: htmltools, shiny
 
 Package: miscgis
 Source: github
-Version: 0.1.3-5
-Hash: ded63d869ba55256738257aa6ca7c26c
+Version: 0.1.3-6
+Hash: 2d9df80563170ef5d615119bc9499db2
 Requires: acs, dplyr, leaflet, leaflet.extras, miniUI, operator.tools,
     sf, shinydashboard, sp, tigris
 GithubRepo: miscgis
 GithubUsername: tiernanmartin
 GithubRef: master
-GithubSha1: 4dec8c0a5c502822615c80b5e4e9474d576d9c72
+GithubSha1: 34a4448c3e0dd7127380fa9477d6bf82f48fbfc2
 
 Package: mnormt
 Source: CRAN
@@ -542,6 +558,16 @@ Version: 0.1.1
 Hash: c78061ad4f05570e183538154ff2ada0
 Requires: Rcpp
 
+Package: reprex
+Source: github
+Version: 0.1.1.9000
+Hash: 4fc216b4c6d7e61c6404a71d7b18a49b
+Requires: callr, clipr, knitr, rmarkdown, whisker
+GithubRepo: reprex
+GithubUsername: jennybc
+GithubRef: master
+GithubSha1: 2a7abb9b0dea7606446fd820e6f39d7604da710a
+
 Package: reshape2
 Source: CRAN
 Version: 1.4.2
@@ -634,13 +660,13 @@ Requires: httpuv, jsonlite, mime
 
 Package: sf
 Source: github
-Version: 0.3-0
-Hash: 4b4e462815aaa16c69f7e596260274ad
+Version: 0.3-2
+Hash: 892cd2a5e5d05b8c3cb1266765c2cab6
 Requires: DBI, Rcpp, units
 GithubRepo: sfr
 GithubUsername: edzer
 GithubRef: master
-GithubSha1: c89f1d88a1ee0da9700d32f3e7dd96ec46a7b828
+GithubSha1: 88e053dd1770d598a34b94934fdac627c4d729f2
 
 Package: shiny
 Source: CRAN
@@ -732,6 +758,12 @@ Package: uuid
 Source: CRAN
 Version: 0.1-2
 Hash: 69acbbcf4dcff3a258f94de540214001
+
+Package: viridis
+Source: CRAN
+Version: 0.3.4
+Hash: c98cc0ee11a389f397c38ddb3762880c
+Requires: ggplot2, gridExtra
 
 Package: viridisLite
 Source: CRAN

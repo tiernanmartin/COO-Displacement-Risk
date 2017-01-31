@@ -1,0 +1,73 @@
+---
+title: "sp Ã tidyverse test"
+author: Tiernan Martin
+output: html_notebook
+date: November 02, 2016
+---
+
+This is a set of tests related to a [Github issue](https://github.com/edzer/sfr/issues/42) for the `sf` package. 
+
+#### Setup
+```{r setup}
+library(dplyr)
+library(sf)
+library(RColorBrewer)
+
+demo(nc, ask = FALSE, echo = FALSE)
+
+nc_grp <- 
+        nc %>%  
+        mutate(GRP = ntile(BIR74,4))
+
+nc_aggr <- 
+        nc_grp %>% 
+        group_by(GRP) %>% 
+        summarise_all(first)
+
+# This works, but I'm having trouble with other examples of the same process
+nc_both <- 
+        nc %>%  
+        mutate(GRP = ntile(BIR74,4)) %>% 
+        group_by(GRP) %>% 
+        summarise_all(first) %>% 
+        rbind(nc_grp)
+
+```
+
+#### Loss of CRS
+```{r crs}
+all.equal(st_crs(nc),
+          st_crs(nc_aggr))
+```
+
+
+#### Unexpected Grouping
+```{r groups}
+par(mfrow=c(2,2),mar = rep(0,4)) 
+
+cols <- brewer.pal(4, "Spectral")
+
+plot(nc, col = "transparent", border = "black")
+plot(nc_aggr, col = "white", border = cols[1])
+plot(nc_grp, col = cols[nc_grp$GRP], border = cols[nc_grp$GRP])
+plot(nc_grp, col = cols[nc_grp$GRP], border = cols[nc_grp$GRP])
+plot(nc_aggr, col = "transparent", border = "white", add = TRUE)
+```
+Upper-left is the original `nc` object. 
+
+Upper-right is the `nc_aggr`, which has been tranformed with `summarise()` which aggregates some counties together but not what I expected (also notice that the lack of CRS is visually apparent).
+
+Lower-left is `nc_grp` colored by the group (`nc_grp$GRP`), which shows how I expected the aggregated geometries to look.
+
+Lower-right is `nc_grp` overlayed by `nc_aggr` (notice that the white border lines do not align with the fill colors)
+
+
+#### Geom Dropping
+```{r}
+par(mfrow=c(2,1),mar = rep(0,4)) 
+
+plot(nc_grp, col = cols[nc_grp$GRP], border = cols[nc_grp$GRP])
+plot(nc_grp, col = cols[nc_grp$GRP], border = cols[nc_grp$GRP])
+plot(nc_aggr, col = "grey", border = "grey", add = TRUE)
+```
+Notice that the southern-most county in `nc_grp` (lime green) is dropped from `nc_aggr` (grey)
