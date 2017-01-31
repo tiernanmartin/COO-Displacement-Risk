@@ -1,0 +1,329 @@
+---
+df_print: tibble
+output:
+  html_notebook:
+    code_folding: hide
+  pdf_document:
+    keep_tex: yes
+always_allow_html: yes
+---
+
+```{r make-acs-maps-setup, echo = FALSE, warning=FALSE,message=FALSE,comment=FALSE}
+library(plyr)
+library(scales)
+library(knitr)
+library(rprojroot)
+library(rgdal)
+library(sp)
+library(rgeos)
+library(tigris)
+library(leaflet)
+library(gridExtra)
+library(ggthemes)
+library(magrittr)
+library(stringr)
+library(downloader)
+library(webshot)
+library(htmltools)
+library(gplots)
+library(ggmap)
+library(shiny)
+library(htmlwidgets)
+library(readxl)
+library(acs)
+library(RColorBrewer)
+library(tidyverse)
+library(miscgis)
+library(operator.tools)
+library(leaflet.extras)
+library(viridisLite)
+library(htmlTable)
+library(sf)
+root <- rprojroot::is_rstudio_project
+root_file <- root$make_fix_file()
+opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
+```
+
+```{r make-acs-maps-colors}
+green <- miscgis::miscgis_pals$tableau_cat[["green"]]
+blue <- miscgis::miscgis_pals$tableau_cat[["blue"]]
+orange <- miscgis::miscgis_pals$tableau_cat[["orange"]]
+red <- miscgis::miscgis_pals$tableau_cat[["red"]]
+teal <- miscgis::miscgis_pals$tableau_cat[["teal"]]
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+proj_light_grey <- col2hex("grey75")
+proj_grey <- col2hex("grey50")
+proj_dark_grey <- col2hex("grey25")
+div_pal <- brewer.pal(11,'Spectral')[2:10]
+```
+
+
+```{r make-acs-maps-htmlTable}
+
+if(!exists('inds')){inds <- read_rds(root_file('./1-data/5-tidy/coo-acs-inds-not-acs-sf.rds'))}
+
+if(!file.exists(root_file('./1-data/4-interim/htmltable-popups.rds'))){
+        
+        # A function to build a tibble containing the html text
+        # of the map popup tables - this will be joined to
+        # the sf object 
+        
+        make_popup_tbl <- function(.category,.topic,.tbl_cols){
+        #dataset - should be full
+        # browser()
+        data <-
+                inds %>% 
+                unclass %>% 
+                as_tibble() %>% 
+                filter(GEOGRAPHY %in% c('tract','county subdivision')) %>% 
+                filter(SEACCD_LGL|NAME %in% 'SEACCD') %>% 
+                group_by(GEOGRAPHY) 
+        
+        if(.category %in% 'VULN'){
+                remove_cols <- '2009'
+                
+                
+        }else{
+                remove_cols <- 'NOTFOUND'
+                
+                
+        }
+        
+        # after the table is produced
+        popup_tbl_df <- 
+                data %>% 
+                select(NAME,GEOGRAPHY,matches('EST')) %>% 
+                select(-matches('VULN_CNT_2009|VULN_PCT_2009|SEACCD'))%>% 
+                gather(TBL,VAL,-NAME,-GEOGRAPHY) %>% 
+                mutate(CAT = str_sub(TBL,1,4) %>% str_replace('_',''),
+                       TOPIC = str_extract(TBL,'B[[:digit:]]{5}')) %>%
+                mutate(TYPE = str_extract(TBL,'_[[:alpha:]]{3}_'),
+                       TYPE = str_replace_all(TYPE,'_','')) %>%
+                mutate(VAL_LBL = if_else(TYPE %in% 'PCT',
+                                         VAL %>% multiply_by(100) %>% round_any(1) %>% paste0('%'),
+                                         VAL %>% round_any(1) %>% scales::comma())) %>% 
+                mutate(VAL_LBL = if_else(TYPE %in% 'PCT' & VAL>=0 & str_detect(TBL, 'DEMO_CHNG'),
+                                         str_c('+',VAL_LBL),
+                                         VAL_LBL)) %>% 
+                select(-VAL,-TYPE) %>% 
+                filter(CAT %in% c(.category,'TOT') & TOPIC %in% .topic) %>% 
+                filter(!str_detect(TBL,remove_cols)) %>% 
+                select(-CAT) %>% 
+                spread(TBL,VAL_LBL) %>% 
+                as.data.frame() %>% 
+                mutate(NAME_FULL = if_else(str_detect(NAME,'SEACCD'),
+                                           NAME,
+                                           str_c('Tract',NAME,sep = ' '))) %>% 
+                set_rownames(extract2(.,'NAME_FULL')) 
+                
+        
+        if(.category %in% 'VULN'){
+                
+                popup_tbl_df <- 
+                        popup_tbl_df %>% 
+                        as.data.frame(check.names = FALSE) %>% 
+                        select('#' = matches('CNT'),
+                               '%' = matches('PCT'),
+                               '#' = matches('TOT')
+                        )  %>% as.data.frame(check.names = FALSE)
+                
+                
+                n.cgroup <- c(2,1)
+                align_cgroup <- paste(rep('c',3),collapse='')
+                
+                
+        }else{
+                
+                popup_tbl_df <- 
+                        popup_tbl_df %>% 
+                        as.data.frame(check.names = FALSE) %>% 
+                        select('#' = matches('CNT_2009'),
+                               '%' = matches('PCT_2009'),
+                               '#' = matches('TOT_2009'),
+                               '#' = matches('CNT_2015'),
+                               '%' = matches('PCT_2015'),
+                               '#' = matches('TOT_2015'),
+                               '%' = matches('CHNG')
+                        ) %>% as.data.frame(check.names = FALSE)
+                
+                n.cgroup <- c(3,3,1)
+                align_cgroup <- paste(rep('c',7),collapse='')
+                
+        }
+        
+        
+        seaccd_row <- which(rownames(popup_tbl_df) %in% 'SEACCD')[[1]]
+        
+        cgroup <-  .tbl_cols
+        
+        
+        
+        
+        n.cgroup 
+        
+        lapply(seq_along(1:nrow(popup_tbl_df)), 
+                                        function(n){
+                                                tibble('NAME' = popup_tbl_df %>% rownames() %>% extract2(n) %>% str_replace('Tract ' ,''),
+                                                       'CATEGORY' = .category,
+                                                       'TOPIC' = .topic,
+                                                       'POPUP' = htmlTable::htmlTable(popup_tbl_df[c(n,seaccd_row),],
+                                                                                      cgroup = cgroup,
+                                                                                      n.cgroup = n.cgroup,
+                                                                                      align = 'r',
+                                                                                      align.cgroup = align_cgroup))
+                                        } 
+               )[!rownames(popup_tbl_df) %in% 'SEACCD'] %>% 
+                reduce(bind_rows)
+                
+        
+        # tibble('NAME' = rownames(popup_tbl_df)[[row]],
+        #        'CATEGORY' = .category,
+        #        'TOPIC' = .topic,
+        #        'popup' = htmlTable::htmlTable(popup_tbl_df[c(row,seaccd_row),],
+        #                                       cgroup = cgroup,
+        #                                       n.cgroup = n.cgroup))[!rownames(popup_tbl_df) %in% 'SEACCD',]
+        
+        # lapply(seq_along(1:nrow(popup_tbl_df)), 
+        #                          function(row) htmlTable::htmlTable(popup_tbl_df[c(row,seaccd_row),],
+        #                                                             cgroup = cgroup,
+        #                                                             n.cgroup = n.cgroup))[!rownames(popup_tbl_df) %in% 'SEACCD']
+               
+        
+        
+}
+        
+        # Pass a tibble of parameters to the `map` function. 
+        # The make_popup_table function will be applied recursively to these parameters,
+        # resulting in one set of popup tables for each indicator type and topic.
+        
+        tibble(
+                'category' = c(rep(c('DEMO'),4),
+                               rep(c('VULN'),4)),
+                'topic' = rep(c('B03002',
+                                'B15002',
+                                'B19001',
+                                'B25033'),2),
+                'tbl_cols' = list(
+                        c('2009','2015','Change'),
+                        c('2009','2015','Change'),
+                        c('2009','2015','Change'),
+                        c('2009','2015','Change'),
+                        c('PoC','Tot. Pop.'),
+                        c('l/t BA','Tot. +25'),
+                        c('Low Inc','Tot. HH'),
+                        c('Rent','Tot. HU')
+                )
+        ) %>% 
+                invoke_rows(list,.,.to = 'RESULT') %>% 
+                extract2('RESULT') %>% 
+                map(
+                        ~ make_popup_tbl(.category = extract2(.x,'category'),
+                                         .topic = extract2(.x,'topic'),
+                                         .tbl_cols = extract2(.x,'tbl_cols'))
+                ) %>% 
+                reduce(bind_rows) %>% 
+                mutate(POPUP = map(POPUP, ~ as(.x,'htmlTable'))) %>% 
+                unite(CAT_TOP, CATEGORY,TOPIC, sep = '_') %>% 
+                mutate(CAT_TOP = paste0(CAT_TOP,'_POPUP')) %>% 
+                spread(CAT_TOP,POPUP) %>% 
+                write_rds(root_file('./1-data/4-interim/htmltable-popups.rds'))
+}
+
+```
+
+```{r make-acs-maps-data}
+
+if(!exists('tbl_popup')){
+        tbl_popup <- read_rds(root_file('./1-data/4-interim/htmltable-popups.rds')) %>% 
+                gather(TBL,POPUP,-NAME) %>% 
+                mutate(CAT_TOP = str_replace_all(TBL,'_POPUP','')) %>% 
+                select(-TBL)
+}
+
+if(!file.exists(root_file('./1-data/4-interim/coo-acs-inds-map-sf.rds'))){
+        inds %>% 
+                filter(GEOGRAPHY %in% c('tract','county subdivision')) %>% 
+                filter(SEACCD_LGL|NAME %in% 'SEACCD') %>% 
+                select(NAME,GEOGRAPHY,matches('EST')) %>% 
+                select(-matches('VULN_CNT_2009|VULN_PCT_2009|SEACCD')) %>% 
+                mutate(row = 1:nrow(.)) %>% 
+                gather(TBL,VAL,-NAME,-GEOGRAPHY,-geometry,-row) %>% 
+                mutate(CAT = str_sub(TBL,1,4) %>% str_replace('_',''),
+                       TOPIC = str_extract(TBL,'B[[:digit:]]{5}'),
+                       CAT_TOP = str_c(CAT,TOPIC,sep = '_')) %>% 
+                filter(str_detect(TBL, 'DEMO_CHNG_PCT|VULN_PCT')) %>% 
+                left_join(tbl_popup, by = c('NAME','CAT_TOP')) %>% 
+                write_rds(root_file('./1-data/4-interim/coo-acs-inds-map-sf.rds'))
+}
+
+
+```
+
+```{r make-acs-maps-fun}
+
+if(!file.exists(root_file('./1-data/4-interim/make-acs-map-fun.rds'))){
+        make_acs_map <- function(long_sf,.geog,.category,.topic,.pal,.legend_title){
+        
+        # browser()
+        
+        data <- 
+                long_sf %>% 
+                filter(GEOGRAPHY %in% .geog) %>% 
+                filter(CAT %in% .category) %>% 
+                filter(TOPIC %in% .topic) 
+        
+        
+        pal <- colorNumeric(.pal,data$VAL)
+                        
+        myLfltGrey() %>%
+                myLfltOpts() %>%
+                addPolygons(data = as(data,'Spatial'),
+                            fillOpacity = .75,
+                            fillColor = ~pal(VAL),
+                            color = col2hex('white'),
+                            opacity = 1,
+                            weight = .5,
+                            smoothFactor = 0,
+                            popup = ~POPUP) %>%
+                addLegend(title = .legend_title,
+                          position = 'topright',
+                          pal = pal,
+                          values = data %>% extract2('VAL'),
+                          opacity = .75,
+                          labFormat = labelFormat(suffix = '%',transform = function(x) 100 * x)) %>%
+                styleWidget(style = "text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF")       
+        
+        
+        }
+        
+        make_acs_map %>% write_rds(root_file('./1-data/4-interim/make-acs-map-fun.rds'))
+        
+}
+
+
+# Examples
+
+# make_acs_map <- read_rds(root_file('./1-data/4-interim/make-acs-map-fun.rds'))
+# 
+# map_data_sf <- read_rds(root_file('./1-data/4-interim/coo-acs-inds-map-sf.rds'))
+# 
+# make_acs_map(long_sf = map_data_sf,
+#              .geog = 'tract',
+#              .category = 'VULN',
+#              .topic = 'B03002',
+#              .pal = 'plasma',
+#              .legend_title = "SHARE OF<br>PEOPLE OF COLOR<hr>2011-2015")
+# 
+# make_acs_map(long_sf = map_data_sf,
+#              .geog = 'tract',
+#              .category = 'DEMO',
+#              .topic = 'B03002',
+#              .pal = div_pal,
+#              .legend_title = "CHANGE IN SHARE<br>PEOPLE OF COLOR<hr>2009-2015")
+
+
+```
+

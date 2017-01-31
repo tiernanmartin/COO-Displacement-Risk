@@ -1,6 +1,6 @@
 if(!exists('inds')){inds <- read_rds(root_file('./1-data/5-tidy/coo-acs-inds-not-acs-sf.rds'))}
 
-inds %>% unclass %>% as_tibble() %>% View
+# inds %>% unclass %>% as_tibble() %>% View
 
 # make_lbl <- function(x){
 #         
@@ -54,7 +54,10 @@ make_popup_tbl <- function(.category,.topic,.tbl_cols){
                 select(-CAT) %>% 
                 spread(TBL,VAL_LBL) %>% 
                 as.data.frame() %>% 
-                set_rownames(extract2(.,'NAME')) 
+                mutate(NAME_FULL = if_else(str_detect(NAME,'SEACCD'),
+                                           NAME,
+                                           str_c('Tract',NAME,sep = ' '))) %>% 
+                set_rownames(extract2(.,'NAME_FULL')) 
                 
         
         if(.category %in% 'VULN'){
@@ -69,6 +72,7 @@ make_popup_tbl <- function(.category,.topic,.tbl_cols){
                 
                 
                 n.cgroup <- c(2,1)
+                align_cgroup <- paste(rep('c',3),collapse='')
                 
                 
         }else{
@@ -86,7 +90,7 @@ make_popup_tbl <- function(.category,.topic,.tbl_cols){
                         ) %>% as.data.frame(check.names = FALSE)
                 
                 n.cgroup <- c(3,3,1)
-                
+                align_cgroup <- paste(rep('c',7),collapse='')
                 
         }
         
@@ -102,12 +106,14 @@ make_popup_tbl <- function(.category,.topic,.tbl_cols){
         
         lapply(seq_along(1:nrow(popup_tbl_df)), 
                                         function(n){
-                                                tibble('NAME' = rownames(popup_tbl_df)[[n]],
+                                                tibble('NAME' = popup_tbl_df %>% rownames() %>% extract2(n) %>% str_replace('Tract ' ,''),
                                                        'CATEGORY' = .category,
                                                        'TOPIC' = .topic,
                                                        'POPUP' = htmlTable::htmlTable(popup_tbl_df[c(n,seaccd_row),],
                                                                                       cgroup = cgroup,
-                                                                                      n.cgroup = n.cgroup))
+                                                                                      n.cgroup = n.cgroup,
+                                                                                      align = 'r',
+                                                                                      align.cgroup = align_cgroup))
                                         } 
                )[!rownames(popup_tbl_df) %in% 'SEACCD'] %>% 
                 reduce(bind_rows)

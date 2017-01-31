@@ -55,9 +55,18 @@ make_acs_map <- function(long_sf,.geog,.category,.topic,.pal,.legend_title){
 }
 
 
+div_pal <- brewer.pal(11,'Spectral')[2:10]
+
 make_acs_map(long_sf = map_data,
              .geog = 'tract',
              .category = 'VULN',
              .topic = 'B03002',
              .pal = 'plasma',
+             .legend_title = "SHARE OF<br>PEOPLE OF COLOR<hr>2011-2015")
+
+make_acs_map(long_sf = map_data,
+             .geog = 'tract',
+             .category = 'DEMO',
+             .topic = 'B03002',
+             .pal = div_pal,
              .legend_title = "CHANGE IN SHARE<br>PEOPLE OF COLOR<hr>2009-2015")
