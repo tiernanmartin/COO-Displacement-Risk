@@ -1,7 +1,7 @@
 Project Description
 ================
 Tiernan Martin, [Futurewise](http://www.futurewisewa.org/)
-Last updated: 03 December, 2016
+Last updated: 01 February, 2017
 
 ### Usage Notes
 
@@ -17,11 +17,13 @@ This repository contains the data, scripts, and outputs for the Displacement Ris
     │   ├── 3-external
     │   │   └── manual
     │   ├── 4-interim
+    │   │   └── archive
+    │   │   └── tmp
     │   └── 5-tidy
     ├── 2-analysis
     ├── 3-communication
-    │   ├── 1-bookdown
-    │   │   ├── _book           <- contains the bookdown document render script
+    │   ├── 1-bookdown          <- contains the bookdown document render script
+    │   │   ├── _book 
     │   │   ├── css
     │   │   ├── images
     │   │   └── latex

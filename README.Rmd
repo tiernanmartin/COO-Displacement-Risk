@@ -1,7 +1,7 @@
 ---
 title: "Project Description"
 author: "Tiernan Martin, [Futurewise](http://www.futurewisewa.org/)"
-date: 'Last updated: `r format.Date(x = "2016-12-03", "%d %B, %Y")`'
+date: 'Last updated: `r format.Date(x = "2017-02-01", "%d %B, %Y")`'
 output: github_document
 ---
 
