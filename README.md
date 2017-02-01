@@ -1,7 +1,7 @@
 Project Description
 ================
 Tiernan Martin, [Futurewise](http://www.futurewisewa.org/)
-Last updated: 01 February, 2017
+| Last updated: 01 February, 2017
 
 ### Usage Notes
 
