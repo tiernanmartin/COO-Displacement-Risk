@@ -239,6 +239,9 @@ if(!file.exists(root_file('./1-data/4-interim/acs_norml_all_geoms_sf.rds'))){
                                                     'county subdivision',
                                                     'county'),
                                          ordered = TRUE)) %>% 
+                mutate(SEACCD_LGL = if_else(NAME %in% c('SEACCD','COO','RV','WC','STKW'),
+                                            TRUE,
+                                            SEACCD_LGL)) %>% 
                 select(NAME:SEACCD_LGL,GEOGRAPHY,GEOG_FCT,geometry,matches('2015'),matches('2009')) 
         
         acs_norml_all_geoms_sf %>% 

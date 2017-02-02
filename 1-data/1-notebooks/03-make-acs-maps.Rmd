@@ -60,7 +60,6 @@ proj_dark_grey <- col2hex("grey25")
 div_pal <- brewer.pal(11,'Spectral')[2:10]
 ```
 
-
 ```{r make-acs-maps-htmlTable}
 
 if(!exists('inds')){inds <- read_rds(root_file('./1-data/5-tidy/coo-acs-inds-not-acs-sf.rds'))}
@@ -78,8 +77,8 @@ if(!file.exists(root_file('./1-data/4-interim/htmltable-popups.rds'))){
                 inds %>% 
                 unclass %>% 
                 as_tibble() %>% 
-                filter(GEOGRAPHY %in% c('tract','county subdivision')) %>% 
-                filter(SEACCD_LGL|NAME %in% 'SEACCD') %>% 
+                filter(GEOGRAPHY %in% c('tract','community','county subdivision')) %>% 
+                filter(SEACCD_LGL|NAME %in% c('SEACCD','COO','RV','WC','STKW')) %>% 
                 group_by(GEOGRAPHY) 
         
         if(.category %in% 'VULN'){
@@ -114,7 +113,7 @@ if(!file.exists(root_file('./1-data/4-interim/htmltable-popups.rds'))){
                 select(-CAT) %>% 
                 spread(TBL,VAL_LBL) %>% 
                 as.data.frame() %>% 
-                mutate(NAME_FULL = if_else(str_detect(NAME,'SEACCD'),
+                mutate(NAME_FULL = if_else(NAME %in% c('SEACCD','COO','RV','WC','STKW'),
                                            NAME,
                                            str_c('Tract',NAME,sep = ' '))) %>% 
                 set_rownames(extract2(.,'NAME_FULL')) 
@@ -198,7 +197,7 @@ if(!file.exists(root_file('./1-data/4-interim/htmltable-popups.rds'))){
         # Pass a tibble of parameters to the `map` function. 
         # The make_popup_table function will be applied recursively to these parameters,
         # resulting in one set of popup tables for each indicator type and topic.
-        
+       
         tibble(
                 'category' = c(rep(c('DEMO'),4),
                                rep(c('VULN'),4)),
@@ -245,16 +244,17 @@ if(!exists('tbl_popup')){
 
 if(!file.exists(root_file('./1-data/4-interim/coo-acs-inds-map-sf.rds'))){
         inds %>% 
-                filter(GEOGRAPHY %in% c('tract','county subdivision')) %>% 
-                filter(SEACCD_LGL|NAME %in% 'SEACCD') %>% 
-                select(NAME,GEOGRAPHY,matches('EST')) %>% 
+                filter(GEOGRAPHY %in% c('tract','community','county subdivision')) %>% 
+                filter(SEACCD_LGL|NAME %in% c('SEACCD','COO','RV','WC','STKW')) %>% 
+                select(NAME,GEOGRAPHY,COMMUNITY,matches('EST')) %>% 
                 select(-matches('VULN_CNT_2009|VULN_PCT_2009|SEACCD')) %>% 
                 mutate(row = 1:nrow(.)) %>% 
-                gather(TBL,VAL,-NAME,-GEOGRAPHY,-geometry,-row) %>% 
+                gather(TBL,VAL,-NAME,-GEOGRAPHY,-COMMUNITY,-geometry,-row) %>% 
                 mutate(CAT = str_sub(TBL,1,4) %>% str_replace('_',''),
                        TOPIC = str_extract(TBL,'B[[:digit:]]{5}'),
                        CAT_TOP = str_c(CAT,TOPIC,sep = '_')) %>% 
                 filter(str_detect(TBL, 'DEMO_CHNG_PCT|VULN_PCT')) %>% 
+                st_cast('MULTIPOLYGON') %>% 
                 left_join(tbl_popup, by = c('NAME','CAT_TOP')) %>% 
                 write_rds(root_file('./1-data/4-interim/coo-acs-inds-map-sf.rds'))
 }
@@ -304,26 +304,35 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-map-fun.rds'))){
 }
 
 
-# Examples
+```
 
-# make_acs_map <- read_rds(root_file('./1-data/4-interim/make-acs-map-fun.rds'))
-# 
-# map_data_sf <- read_rds(root_file('./1-data/4-interim/coo-acs-inds-map-sf.rds'))
-# 
-# make_acs_map(long_sf = map_data_sf,
-#              .geog = 'tract',
-#              .category = 'VULN',
-#              .topic = 'B03002',
-#              .pal = 'plasma',
-#              .legend_title = "SHARE OF<br>PEOPLE OF COLOR<hr>2011-2015")
-# 
-# make_acs_map(long_sf = map_data_sf,
-#              .geog = 'tract',
-#              .category = 'DEMO',
-#              .topic = 'B03002',
-#              .pal = div_pal,
-#              .legend_title = "CHANGE IN SHARE<br>PEOPLE OF COLOR<hr>2009-2015")
+```{r make-acs-maps-examples, eval=FALSE}
 
+
+make_acs_map <- read_rds(root_file('./1-data/4-interim/make-acs-map-fun.rds'))
+
+map_data_sf <- read_rds(root_file('./1-data/4-interim/coo-acs-inds-map-sf.rds'))
+
+make_acs_map(long_sf = map_data_sf,
+             .geog = 'tract',
+             .category = 'VULN',
+             .topic = 'B03002',
+             .pal = 'plasma',
+             .legend_title = "SHARE OF<br>PEOPLE OF COLOR<hr>2011-2015")
+
+make_acs_map(long_sf = map_data_sf %>% filter(!is.na(COMMUNITY)),
+             .geog = 'tract',
+             .category = 'VULN',
+             .topic = 'B03002',
+             .pal = 'plasma',
+             .legend_title = "SHARE OF<br>PEOPLE OF COLOR<hr>2011-2015")
+
+make_acs_map(long_sf = map_data_sf,
+             .geog = 'community',
+             .category = 'DEMO',
+             .topic = 'B03002',
+             .pal = div_pal,
+             .legend_title = "CHANGE IN SHARE<br>PEOPLE OF COLOR<hr>2009-2015")
 
 ```
 

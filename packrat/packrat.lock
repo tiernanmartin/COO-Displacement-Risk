@@ -5,8 +5,8 @@ Repos: CRAN=https://cran.rstudio.com/
 
 Package: BH
 Source: CRAN
-Version: 1.60.0-2
-Hash: be2967bcff307e561d9ba17faf03205c
+Version: 1.62.0-1
+Hash: 14dfb3e8ffe20996118306ff4de1fab2
 
 Package: DBI
 Source: CRAN
@@ -88,6 +88,17 @@ Package: base64enc
 Source: CRAN
 Version: 0.1-3
 Hash: c590d29e555926af053055e23ee79efb
+
+Package: bindr
+Source: CRAN
+Version: 0.1
+Hash: e3a02070cf705d3ad1c5af1635a515a3
+
+Package: bindrcpp
+Source: CRAN
+Version: 0.1
+Hash: 79a7f9d3b93be0f3e42167138ba0c9a9
+Requires: Rcpp, bindr, plogr
 
 Package: bitops
 Source: CRAN
@@ -196,10 +207,15 @@ Hash: c99f05ffa816e03ece87b37ea9d4f0ed
 Requires: digest
 
 Package: dplyr
-Source: CRAN
-Version: 0.5.0
-Hash: fd282da553f66376f85a0539c51db030
-Requires: BH, DBI, R6, Rcpp, assertthat, lazyeval, magrittr, tibble
+Source: github
+Version: 0.5.0.9000
+Hash: d118f4e584c19d636ddea62abc3c687b
+Requires: BH, DBI, R6, Rcpp, assertthat, bindrcpp, lazyeval, magrittr,
+    plogr, tibble
+GithubRepo: dplyr
+GithubUsername: hadley
+GithubRef: master
+GithubSha1: 8aa1bdb8fe95b741fb9411dbccd1b3af2f631dfc
 
 Package: evaluate
 Source: CRAN
@@ -304,7 +320,7 @@ Hash: 471b2e2452dfb30fdc1dd6f1b567925a
 Package: haven
 Source: CRAN
 Version: 0.2.1
-Hash: e5baa4c9c03f45f76f4a48bba014b547
+Hash: eae571ae642371818ccce7e28c3c5048
 Requires: BH, Rcpp
 
 Package: highr
@@ -492,6 +508,11 @@ Source: CRAN
 Version: 0.4.8-1
 Hash: 6ad605ba7b4b476d84be6632393f5765
 
+Package: plogr
+Source: CRAN
+Version: 0.1-1
+Hash: fb19215402e2d9f1c7f803dcaa806fc2
+
 Package: plyr
 Source: CRAN
 Version: 1.8.4
@@ -527,7 +548,7 @@ Requires: foreign, mnormt
 Package: purrr
 Source: CRAN
 Version: 0.2.2
-Hash: c4245956f9f6aefbc5f13c575036dde1
+Hash: 77449696404b3bdffa701dbb981158c6
 Requires: BH, Rcpp, dplyr, lazyeval, magrittr
 
 Package: quadprog
@@ -549,7 +570,7 @@ Requires: Rcpp, sp
 Package: readr
 Source: CRAN
 Version: 1.0.0
-Hash: a4a59750c17b197e18cc52606eea068d
+Hash: 0c188164192ddfd595c8d6b4812a89ff
 Requires: BH, R6, Rcpp, curl, hms, tibble
 
 Package: readxl
@@ -661,12 +682,12 @@ Requires: httpuv, jsonlite, mime
 Package: sf
 Source: github
 Version: 0.3-2
-Hash: 892cd2a5e5d05b8c3cb1266765c2cab6
+Hash: 458dee97ec87ba0b63b59b0936f96dca
 Requires: DBI, Rcpp, units
 GithubRepo: sfr
 GithubUsername: edzer
 GithubRef: master
-GithubSha1: 88e053dd1770d598a34b94934fdac627c4d729f2
+GithubSha1: b7e476c34191823292bd51feb6917ea8c82ad695
 
 Package: shiny
 Source: CRAN
@@ -793,7 +814,7 @@ Hash: 774eb7be9087cdc24b53b74e5359cfac
 Package: xml2
 Source: CRAN
 Version: 1.0.0
-Hash: 94e74539e391da8899c79f77750dc8bc
+Hash: 65e9398e9888d5cd5fbf87921f42a0e7
 Requires: BH, Rcpp
 
 Package: xtable
