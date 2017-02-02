@@ -246,10 +246,10 @@ if(!file.exists(root_file('./1-data/4-interim/coo-acs-inds-map-sf.rds'))){
         inds %>% 
                 filter(GEOGRAPHY %in% c('tract','community','county subdivision')) %>% 
                 filter(SEACCD_LGL|NAME %in% c('SEACCD','COO','RV','WC','STKW')) %>% 
-                select(NAME,GEOGRAPHY,COMMUNITY,matches('EST')) %>% 
+                select(NAME,NAME_FULL,GEOGRAPHY,COMMUNITY,matches('EST')) %>% 
                 select(-matches('VULN_CNT_2009|VULN_PCT_2009|SEACCD')) %>% 
-                mutate(row = 1:nrow(.)) %>% 
-                gather(TBL,VAL,-NAME,-GEOGRAPHY,-COMMUNITY,-geometry,-row) %>% 
+                mutate(row = row_number()) %>% 
+                gather(TBL,VAL,-NAME,-NAME_FULL,-GEOGRAPHY,-COMMUNITY,-geometry,-row) %>% 
                 mutate(CAT = str_sub(TBL,1,4) %>% str_replace('_',''),
                        TOPIC = str_extract(TBL,'B[[:digit:]]{5}'),
                        CAT_TOP = str_c(CAT,TOPIC,sep = '_')) %>% 
@@ -275,8 +275,23 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-map-fun.rds'))){
                 filter(CAT %in% .category) %>% 
                 filter(TOPIC %in% .topic) 
         
+        data_all_geogs <- long_sf %>% filter(CAT %in% .category & TOPIC %in% .topic)
         
-        pal <- colorNumeric(.pal,data$VAL)
+        # Create outlines and labels for the COO communities
+
+        comm_cnt_sp <- 
+                data_all_geogs %>% 
+                filter(GEOGRAPHY %in% 'community') %>% 
+                mutate(geometry = st_centroid(geometry)) %>%
+                as("Spatial")
+        
+        comm_bounds_sp <- 
+                data_all_geogs %>% 
+                filter(GEOGRAPHY %in% 'community') %>%
+                as("Spatial") %>% 
+                as("SpatialLines")
+        
+        pal <- colorNumeric(.pal,data_all_geogs$VAL)
                         
         myLfltGrey() %>%
                 myLfltOpts() %>%
@@ -288,10 +303,23 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-map-fun.rds'))){
                             weight = .5,
                             smoothFactor = 0,
                             popup = ~POPUP) %>%
+                addPolylines(data = comm_bounds_sp,
+                             fillOpacity = 0,
+                             color = proj_dark_grey,
+                             opacity = 1,
+                             weight = 2,
+                             smoothFactor = 0) %>%
+                addAwesomeMarkers(data = comm_cnt_sp,
+                                  options = markerOptions(opacity = 0),
+                                  label = ~ NAME_FULL, 
+                                  labelOptions = labelOptions(noHide = TRUE,
+                                                              offset = c(0,0),
+                                                              direction = 'auto', 
+                                                              textOnly = TRUE)) %>% 
                 addLegend(title = .legend_title,
                           position = 'topright',
                           pal = pal,
-                          values = data %>% extract2('VAL'),
+                          values = data_all_geogs %>% extract2('VAL'),
                           opacity = .75,
                           labFormat = labelFormat(suffix = '%',transform = function(x) 100 * x)) %>%
                 styleWidget(style = "text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF")       
