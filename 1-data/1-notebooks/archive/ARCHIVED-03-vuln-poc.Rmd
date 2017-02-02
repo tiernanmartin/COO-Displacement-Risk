@@ -1,0 +1,330 @@
+---
+df_print: tibble
+output:
+  html_notebook:
+    code_folding: hide
+  pdf_document:
+    keep_tex: yes
+always_allow_html: yes
+---
+
+```{r vuln-poc-setup, echo = FALSE, warning=FALSE,message=FALSE,comment=FALSE}
+library(plyr)
+library(scales)
+library(knitr)
+library(rprojroot)
+library(rgdal)
+library(sp)
+library(rgeos)
+library(tigris)
+library(leaflet)
+library(gridExtra)
+library(ggthemes)
+library(magrittr)
+library(stringr)
+library(downloader)
+library(webshot)
+library(htmltools)
+library(gplots)
+library(ggmap)
+library(shiny)
+library(htmlwidgets)
+library(readxl)
+library(acs)
+library(RColorBrewer)
+library(tidyverse)
+library(miscgis)
+library(operator.tools)
+library(leaflet.extras)
+library(viridisLite)
+library(htmlTable)
+library(sf)
+root <- rprojroot::is_rstudio_project
+root_file <- root$make_fix_file()
+opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
+```
+
+```{r vuln-poc-colors}
+green <- miscgis::miscgis_pals$tableau_cat[["green"]]
+blue <- miscgis::miscgis_pals$tableau_cat[["blue"]]
+orange <- miscgis::miscgis_pals$tableau_cat[["orange"]]
+red <- miscgis::miscgis_pals$tableau_cat[["red"]]
+teal <- miscgis::miscgis_pals$tableau_cat[["teal"]]
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+proj_light_grey <- col2hex("grey75")
+proj_grey <- col2hex("grey50")
+proj_dark_grey <- col2hex("grey25")
+```
+
+### Race: People Belonging to Communities of Color {-}
+
+```{r vuln-poc-acs, fig.cap= 'Population Belonging to A Community of Color (%), King County Census Tracts, 2010-2014' }
+
+# Download the Census table for the project's geographies
+# -----------------------------------------------------------------------------
+
+coo_geo_acs <- read_rds(root_file('1-data/4-interim/coo-geo-acs.rds'))
+
+vuln_poc_tbl <- "B03002"  # census table code
+
+if(!file.exists(root_file('1-data/4-interim/vuln-poc-orig-acs.rds'))){
+        
+        acs.fetch(endyear = 2014, geography = coo_geo_acs, 
+                  table.number = vuln_poc_tbl) %>%
+                write_rds(root_file('1-data/4-interim/vuln-poc-orig-acs.rds'))
+        
+}
+
+vuln_poc_orig_acs <- read_rds(root_file('1-data/4-interim/vuln-poc-orig-acs.rds'))
+
+
+# Process and save the data
+# -----------------------------------------------------------------------------
+
+if(!file.exists(root_file('1-data/4-interim/vuln-poc-acs.rds'))){
+        vuln_poc_acs1 <- vuln_poc_orig_acs
+        
+        vuln_poc_tbl_guide <- 
+                data.frame(terse = acs.colnames(vuln_poc_acs1),
+                       pretty = acs.colnames(acs.fetch(endyear = 2014, 
+                          geography = geo.make(us = TRUE), 
+                          table.number = vuln_poc_tbl,col.names = 'pretty')))
+        # Pull out the specific columns that are important
+        
+        get_col <- function(pattern){
+                vuln_poc_tbl_guide %>% filter(str_detect(pretty,pattern)) %>% select(terse) %>% unlist(use.names = FALSE) %>% as.character()
+        }
+        
+        total <- get_col('Total')
+        
+        white_not_hisp <- get_col('Not Hispanic or Latino: White alone')
+        
+        # Subtract white non-hispanic pop. from the total pop. (difference is the POC pop.)
+        
+        vuln_poc_acs2 <- vuln_poc_acs1[, total] - vuln_poc_acs1[, white_not_hisp] 
+        
+        vuln_poc_total_acs <- vuln_poc_acs1[, total]
+        
+        acs.colnames(vuln_poc_total_acs) <- "POP_TOTAL_CNT"
+                        
+        acs.colnames(vuln_poc_acs2) <- "POC_CNT"
+                        
+        vuln_poc_acs3 <- cbind(vuln_poc_acs1, vuln_poc_acs2)
+        
+        # Find the proportion of People of Color to the Total population
+        
+        acs_col_pct_poc <-  
+                acs::apply(X = vuln_poc_acs3[,'POC_CNT'],
+                           MARGIN = 1,
+                           FUN = divide.acs,
+                           denominator = vuln_poc_acs3[,total],
+                           method = "proportion",
+                           verbose = FALSE)
+        acs.colnames(acs_col_pct_poc) <- 'POC_PCT'
+        
+        vuln_poc_acs <- Reduce('cbind',c(acs_col_pct_poc,vuln_poc_acs2,vuln_poc_total_acs))
+        
+        # Save the object
+
+vuln_poc_acs %>% saveRDS(root_file('1-data/4-interim/vuln-poc-acs.rds'))
+}
+
+vuln_poc_acs <- read_rds(root_file('1-data/4-interim/vuln-poc-acs.rds'))
+
+
+# Plot the data
+# -----------------------------------------------------------------------------
+
+# Plot
+
+myAcsPlot(acs = vuln_poc_acs,
+          sort_fun = estimate,
+          col = 'POC_PCT',
+          ylab = 'People of Color (%)',
+          .pct = TRUE)
+
+
+```
+
+```{r vuln-poc-sf}
+
+if(!file.exists(root_file('1-data/4-interim/vuln-poc-sf.rds'))){
+        # Read in the `sf` object and re-order the records to by `JOIN_ID` 
+# -----------------------------------------------------------------------------
+
+coo_geos_sf <- 
+        read_rds(root_file('1-data/4-interim/coo-geos-sf.rds'))
+
+#
+# Convert the `acs` object into a dataframe, join to sf object
+# -----------------------------------------------------------------------------
+
+coo_vuln_poc_sf <- 
+        data.frame(
+                geography(vuln_poc_acs)["NAME"],
+                geography(vuln_poc_acs)["tract"],
+                estimate(vuln_poc_acs), 
+                1.645 * standard.error(vuln_poc_acs)) %>% 
+        `colnames<-`(., c("NAME","GEOID6", "POC_PCT_EST","POC_CNT_EST","POP_TOTAL_CNT_EST","POC_PCT_MOE","POC_CNT_MOE","POP_TOTAL_CNT_MOE")) %>% 
+        mutate(JOIN_ID = case_when(.$NAME %in% 'King County, Washington' ~ 'KC',
+                                   .$NAME %in% 'Seattle CCD, King County, Washington' ~ 'SEACCD',
+                                   !is.na(.$GEOID6) ~ .$GEOID6)) %>%
+        gather(VAR_TYPE,VALUE, matches('EST|MOE')) %>% 
+        mutate(VAR = str_replace_all(VAR_TYPE,'_EST|_MOE',''),
+               TYPE = str_extract_all(VAR_TYPE,'EST|MOE',simplify = FALSE) %>% unlist(use.names = FALSE)) %>%
+        spread(TYPE,VALUE) %>%
+        arrange(NAME,VAR) %>%
+        group_by(NAME,VAR) %>% 
+        select(-VAR_TYPE) %>% 
+        summarise_all(first_not_na) %>% 
+        mutate(UPPER = EST + MOE,
+               LOWER = EST - MOE) %>%
+        ungroup %>% 
+        gather(TYPE,VAL,EST:LOWER) %>% 
+        mutate(VAR_TYPE = paste(VAR,TYPE,sep = "_")) %>% 
+        arrange(VAR_TYPE) %>% 
+        spread(VAR_TYPE,VAL) %>% 
+        group_by(NAME,VAR) %>% 
+        summarise_all(first_not_na) %>% 
+        ungroup %>% 
+        select(-VAR,-TYPE) %>% 
+        group_by(NAME) %>% 
+        summarise_all(first_not_na) %>% 
+        select(JOIN_ID,
+               matches('POC_PCT'),
+               matches('POC_CNT'),
+               everything(),
+               -NAME,-GEOID6) %>% as.data.frame() %>% 
+        full_join(coo_geos_sf,by = 'JOIN_ID') %>% 
+        st_sf()
+
+#
+# Save the object
+# -----------------------------------------------------------------------------
+coo_vuln_poc_sf %>% write_rds(root_file('1-data/4-interim/vuln-poc-sf.rds'))
+}
+
+coo_vuln_poc_sf <-  read_rds(root_file('1-data/4-interim/vuln-poc-sf.rds'))
+
+
+```
+
+#### Maps {-}
+
+These maps show the proportion of the population that belongs to a community of color for each census tract in Seattle CCD.
+
+##### Seattle CCD {-}
+```{r vuln-poc-seaccd-map}
+
+tr <- 
+        coo_vuln_poc_sf %>% 
+        filter(GEOGRAPHY == 'tract' & SEACCD_LGL)
+
+seaccd_row <- which(coo_vuln_poc_sf$JOIN_ID %in% 'SEACCD')[[1]]
+
+my_pct <- function(x) round_any(x*100,1) %>% paste0("%")
+
+popup_tbl_df <- 
+        coo_vuln_poc_sf %>%
+        mutate(POC_PCT_EST = my_pct(POC_PCT_EST),
+               POC_CNT_EST = scales::comma(POC_CNT_EST),
+               POP_TOTAL_CNT_EST = scales::comma(POP_TOTAL_CNT_EST)) %>% 
+        select(-geometry) %>% 
+        select('%' = POC_PCT_EST,
+               '#' = POC_CNT_EST,
+               '#' = POP_TOTAL_CNT_EST) %>% 
+        as.data.frame(check.names = FALSE) %>% 
+        `row.names<-`(coo_vuln_poc_sf$JOIN_ID)
+
+if(!file.exists(root_file('1-data/4-interim/vuln-poc-seaccd-popup-tbl.rds'))){
+        lapply(seq_along(1:nrow(popup_tbl_df)), 
+                    function(row) htmlTable::htmlTable(popup_tbl_df[c(row,seaccd_row),],
+                                                                               cgroup = c("PoC", "Total Pop."),n.cgroup = c(2,1)))[coo_vuln_poc_sf$GEOGRAPHY %in% 'tract' & coo_vuln_poc_sf$SEACCD_LGL] %>% 
+                write_rds(root_file('1-data/4-interim/vuln-poc-seaccd-popup-tbl.rds'))
+}
+
+if(!file.exists(root_file('1-data/4-interim/vuln-poc-comm-popup-tbl.rds'))){
+        lapply(seq_along(1:nrow(popup_tbl_df)), 
+                    function(row) htmlTable::htmlTable(popup_tbl_df[c(row,seaccd_row),],
+                                                                               cgroup = c("PoC", "Total Pop."),n.cgroup = c(2,1)))[coo_vuln_poc_sf$GEOGRAPHY %in% 'tract' & coo_vuln_poc_sf$SEACCD_LGL &!is.na(coo_vuln_poc_sf$NAME)] %>% 
+                write_rds(root_file('1-data/4-interim/vuln-poc-comm-popup-tbl.rds'))
+}
+
+popup_tbl_seaccd <- read_rds(root_file('1-data/4-interim/vuln-poc-seaccd-popup-tbl.rds'))
+        
+tr_comm <- 
+        coo_vuln_poc_sf %>% 
+        filter(GEOGRAPHY == 'tract' & SEACCD_LGL &!is.na(NAME))
+
+comm <- coo_vuln_poc_sf %>% 
+        filter(GEOGRAPHY == 'community')
+
+comm_cntr <- comm %>% mutate(geometry = st_centroid(comm))
+
+pal_poc <- colorNumeric(viridis(256, option = "C"),tr$POC_PCT_EST)
+
+comm_bounds <- comm %>% 
+        as("Spatial") %>% 
+        as("SpatialLines")
+
+myLfltGrey() %>%
+        myLfltOpts() %>%
+        addPolygons(data = as(tr,'Spatial'),
+                fillOpacity = .75,
+                fillColor = ~pal_poc(POC_PCT_EST),
+                color = col2hex('white'),
+                opacity = 1,
+                weight = .5,
+                smoothFactor = 0,
+                popup = popup_tbl_seaccd) %>%
+        addPolylines(data = comm_bounds,
+                fillOpacity = 0,
+                color = proj_dark_grey,
+                opacity = 1,
+                weight = 2,
+                smoothFactor = 0) %>%
+        addLabelOnlyMarkers(data = as(comm_cntr, "Spatial"),label = ~ NAME_FULL, labelOptions = labelOptions(noHide = TRUE,direction = 'left', textOnly = TRUE)) %>%
+        addLegend(title = "People of<br>Color",
+                  position = 'topright',
+                  pal = pal_poc,
+                  values = tr$POC_PCT_EST,
+                  opacity = .75,
+                  labFormat = labelFormat(suffix = '%',transform = function(x) 100 * x)) %>%
+        styleWidget(style = "text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF")
+
+```
+
+##### COO Communities {-}
+```{r vuln-poc-comm-map}
+
+popup_tbl_comm <- read_rds(root_file('1-data/4-interim/vuln-poc-comm-popup-tbl.rds'))
+
+myLfltGrey() %>% 
+        myLfltOpts() %>% 
+        addPolygons(data = as(tr_comm,'Spatial'),
+                fillOpacity = .75,
+                fillColor = ~pal_poc(POC_PCT_EST),
+                color = col2hex('white'),
+                opacity = 1,
+                weight = .5,
+                smoothFactor = 0,
+                popup = popup_tbl_comm) %>%
+        addPolylines(data = comm_bounds,
+                fillOpacity = 0,
+                color = proj_dark_grey,
+                opacity = 1,
+                weight = 2,
+                smoothFactor = 0) %>% 
+        addLabelOnlyMarkers(data = as(comm_cntr, "Spatial"),label = ~ NAME_FULL, labelOptions = labelOptions(noHide = TRUE,direction = 'left', textOnly = TRUE)) %>% 
+        addLegend(title = "People of<br>Color",
+                  position = 'topright',
+                  pal = pal_poc, 
+                  values = tr$POC_PCT_EST,
+                  opacity = .75,
+                  labFormat = labelFormat(suffix = '%',transform = function(x) 100 * x)) %>% 
+        styleWidget(style = "text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF")
+
+```
