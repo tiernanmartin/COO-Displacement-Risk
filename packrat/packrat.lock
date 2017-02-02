@@ -682,12 +682,12 @@ Requires: httpuv, jsonlite, mime
 Package: sf
 Source: github
 Version: 0.3-2
-Hash: 458dee97ec87ba0b63b59b0936f96dca
+Hash: 12767df8bbe5552fe09317794482fc1c
 Requires: DBI, Rcpp, units
 GithubRepo: sfr
 GithubUsername: edzer
 GithubRef: master
-GithubSha1: b7e476c34191823292bd51feb6917ea8c82ad695
+GithubSha1: a85d438bf573df86b75dacae493e6ed9aa331b11
 
 Package: shiny
 Source: CRAN
