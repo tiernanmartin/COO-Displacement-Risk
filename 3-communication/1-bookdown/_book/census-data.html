@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html >
+
+<head>
+
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Communities of Opportunity Displacement Risk Assessment</title>
+  <meta name="description" content="This is a report.">
+  <meta name="generator" content="bookdown 0.3.9 and GitBook 2.6.7">
+
+  <meta property="og:title" content="Communities of Opportunity Displacement Risk Assessment" />
+  <meta property="og:type" content="book" />
+  
+  
+  <meta property="og:description" content="This is a report." />
+  
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Communities of Opportunity Displacement Risk Assessment" />
+  
+  <meta name="twitter:description" content="This is a report." />
+  
+
+<meta name="author" content="Tiernan Martin, Futurewise">
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  
+  
+<link rel="prev" href="miscellaneous.html">
+<link rel="next" href="king-county-assessor-data.html">
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+
+
+
+
+
+
+
+<script src="libs/htmlwidgets-0.8/htmlwidgets.js"></script>
+<link href="libs/leaflet-0.7.7/leaflet.css" rel="stylesheet" />
+<script src="libs/leaflet-0.7.7/leaflet.js"></script>
+<link href="libs/leafletfix-1.0.0/leafletfix.css" rel="stylesheet" />
+<link href="libs/leaflet-label-0.2.2/leaflet.label.css" rel="stylesheet" />
+<script src="libs/leaflet-label-0.2.2/leaflet.label.js"></script>
+<script src="libs/Proj4Leaflet-0.7.2/proj4-compressed.js"></script>
+<script src="libs/Proj4Leaflet-0.7.2/proj4leaflet.js"></script>
+<script src="libs/leaflet-binding-1.0.2.9010/leaflet.js"></script>
+<script src="libs/leaflet-providers-1.0.27/leaflet-providers.js"></script>
+<script src="libs/leaflet-providers-plugin-1.0.2.9010/leaflet-providers-plugin.js"></script>
+<link href="libs/fullscreen-1.0.1/leaflet.fullscreen.css" rel="stylesheet" />
+<script src="libs/fullscreen-1.0.1/Leaflet.fullscreen.min.js"></script>
+<link href="libs/leaflet-awesomemarkers-2.0.3/leaflet.awesome-markers.css" rel="stylesheet" />
+<script src="libs/leaflet-awesomemarkers-2.0.3/leaflet.awesome-markers.min.js"></script>
+
+
+
+<link rel="stylesheet" href="css\style.css" type="text/css" />
+<link rel="stylesheet" href="css\bookdownleaflet.css" type="text/css" />
+<link rel="stylesheet" href="css\bookdown-htmlTable.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>Preface</a></li>
+<li class="appendix"><span><b>Appendices</b></span></li>
+<li class="chapter" data-level="A" data-path="data-methods.html"><a href="data-methods.html"><i class="fa fa-check"></i><b>A</b> Data Methods</a><ul>
+<li class="chapter" data-level="A.1" data-path="miscellaneous.html"><a href="miscellaneous.html"><i class="fa fa-check"></i><b>A.1</b> Miscellaneous</a><ul>
+<li class="chapter" data-level="A.1.1" data-path="miscellaneous.html"><a href="miscellaneous.html#king-county-boundary"><i class="fa fa-check"></i><b>A.1.1</b> King County Boundary</a></li>
+<li class="chapter" data-level="" data-path="miscellaneous.html"><a href="miscellaneous.html#king-county-subdivision-boundary"><i class="fa fa-check"></i>King County Subdivision Boundary</a></li>
+<li class="chapter" data-level="" data-path="miscellaneous.html"><a href="miscellaneous.html#seattle-boundary"><i class="fa fa-check"></i>Seattle Boundary</a></li>
+<li class="chapter" data-level="" data-path="miscellaneous.html"><a href="miscellaneous.html#tracts-in-king-county"><i class="fa fa-check"></i>Tracts in King County</a></li>
+<li class="chapter" data-level="" data-path="miscellaneous.html"><a href="miscellaneous.html#king-county-waterbodies"><i class="fa fa-check"></i>King County Waterbodies</a></li>
+<li class="chapter" data-level="" data-path="miscellaneous.html"><a href="miscellaneous.html#census-geometries-without-western-waterbodies"><i class="fa fa-check"></i>Census Geometries Without (Western) Waterbodies</a></li>
+<li class="chapter" data-level="A.1.2" data-path="miscellaneous.html"><a href="miscellaneous.html#mixed-census-geometries-simple-feature-object"><i class="fa fa-check"></i><b>A.1.2</b> Mixed Census Geometries Simple Feature Object</a></li>
+</ul></li>
+<li class="chapter" data-level="A.2" data-path="census-data.html"><a href="census-data.html"><i class="fa fa-check"></i><b>A.2</b> Census Data</a><ul>
+<li class="chapter" data-level="" data-path="census-data.html"><a href="census-data.html#introduction"><i class="fa fa-check"></i>Introduction</a></li>
+<li class="chapter" data-level="" data-path="census-data.html"><a href="census-data.html#acs-geographies"><i class="fa fa-check"></i>ACS Geographies</a></li>
+<li class="chapter" data-level="" data-path="census-data.html"><a href="census-data.html#acs-tables"><i class="fa fa-check"></i>ACS Tables</a></li>
+<li class="chapter" data-level="" data-path="census-data.html"><a href="census-data.html#normalized-pre-2010-data"><i class="fa fa-check"></i>Normalized pre-2010 Data</a></li>
+<li class="chapter" data-level="" data-path="census-data.html"><a href="census-data.html#coo-communities"><i class="fa fa-check"></i>COO Communities</a></li>
+</ul></li>
+<li class="chapter" data-level="A.3" data-path="king-county-assessor-data.html"><a href="king-county-assessor-data.html"><i class="fa fa-check"></i><b>A.3</b> King County Assessor Data</a></li>
+<li class="chapter" data-level="A.4" data-path="indicators.html"><a href="indicators.html"><i class="fa fa-check"></i><b>A.4</b> Indicators</a><ul>
+<li class="chapter" data-level="" data-path="indicators.html"><a href="indicators.html#vulnerability"><i class="fa fa-check"></i>Vulnerability</a></li>
+<li class="chapter" data-level="" data-path="indicators.html"><a href="indicators.html#race-people-belonging-to-communities-of-color"><i class="fa fa-check"></i>Race: People Belonging to Communities of Color</a></li>
+</ul></li>
+<li class="chapter" data-level="A.5" data-path="typology.html"><a href="typology.html"><i class="fa fa-check"></i><b>A.5</b> Typology</a></li>
+</ul></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Communities of Opportunity Displacement Risk Assessment</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="census-data" class="section level2">
+<h2><span class="header-section-number">A.2</span> Census Data</h2>
+<div id="introduction" class="section level3 unnumbered">
+<h3>Introduction</h3>
+<p>The US Census provides invaluable information about American communities. The datasets provided by the Census encompas many disparate topics, comprehensively cover the entire US population, and are freely available to download. However, there are some barriers to using these data sets. When dealing with small geographies like a neighborhood, the statistical uncertainty may be high because the information comes from a small sample of the population. This complicates common data processing steps like combining or calculating the proportion of given indicator. Additionally, because census tract boundaries are subject to change every ten years, datasets must be normalized to account for this change before any comparative analysis can begin. Lastly, the census datasets represent information that is specific to a given geography (e.g. people in Tukwila, or households in King County) and are, therefore, <em>spatial</em> in nature. Spatial data, from the Census or other sources, present their own challenges that researchers must address in their choice of methods.</p>
+<p>This analysis addresses these challenges by leveraging the capabilities of R, an opensource statistical programming language. While other software exists for working with Census data, there are several R-based tools that can be combined together efficiently and effectively. The method for downloading, organizing, and processing the data are summarized in the following steps:</p>
+<ol style="list-style-type: decimal">
+<li>Define census geographies of interest</li>
+<li>Identify relevant tables from American Community Survey</li>
+<li>Download tables using the <code>acs</code> R package</li>
+<li>Normalize the pre-2010 dataset using Brown University’s <a href="http://www.s4.brown.edu/us2010/Researcher/LTDB.htm">Longitudinal Tract Database</a></li>
+<li>Approximate the COO site communities by combining census tracts</li>
+</ol>
+</div>
+<div id="acs-geographies" class="section level3 unnumbered">
+<h3>ACS Geographies</h3>
+<p>There are many ways to collect US Census data, but this method uses the <code>R</code> package called <code>acs</code> to extract data with the official US Census API. This method is efficient, reproducible, and allows users to download census tables for a group of dissimilar geographies. To learn more about this, see the <code>acs</code> package <a href="http://eglenn.scripts.mit.edu/citystate/wp-content/uploads/2013/06/wpid-working_with_acs_R3.pdf">documentation</a>.</p>
+<p>This analysis uses the following three types of census geographies:</p>
+<ul>
+<li>Counties (King)</li>
+<li>County subdivisions (Seattle CCD)</li>
+<li>Census tracts (all tracts within King County)</li>
+</ul>
+</div>
+<div id="acs-tables" class="section level3 unnumbered">
+<h3>ACS Tables</h3>
+<p>The following tables from the American Community Survey (ACS) are used to created indicators in this assessment</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Table Name</th>
+<th align="left">Topic</th>
+<th align="left">Universe</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">B03002</td>
+<td align="left">HISPANIC OR LATINO ORIGIN BY RACE</td>
+<td align="left">Total population</td>
+</tr>
+<tr class="even">
+<td align="left">B15002</td>
+<td align="left">SEX BY EDUCATIONAL ATTAINMENT FOR THE POPULATION 25 YEARS AND OVER</td>
+<td align="left">Population 25 years and over</td>
+</tr>
+<tr class="odd">
+<td align="left">B19001</td>
+<td align="left">HOUSEHOLD INCOME IN THE PAST 12 MONTHS (IN 2015 INFLATION-ADJUSTED DOLLARS)</td>
+<td align="left">Households</td>
+</tr>
+<tr class="even">
+<td align="left">B25033</td>
+<td align="left">TOTAL POPULATION IN OCCUPIED HOUSING UNITS BY TENURE BY UNITS IN STRUCTURE</td>
+<td align="left">Total population in occupied housing units</td>
+</tr>
+</tbody>
+</table>
+<p>Prior to normalization, the tables are stored in two separate dataframes: one for the 2005-2009 data, and another for the 2011-2015 data:</p>
+<div id="census-tables-2005-2009" class="section level4">
+<h4><span class="header-section-number">A.2.0.1</span> Census Tables, 2005-2009</h4>
+<pre><code>FALSE # A tibble: 375 × 93
+FALSE      NAME                                  NAME_FULL GEOID6
+FALSE     &lt;chr&gt;                                      &lt;chr&gt;  &lt;chr&gt;
+FALSE 1      KC                    King County, Washington   &lt;NA&gt;
+FALSE 2  SEACCD       Seattle CCD, King County, Washington   &lt;NA&gt;
+FALSE 3       1    Census Tract 1, King County, Washington 000100
+FALSE 4       2    Census Tract 2, King County, Washington 000200
+FALSE 5       3    Census Tract 3, King County, Washington 000300
+FALSE 6    4.01 Census Tract 4.01, King County, Washington 000401
+FALSE 7    4.02 Census Tract 4.02, King County, Washington 000402
+FALSE 8       5    Census Tract 5, King County, Washington 000500
+FALSE 9       6    Census Tract 6, King County, Washington 000600
+FALSE 10      7    Census Tract 7, King County, Washington 000700
+FALSE # ... with 365 more rows, and 90 more variables: GEOGRAPHY &lt;chr&gt;,
+FALSE #   SEACCD_LGL &lt;lgl&gt;, ENDYEAR &lt;int&gt;, B03002_001 &lt;list&gt;, B03002_002 &lt;list&gt;,
+FALSE #   B03002_003 &lt;list&gt;, B03002_004 &lt;list&gt;, B03002_005 &lt;list&gt;,
+FALSE #   B03002_006 &lt;list&gt;, B03002_007 &lt;list&gt;, B03002_008 &lt;list&gt;,
+FALSE #   B03002_009 &lt;list&gt;, B03002_010 &lt;list&gt;, B03002_011 &lt;list&gt;,
+FALSE #   B03002_012 &lt;list&gt;, B03002_013 &lt;list&gt;, B03002_014 &lt;list&gt;,
+FALSE #   B03002_015 &lt;list&gt;, B03002_016 &lt;list&gt;, B03002_017 &lt;list&gt;,
+FALSE #   B03002_018 &lt;list&gt;, B03002_019 &lt;list&gt;, B03002_020 &lt;list&gt;,
+FALSE #   B03002_021 &lt;list&gt;, B15002_001 &lt;list&gt;, B15002_002 &lt;list&gt;,
+FALSE #   B15002_003 &lt;list&gt;, B15002_004 &lt;list&gt;, B15002_005 &lt;list&gt;,
+FALSE #   B15002_006 &lt;list&gt;, B15002_007 &lt;list&gt;, B15002_008 &lt;list&gt;,
+FALSE #   B15002_009 &lt;list&gt;, B15002_010 &lt;list&gt;, B15002_011 &lt;list&gt;,
+FALSE #   B15002_012 &lt;list&gt;, B15002_013 &lt;list&gt;, B15002_014 &lt;list&gt;,
+FALSE #   B15002_015 &lt;list&gt;, B15002_016 &lt;list&gt;, B15002_017 &lt;list&gt;,
+FALSE #   B15002_018 &lt;list&gt;, B15002_019 &lt;list&gt;, B15002_020 &lt;list&gt;,
+FALSE #   B15002_021 &lt;list&gt;, B15002_022 &lt;list&gt;, B15002_023 &lt;list&gt;,
+FALSE #   B15002_024 &lt;list&gt;, B15002_025 &lt;list&gt;, B15002_026 &lt;list&gt;,
+FALSE #   B15002_027 &lt;list&gt;, B15002_028 &lt;list&gt;, B15002_029 &lt;list&gt;,
+FALSE #   B15002_030 &lt;list&gt;, B15002_031 &lt;list&gt;, B15002_032 &lt;list&gt;,
+FALSE #   B15002_033 &lt;list&gt;, B15002_034 &lt;list&gt;, B15002_035 &lt;list&gt;,
+FALSE #   B19001_001 &lt;list&gt;, B19001_002 &lt;list&gt;, B19001_003 &lt;list&gt;,
+FALSE #   B19001_004 &lt;list&gt;, B19001_005 &lt;list&gt;, B19001_006 &lt;list&gt;,
+FALSE #   B19001_007 &lt;list&gt;, B19001_008 &lt;list&gt;, B19001_009 &lt;list&gt;,
+FALSE #   B19001_010 &lt;list&gt;, B19001_011 &lt;list&gt;, B19001_012 &lt;list&gt;,
+FALSE #   B19001_013 &lt;list&gt;, B19001_014 &lt;list&gt;, B19001_015 &lt;list&gt;,
+FALSE #   B19001_016 &lt;list&gt;, B19001_017 &lt;list&gt;, B25033_001 &lt;list&gt;,
+FALSE #   B25033_002 &lt;list&gt;, B25033_003 &lt;list&gt;, B25033_004 &lt;list&gt;,
+FALSE #   B25033_005 &lt;list&gt;, B25033_006 &lt;list&gt;, B25033_007 &lt;list&gt;,
+FALSE #   B25033_008 &lt;list&gt;, B25033_009 &lt;list&gt;, B25033_010 &lt;list&gt;,
+FALSE #   B25033_011 &lt;list&gt;, B25033_012 &lt;list&gt;, B25033_013 &lt;list&gt;,
+FALSE #   geometry &lt;simple_feature&gt;</code></pre>
+</div>
+<div id="census-tables-2011-2015" class="section level4">
+<h4><span class="header-section-number">A.2.0.2</span> Census Tables, 2011-2015</h4>
+<pre><code>FALSE # A tibble: 400 × 93
+FALSE      NAME                                  NAME_FULL GEOID6 SEACCD_LGL
+FALSE     &lt;chr&gt;                                      &lt;chr&gt;  &lt;chr&gt;      &lt;lgl&gt;
+FALSE 1      KC                    King County, Washington   &lt;NA&gt;         NA
+FALSE 2  SEACCD       Seattle CCD, King County, Washington   &lt;NA&gt;         NA
+FALSE 3       1    Census Tract 1, King County, Washington 000100       TRUE
+FALSE 4       2    Census Tract 2, King County, Washington 000200       TRUE
+FALSE 5       3    Census Tract 3, King County, Washington 000300       TRUE
+FALSE 6    4.01 Census Tract 4.01, King County, Washington 000401       TRUE
+FALSE 7    4.02 Census Tract 4.02, King County, Washington 000402       TRUE
+FALSE 8       5    Census Tract 5, King County, Washington 000500       TRUE
+FALSE 9       6    Census Tract 6, King County, Washington 000600       TRUE
+FALSE 10      7    Census Tract 7, King County, Washington 000700       TRUE
+FALSE # ... with 390 more rows, and 89 more variables: ENDYEAR &lt;int&gt;,
+FALSE #   B03002_001 &lt;list&gt;, B03002_002 &lt;list&gt;, B03002_003 &lt;list&gt;,
+FALSE #   B03002_004 &lt;list&gt;, B03002_005 &lt;list&gt;, B03002_006 &lt;list&gt;,
+FALSE #   B03002_007 &lt;list&gt;, B03002_008 &lt;list&gt;, B03002_009 &lt;list&gt;,
+FALSE #   B03002_010 &lt;list&gt;, B03002_011 &lt;list&gt;, B03002_012 &lt;list&gt;,
+FALSE #   B03002_013 &lt;list&gt;, B03002_014 &lt;list&gt;, B03002_015 &lt;list&gt;,
+FALSE #   B03002_016 &lt;list&gt;, B03002_017 &lt;list&gt;, B03002_018 &lt;list&gt;,
+FALSE #   B03002_019 &lt;list&gt;, B03002_020 &lt;list&gt;, B03002_021 &lt;list&gt;,
+FALSE #   B15002_001 &lt;list&gt;, B15002_002 &lt;list&gt;, B15002_003 &lt;list&gt;,
+FALSE #   B15002_004 &lt;list&gt;, B15002_005 &lt;list&gt;, B15002_006 &lt;list&gt;,
+FALSE #   B15002_007 &lt;list&gt;, B15002_008 &lt;list&gt;, B15002_009 &lt;list&gt;,
+FALSE #   B15002_010 &lt;list&gt;, B15002_011 &lt;list&gt;, B15002_012 &lt;list&gt;,
+FALSE #   B15002_013 &lt;list&gt;, B15002_014 &lt;list&gt;, B15002_015 &lt;list&gt;,
+FALSE #   B15002_016 &lt;list&gt;, B15002_017 &lt;list&gt;, B15002_018 &lt;list&gt;,
+FALSE #   B15002_019 &lt;list&gt;, B15002_020 &lt;list&gt;, B15002_021 &lt;list&gt;,
+FALSE #   B15002_022 &lt;list&gt;, B15002_023 &lt;list&gt;, B15002_024 &lt;list&gt;,
+FALSE #   B15002_025 &lt;list&gt;, B15002_026 &lt;list&gt;, B15002_027 &lt;list&gt;,
+FALSE #   B15002_028 &lt;list&gt;, B15002_029 &lt;list&gt;, B15002_030 &lt;list&gt;,
+FALSE #   B15002_031 &lt;list&gt;, B15002_032 &lt;list&gt;, B15002_033 &lt;list&gt;,
+FALSE #   B15002_034 &lt;list&gt;, B15002_035 &lt;list&gt;, B19001_001 &lt;list&gt;,
+FALSE #   B19001_002 &lt;list&gt;, B19001_003 &lt;list&gt;, B19001_004 &lt;list&gt;,
+FALSE #   B19001_005 &lt;list&gt;, B19001_006 &lt;list&gt;, B19001_007 &lt;list&gt;,
+FALSE #   B19001_008 &lt;list&gt;, B19001_009 &lt;list&gt;, B19001_010 &lt;list&gt;,
+FALSE #   B19001_011 &lt;list&gt;, B19001_012 &lt;list&gt;, B19001_013 &lt;list&gt;,
+FALSE #   B19001_014 &lt;list&gt;, B19001_015 &lt;list&gt;, B19001_016 &lt;list&gt;,
+FALSE #   B19001_017 &lt;list&gt;, B25033_001 &lt;list&gt;, B25033_002 &lt;list&gt;,
+FALSE #   B25033_003 &lt;list&gt;, B25033_004 &lt;list&gt;, B25033_005 &lt;list&gt;,
+FALSE #   B25033_006 &lt;list&gt;, B25033_007 &lt;list&gt;, B25033_008 &lt;list&gt;,
+FALSE #   B25033_009 &lt;list&gt;, B25033_010 &lt;list&gt;, B25033_011 &lt;list&gt;,
+FALSE #   B25033_012 &lt;list&gt;, B25033_013 &lt;list&gt;, GEOGRAPHY &lt;chr&gt;,
+FALSE #   geometry &lt;simple_feature&gt;</code></pre>
+</div>
+<div id="data-structure-acs-objects-distributed-in-sf-objects" class="section level4">
+<h4><span class="header-section-number">A.2.0.3</span> Data Structure: <code>acs</code> objects distributed in <code>sf</code> objects</h4>
+<p>In this method, each row contains a different census geography and each column contains a single column of a single census table. For instance, column <code>B03002_003</code> contains the third column of the ‘Hispanic or Latino, By Race’ table, which contains the estimate of people who identify as “Not Hispanic or Latino: White alone”:</p>
+<pre><code>FALSE # A tibble: 1 × 5
+FALSE                                 NAME_FULL GEOID6 ENDYEAR B03002_003
+FALSE                                     &lt;chr&gt;  &lt;chr&gt;   &lt;int&gt;     &lt;list&gt;
+FALSE 1 Census Tract 1, King County, Washington 000100    2009  &lt;S4: acs&gt;
+FALSE # ... with 1 more variables: geometry &lt;simple_feature&gt;</code></pre>
+<p>Each “cell” of the dataframe contains a single <code>acs-class</code> object<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a>, which itself contains a set of metadata including the estimate value, standard error, geographic identifier, and other useful information:</p>
+<pre><code>FALSE ACS DATA: 
+FALSE  2005 -- 2009 ;
+FALSE   Estimates w/90% confidence intervals;
+FALSE   for different intervals, see confint()
+FALSE                                         B03002_003  
+FALSE Census Tract 1, King County, Washington 3596 +/- 358</code></pre>
+<pre><code>FALSE Formal class &#39;acs&#39; [package &quot;acs&quot;] with 9 slots
+FALSE   ..@ endyear       : int 2009
+FALSE   ..@ span          : int 5
+FALSE   ..@ geography     :&#39;data.frame&#39;:    1 obs. of  5 variables:
+FALSE   .. ..$ NAME             : chr &quot;Census Tract 1, King County, Washington&quot;
+FALSE   .. ..$ state            : int 53
+FALSE   .. ..$ county           : chr &quot;33&quot;
+FALSE   .. ..$ countysubdivision: chr NA
+FALSE   .. ..$ tract            : chr &quot;000100&quot;
+FALSE   ..@ acs.colnames  : chr &quot;B03002_003&quot;
+FALSE   ..@ modified      : logi TRUE
+FALSE   ..@ acs.units     : Factor w/ 5 levels &quot;count&quot;,&quot;dollars&quot;,..: NA
+FALSE   ..@ currency.year : int 2009
+FALSE   ..@ estimate      : num [1, 1] 3596
+FALSE   .. ..- attr(*, &quot;dimnames&quot;)=List of 2
+FALSE   .. .. ..$ : chr &quot;Census Tract 1, King County, Washington&quot;
+FALSE   .. .. ..$ : chr &quot;B03002_003&quot;
+FALSE   ..@ standard.error: num [1, 1] 218
+FALSE   .. ..- attr(*, &quot;dimnames&quot;)=List of 2
+FALSE   .. .. ..$ : chr &quot;Census Tract 1, King County, Washington&quot;
+FALSE   .. .. ..$ : chr &quot;B03002_003&quot;</code></pre>
+<p>Storing <code>acs</code> objects in a simple feature dataframe<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a> is unconventional but it follows a general principle of computing: <a href="https://en.wikipedia.org/wiki/Don%27t_repeat_yourself">don’t repeat yourself (DRY)</a>. The dataframe structure keeps related <code>acs</code> objects and geometries together, yielding benefits when the time comes to operate on the data.</p>
+<p>For example, if census tracts need to be normalized before temporal comparison (as is the case in this project), that process can occur in a single, comprehensive step rather than individually for each census table. This efficiency gain is particularly important if census tables are added or removed, which may occur fequently in the exploratory phase of an analysis.</p>
+</div>
+</div>
+<div id="normalized-pre-2010-data" class="section level3 unnumbered">
+<h3>Normalized pre-2010 Data</h3>
+<p>Ultimately the ACS data will be combined into a single simple feature object, but before that can happen the pre-2010 must be normalized. The LTDB 2000-2010 Crosswalk file is a tabular tool that clarifies which tracts change from decade to decade, what type of change occurred (e.g., consolidation, split, many-to-many, none), and what weighting metric should be used to inpute the pre-2010 values. This information makes it possible to conduct meaningful temporal analysis on tracts whose boundaries changed between the two decades. More information regarding the normalization method can be found at the <a href="http://www.s4.brown.edu/us2010/Researcher/LTDB.htm">Longitudinal Tract Database website</a>.</p>
+<p>Once the pre-2010 data has been normalized, the data for the two observations periods can be combined into a single dataframe:</p>
+<pre><code>FALSE # A tibble: 399 × 177
+FALSE      NAME                                    NAME_FULL GEOID6 SEACCD_LGL
+FALSE     &lt;chr&gt;                                        &lt;chr&gt;  &lt;chr&gt;      &lt;lgl&gt;
+FALSE 1       1      Census Tract 1, King County, Washington 000100       TRUE
+FALSE 2      10     Census Tract 10, King County, Washington 001000       TRUE
+FALSE 3  100.01 Census Tract 100.01, King County, Washington 010001       TRUE
+FALSE 4  100.02 Census Tract 100.02, King County, Washington 010002       TRUE
+FALSE 5     101    Census Tract 101, King County, Washington 010100       TRUE
+FALSE 6     102    Census Tract 102, King County, Washington 010200       TRUE
+FALSE 7     103    Census Tract 103, King County, Washington 010300       TRUE
+FALSE 8  104.01 Census Tract 104.01, King County, Washington 010401       TRUE
+FALSE 9  104.02 Census Tract 104.02, King County, Washington 010402       TRUE
+FALSE 10    105    Census Tract 105, King County, Washington 010500       TRUE
+FALSE # ... with 389 more rows, and 173 more variables:
+FALSE #   geometry &lt;simple_feature&gt;, B03002_001_2015 &lt;list&gt;,
+FALSE #   B03002_002_2015 &lt;list&gt;, B03002_003_2015 &lt;list&gt;,
+FALSE #   B03002_004_2015 &lt;list&gt;, B03002_005_2015 &lt;list&gt;,
+FALSE #   B03002_006_2015 &lt;list&gt;, B03002_007_2015 &lt;list&gt;,
+FALSE #   B03002_008_2015 &lt;list&gt;, B03002_009_2015 &lt;list&gt;,
+FALSE #   B03002_010_2015 &lt;list&gt;, B03002_011_2015 &lt;list&gt;,
+FALSE #   B03002_012_2015 &lt;list&gt;, B03002_013_2015 &lt;list&gt;,
+FALSE #   B03002_014_2015 &lt;list&gt;, B03002_015_2015 &lt;list&gt;,
+FALSE #   B03002_016_2015 &lt;list&gt;, B03002_017_2015 &lt;list&gt;,
+FALSE #   B03002_018_2015 &lt;list&gt;, B03002_019_2015 &lt;list&gt;,
+FALSE #   B03002_020_2015 &lt;list&gt;, B03002_021_2015 &lt;list&gt;,
+FALSE #   B15002_001_2015 &lt;list&gt;, B15002_002_2015 &lt;list&gt;,
+FALSE #   B15002_003_2015 &lt;list&gt;, B15002_004_2015 &lt;list&gt;,
+FALSE #   B15002_005_2015 &lt;list&gt;, B15002_006_2015 &lt;list&gt;,
+FALSE #   B15002_007_2015 &lt;list&gt;, B15002_008_2015 &lt;list&gt;,
+FALSE #   B15002_009_2015 &lt;list&gt;, B15002_010_2015 &lt;list&gt;,
+FALSE #   B15002_011_2015 &lt;list&gt;, B15002_012_2015 &lt;list&gt;,
+FALSE #   B15002_013_2015 &lt;list&gt;, B15002_014_2015 &lt;list&gt;,
+FALSE #   B15002_015_2015 &lt;list&gt;, B15002_016_2015 &lt;list&gt;,
+FALSE #   B15002_017_2015 &lt;list&gt;, B15002_018_2015 &lt;list&gt;,
+FALSE #   B15002_019_2015 &lt;list&gt;, B15002_020_2015 &lt;list&gt;,
+FALSE #   B15002_021_2015 &lt;list&gt;, B15002_022_2015 &lt;list&gt;,
+FALSE #   B15002_023_2015 &lt;list&gt;, B15002_024_2015 &lt;list&gt;,
+FALSE #   B15002_025_2015 &lt;list&gt;, B15002_026_2015 &lt;list&gt;,
+FALSE #   B15002_027_2015 &lt;list&gt;, B15002_028_2015 &lt;list&gt;,
+FALSE #   B15002_029_2015 &lt;list&gt;, B15002_030_2015 &lt;list&gt;,
+FALSE #   B15002_031_2015 &lt;list&gt;, B15002_032_2015 &lt;list&gt;,
+FALSE #   B15002_033_2015 &lt;list&gt;, B15002_034_2015 &lt;list&gt;,
+FALSE #   B15002_035_2015 &lt;list&gt;, B19001_001_2015 &lt;list&gt;,
+FALSE #   B19001_002_2015 &lt;list&gt;, B19001_003_2015 &lt;list&gt;,
+FALSE #   B19001_004_2015 &lt;list&gt;, B19001_005_2015 &lt;list&gt;,
+FALSE #   B19001_006_2015 &lt;list&gt;, B19001_007_2015 &lt;list&gt;,
+FALSE #   B19001_008_2015 &lt;list&gt;, B19001_009_2015 &lt;list&gt;,
+FALSE #   B19001_010_2015 &lt;list&gt;, B19001_011_2015 &lt;list&gt;,
+FALSE #   B19001_012_2015 &lt;list&gt;, B19001_013_2015 &lt;list&gt;,
+FALSE #   B19001_014_2015 &lt;list&gt;, B19001_015_2015 &lt;list&gt;,
+FALSE #   B19001_016_2015 &lt;list&gt;, B19001_017_2015 &lt;list&gt;,
+FALSE #   B25033_001_2015 &lt;list&gt;, B25033_002_2015 &lt;list&gt;,
+FALSE #   B25033_003_2015 &lt;list&gt;, B25033_004_2015 &lt;list&gt;,
+FALSE #   B25033_005_2015 &lt;list&gt;, B25033_006_2015 &lt;list&gt;,
+FALSE #   B25033_007_2015 &lt;list&gt;, B25033_008_2015 &lt;list&gt;,
+FALSE #   B25033_009_2015 &lt;list&gt;, B25033_010_2015 &lt;list&gt;,
+FALSE #   B25033_011_2015 &lt;list&gt;, B25033_012_2015 &lt;list&gt;,
+FALSE #   B25033_013_2015 &lt;list&gt;, B03002_001_2009_NORML &lt;list&gt;,
+FALSE #   B03002_002_2009_NORML &lt;list&gt;, B03002_003_2009_NORML &lt;list&gt;,
+FALSE #   B03002_004_2009_NORML &lt;list&gt;, B03002_005_2009_NORML &lt;list&gt;,
+FALSE #   B03002_006_2009_NORML &lt;list&gt;, B03002_007_2009_NORML &lt;list&gt;,
+FALSE #   B03002_008_2009_NORML &lt;list&gt;, B03002_009_2009_NORML &lt;list&gt;,
+FALSE #   B03002_010_2009_NORML &lt;list&gt;, B03002_011_2009_NORML &lt;list&gt;,
+FALSE #   B03002_012_2009_NORML &lt;list&gt;, B03002_013_2009_NORML &lt;list&gt;, ...</code></pre>
+</div>
+<div id="coo-communities" class="section level3 unnumbered">
+<h3>COO Communities</h3>
+<p>The primary geographic unit of this assessment is the <a href="https://www.census.gov/geo/reference/gtc/gtc_ct.html">census tract</a>. As is the case with many communities, the census geographies do not coincide exactly with the formal geographic boundary of the study’s three sites, and should be considered as <em>spatial approximations</em> of these communities.</p>
+<p>Listed below are the geographic identifiers of the census tracts that approximate each site.</p>
+<table>
+<caption><span id="tab:census-acs-comms-files">TABLE A.1: </span>Census Tract GEOIDs</caption>
+<thead>
+<tr class="header">
+<th align="left">Rainier Valley<br>(2009)</th>
+<th align="left">Rainier Valley<br>(2015)</th>
+<th align="left">White Center<br>(2009)</th>
+<th align="left">White Center<br>(2015)</th>
+<th align="left">SeaTac/Tukwila<br>(2009)</th>
+<th align="left">SeaTac/Tukwila<br>(2015)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">53033010000</td>
+<td align="left">53033010001</td>
+<td align="left">53033026900</td>
+<td align="left">53033026600</td>
+<td align="left">53033026100</td>
+<td align="left">53033026200</td>
+</tr>
+<tr class="even">
+<td align="left">53033010300</td>
+<td align="left">53033010300</td>
+<td align="left">53033026500</td>
+<td align="left">53033026700</td>
+<td align="left">53033026200</td>
+<td align="left">53033027300</td>
+</tr>
+<tr class="odd">
+<td align="left">53033010400</td>
+<td align="left">53033010401</td>
+<td align="left">53033026600</td>
+<td align="left">53033026500</td>
+<td align="left">53033026300</td>
+<td align="left">53033028000</td>
+</tr>
+<tr class="even">
+<td align="left">53033011000</td>
+<td align="left">53033011001</td>
+<td align="left">53033026700</td>
+<td align="left">53033026801</td>
+<td align="left">53033026400</td>
+<td align="left">53033028100</td>
+</tr>
+<tr class="odd">
+<td align="left">53033011101</td>
+<td align="left">53033011002</td>
+<td align="left">53033026801</td>
+<td align="left">53033026802</td>
+<td align="left">53033027100</td>
+<td align="left">53033028300</td>
+</tr>
+<tr class="even">
+<td align="left">53033011102</td>
+<td align="left">53033011101</td>
+<td align="left">53033026802</td>
+<td align="left">53033027000</td>
+<td align="left">53033027200</td>
+<td align="left">53033028402</td>
+</tr>
+<tr class="odd">
+<td align="left">53033011700</td>
+<td align="left">53033011102</td>
+<td align="left">53033027000</td>
+<td align="left">NA</td>
+<td align="left">53033027300</td>
+<td align="left">53033028403</td>
+</tr>
+<tr class="even">
+<td align="left">53033011800</td>
+<td align="left">53033011700</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">53033028000</td>
+<td align="left">53033028500</td>
+</tr>
+<tr class="odd">
+<td align="left">53033011900</td>
+<td align="left">53033011800</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">53033028100</td>
+<td align="left">53033028700</td>
+</tr>
+<tr class="even">
+<td align="left">NA</td>
+<td align="left">53033011900</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">53033028200</td>
+<td align="left">53033028801</td>
+</tr>
+<tr class="odd">
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">53033028300</td>
+<td align="left">53033028802</td>
+</tr>
+<tr class="even">
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">53033028402</td>
+<td align="left">53033029101</td>
+</tr>
+<tr class="odd">
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">53033028403</td>
+<td align="left">53033026100</td>
+</tr>
+<tr class="even">
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">53033028500</td>
+<td align="left">53033026200</td>
+</tr>
+<tr class="odd">
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">53033028700</td>
+<td align="left">53033026300</td>
+</tr>
+<tr class="even">
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">53033028801</td>
+<td align="left">53033026400</td>
+</tr>
+<tr class="odd">
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">53033028802</td>
+<td align="left">53033027100</td>
+</tr>
+<tr class="even">
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">53033029100</td>
+<td align="left">53033027200</td>
+</tr>
+<tr class="odd">
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">53033027300</td>
+</tr>
+<tr class="even">
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">53033028100</td>
+</tr>
+<tr class="odd">
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">53033028200</td>
+</tr>
+<tr class="even">
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">53033028300</td>
+</tr>
+<tr class="odd">
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">53033028802</td>
+</tr>
+</tbody>
+</table>
+<p>To create the community approximations, the tract boundaries of each community are merged and each of the census table estimates are aggregated. In addition to combining the estimates, this method also recalculates the standard error for each census table. It should be noted that this method is only valid for census tables representing count data.<a href="#fn3" class="footnoteRef" id="fnref3"><sup>3</sup></a></p>
+<pre><code>FALSE # A tibble: 403 × 181
+FALSE      NAME                                    NAME_FULL GEOID6
+FALSE     &lt;chr&gt;                                        &lt;chr&gt;  &lt;chr&gt;
+FALSE 1      KC                      King County, Washington   &lt;NA&gt;
+FALSE 2  SEACCD         Seattle CCD, King County, Washington   &lt;NA&gt;
+FALSE 3     COO                   Communities of Opportunity   &lt;NA&gt;
+FALSE 4      RV                               Rainier Valley   &lt;NA&gt;
+FALSE 5    STKW                               SeaTac/Tukwila   &lt;NA&gt;
+FALSE 6      WC                                 White Center   &lt;NA&gt;
+FALSE 7       1      Census Tract 1, King County, Washington 000100
+FALSE 8      10     Census Tract 10, King County, Washington 001000
+FALSE 9  100.01 Census Tract 100.01, King County, Washington 010001
+FALSE 10 100.02 Census Tract 100.02, King County, Washington 010002
+FALSE # ... with 393 more rows, and 178 more variables: COMMUNITY_FULL &lt;chr&gt;,
+FALSE #   COMMUNITY &lt;chr&gt;, SEACCD_LGL &lt;lgl&gt;, GEOGRAPHY &lt;chr&gt;, GEOG_FCT &lt;ord&gt;,
+FALSE #   geometry &lt;simple_feature&gt;, B03002_001_2015 &lt;list&gt;,
+FALSE #   B03002_002_2015 &lt;list&gt;, B03002_003_2015 &lt;list&gt;,
+FALSE #   B03002_004_2015 &lt;list&gt;, B03002_005_2015 &lt;list&gt;,
+FALSE #   B03002_006_2015 &lt;list&gt;, B03002_007_2015 &lt;list&gt;,
+FALSE #   B03002_008_2015 &lt;list&gt;, B03002_009_2015 &lt;list&gt;,
+FALSE #   B03002_010_2015 &lt;list&gt;, B03002_011_2015 &lt;list&gt;,
+FALSE #   B03002_012_2015 &lt;list&gt;, B03002_013_2015 &lt;list&gt;,
+FALSE #   B03002_014_2015 &lt;list&gt;, B03002_015_2015 &lt;list&gt;,
+FALSE #   B03002_016_2015 &lt;list&gt;, B03002_017_2015 &lt;list&gt;,
+FALSE #   B03002_018_2015 &lt;list&gt;, B03002_019_2015 &lt;list&gt;,
+FALSE #   B03002_020_2015 &lt;list&gt;, B03002_021_2015 &lt;list&gt;,
+FALSE #   B15002_001_2015 &lt;list&gt;, B15002_002_2015 &lt;list&gt;,
+FALSE #   B15002_003_2015 &lt;list&gt;, B15002_004_2015 &lt;list&gt;,
+FALSE #   B15002_005_2015 &lt;list&gt;, B15002_006_2015 &lt;list&gt;,
+FALSE #   B15002_007_2015 &lt;list&gt;, B15002_008_2015 &lt;list&gt;,
+FALSE #   B15002_009_2015 &lt;list&gt;, B15002_010_2015 &lt;list&gt;,
+FALSE #   B15002_011_2015 &lt;list&gt;, B15002_012_2015 &lt;list&gt;,
+FALSE #   B15002_013_2015 &lt;list&gt;, B15002_014_2015 &lt;list&gt;,
+FALSE #   B15002_015_2015 &lt;list&gt;, B15002_016_2015 &lt;list&gt;,
+FALSE #   B15002_017_2015 &lt;list&gt;, B15002_018_2015 &lt;list&gt;,
+FALSE #   B15002_019_2015 &lt;list&gt;, B15002_020_2015 &lt;list&gt;,
+FALSE #   B15002_021_2015 &lt;list&gt;, B15002_022_2015 &lt;list&gt;,
+FALSE #   B15002_023_2015 &lt;list&gt;, B15002_024_2015 &lt;list&gt;,
+FALSE #   B15002_025_2015 &lt;list&gt;, B15002_026_2015 &lt;list&gt;,
+FALSE #   B15002_027_2015 &lt;list&gt;, B15002_028_2015 &lt;list&gt;,
+FALSE #   B15002_029_2015 &lt;list&gt;, B15002_030_2015 &lt;list&gt;,
+FALSE #   B15002_031_2015 &lt;list&gt;, B15002_032_2015 &lt;list&gt;,
+FALSE #   B15002_033_2015 &lt;list&gt;, B15002_034_2015 &lt;list&gt;,
+FALSE #   B15002_035_2015 &lt;list&gt;, B19001_001_2015 &lt;list&gt;,
+FALSE #   B19001_002_2015 &lt;list&gt;, B19001_003_2015 &lt;list&gt;,
+FALSE #   B19001_004_2015 &lt;list&gt;, B19001_005_2015 &lt;list&gt;,
+FALSE #   B19001_006_2015 &lt;list&gt;, B19001_007_2015 &lt;list&gt;,
+FALSE #   B19001_008_2015 &lt;list&gt;, B19001_009_2015 &lt;list&gt;,
+FALSE #   B19001_010_2015 &lt;list&gt;, B19001_011_2015 &lt;list&gt;,
+FALSE #   B19001_012_2015 &lt;list&gt;, B19001_013_2015 &lt;list&gt;,
+FALSE #   B19001_014_2015 &lt;list&gt;, B19001_015_2015 &lt;list&gt;,
+FALSE #   B19001_016_2015 &lt;list&gt;, B19001_017_2015 &lt;list&gt;,
+FALSE #   B25033_001_2015 &lt;list&gt;, B25033_002_2015 &lt;list&gt;,
+FALSE #   B25033_003_2015 &lt;list&gt;, B25033_004_2015 &lt;list&gt;,
+FALSE #   B25033_005_2015 &lt;list&gt;, B25033_006_2015 &lt;list&gt;,
+FALSE #   B25033_007_2015 &lt;list&gt;, B25033_008_2015 &lt;list&gt;,
+FALSE #   B25033_009_2015 &lt;list&gt;, B25033_010_2015 &lt;list&gt;,
+FALSE #   B25033_011_2015 &lt;list&gt;, B25033_012_2015 &lt;list&gt;,
+FALSE #   B25033_013_2015 &lt;list&gt;, B03002_001_2009_NORML &lt;list&gt;,
+FALSE #   B03002_002_2009_NORML &lt;list&gt;, B03002_003_2009_NORML &lt;list&gt;,
+FALSE #   B03002_004_2009_NORML &lt;list&gt;, B03002_005_2009_NORML &lt;list&gt;,
+FALSE #   B03002_006_2009_NORML &lt;list&gt;, B03002_007_2009_NORML &lt;list&gt;,
+FALSE #   B03002_008_2009_NORML &lt;list&gt;, ...</code></pre>
+<div id="community-maps" class="section level4">
+<h4><span class="header-section-number">A.2.0.4</span> Community Maps</h4>
+</div>
+</div>
+</div>
+<div class="footnotes">
+<hr />
+<ol start="1">
+<li id="fn1"><p>More information on the <code>acs-class</code> can be found in the <code>acs</code> package <a href="https://cran.r-project.org/web/packages/acs/acs.pdf">documentation</a> and the package author’s <a href="http://eglenn.scripts.mit.edu/citystate/wp-content/uploads/2013/06/wpid-working_with_acs_R3.pdf">user guide</a>.<a href="census-data.html#fnref1">↩</a></p></li>
+<li id="fn2"><p>More information on the simple features can be found <a href="https://en.wikipedia.org/wiki/Simple_Features">here</a>, while the implementation of this data structure in R is documented <a href="https://cran.r-project.org/web/packages/sf/sf.pdf">here</a> and <a href="https://edzer.github.io/sfr/articles/sf1.html">here</a>.<a href="census-data.html#fnref2">↩</a></p></li>
+<li id="fn3"><p>This limitation is made explicit by the <code>acs</code> package creator, Ezra Haber Glenn, <a href="http://eglenn.scripts.mit.edu/citystate/">here</a>.<a href="census-data.html#fnref3">↩</a></p></li>
+</ol>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="miscellaneous.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="king-county-assessor-data.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script>
+require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"google": false,
+"weibo": false,
+"instapper": false,
+"vk": false,
+"all": ["facebook", "google", "twitter", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"download": null,
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+</body>
+
+</html>

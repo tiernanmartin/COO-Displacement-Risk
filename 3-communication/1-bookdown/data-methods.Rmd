@@ -25,30 +25,35 @@ misc_fp <- root_file('1-data/1-notebooks/01-misc.Rmd')
 
 census_acs_fp <- root_file('1-data/1-notebooks/02-census-acs.Rmd')
 
-census_geos_fp <- root_file('1-data/1-notebooks/02-census-geos.Rmd')
+census_acs_comms_fp <- root_file('1-data/1-notebooks/02-census-acs-communities.Rmd')
+
 ```
 
 `r knit_child(census_acs_fp)`
-`r knit_child(census_geos_fp)`
+`r knit_child(census_acs_comms_fp)`
 
 ## King County Assessor Data
 
 ```{r data-methods-kc-parcels}
-kc_parcels_fp <- root_file('1-data/1-notebooks/02-king-county-parcels.Rmd')
+# kc_parcels_fp <- root_file('1-data/1-notebooks/02-king-county-parcels.Rmd')
 ```
 
-`r knit_child(kc_parcels_fp)`
 
 ## Indicators
 
 ```{r data-methods-indicators}
+
+make_acs_inds_fp <- root_file('1-data/1-notebooks/03-make-acs-inds.Rmd')
+
+make_acs_maps_fp <- root_file('1-data/1-notebooks/03-make-acs-maps.Rmd')
+
 vuln_intro_fp <- root_file('1-data/1-notebooks/03-vuln-intro.Rmd')
 
 vuln_poc_fp <- root_file('1-data/1-notebooks/03-vuln-poc.Rmd')
 
-vuln_lt_bach_fp <- root_file('1-data/1-notebooks/03-vuln-lt-bach.Rmd')
-
 vuln_rent_fp <- root_file('1-data/1-notebooks/03-vuln-rent.Rmd')
+
+vuln_lt_bach_fp <- root_file('1-data/1-notebooks/03-vuln-lt-bach.Rmd')
 
 vuln_low_inc_fp <- root_file('1-data/1-notebooks/03-vuln-low-inc.Rmd')
 
@@ -56,23 +61,18 @@ demo_chng_intro_fp <- root_file('1-data/1-notebooks/03-demo-change-intro.Rmd')
 
 demo_chng_white_fp <- root_file('1-data/1-notebooks/03-demo-change-white.Rmd')
 
-demo_chng_bach_fp <- root_file('1-data/1-notebooks/03-demo-change-bach.Rmd')
-
 demo_chng_own_fp <- root_file('1-data/1-notebooks/03-demo-change-own.Rmd')
+
+demo_chng_bach_fp <- root_file('1-data/1-notebooks/03-demo-change-bach.Rmd')
 
 demo_chng_income_fp <- root_file('1-data/1-notebooks/03-demo-change-inc.Rmd')
 
 ```
 
+`r knit_child(make_acs_inds_fp)`
+`r knit_child(make_acs_maps_fp)`
 `r knit_child(vuln_intro_fp)`
 `r knit_child(vuln_poc_fp)`
-`r knit_child(vuln_lt_bach_fp)`
-`r knit_child(vuln_rent_fp)`
-`r knit_child(vuln_low_inc_fp)`
-`r knit_child(demo_chng_intro_fp)`
-`r knit_child(demo_chng_white_fp)`
-`r knit_child(demo_chng_bach_fp)`
-`r knit_child(demo_chng_own_fp)`
-`r knit_child(demo_chng_income_fp)`
+
 
 ## Typology

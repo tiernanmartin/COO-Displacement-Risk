@@ -437,12 +437,10 @@
 	border-radius: 12px;
 	}
 .book .book-body .page-wrapper .page-inner section.normal .leaflet-popup-content {
-	width: initial;
 	margin: 13px 19px;
 	line-height: 1.4;
 	}
 .book .book-body .page-wrapper .page-inner section.normal .leaflet-popup-content p {
-	width: initial;
 	margin: 18px 0;
 	}
 .book .book-body .page-wrapper .page-inner section.normal .leaflet-popup-tip-container {
