@@ -1,5 +1,4 @@
 ---
-df_print: tibble
 output:
   html_notebook:
     code_folding: hide

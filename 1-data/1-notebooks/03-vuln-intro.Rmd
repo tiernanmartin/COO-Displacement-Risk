@@ -1,5 +1,4 @@
 ---
-df_print: tibble
 output:
   html_notebook:
     code_folding: hide
@@ -55,9 +54,11 @@ inds_seaccd <-
                'TOPIC' = c('race', 'housing', 'ed', 'income') %>% rep(2),
                'CATEGORY' = c(rep('DEMO_CHNG',4),rep('VULN',4))) %>% 
         mutate(VALUE = map_dbl(IND, ~ census_inds_sf %>% unclass %>% as_tibble %>% select(matches(.x)) %>% slice(1) %>% extract2(1)),
-               VALUE = scales::percent(VALUE),
+               VALUE_CHR = scales::percent(VALUE) %>% as.character(),
                NAME = str_c(TOPIC,CATEGORY,sep = '_')) %>% 
-        {set_names(x = .$VALUE, nm = .$NAME)}
+               {set_names(x = .$VALUE_CHR, nm = .$NAME)}
+
+
 ```
 
 ### Vulnerability {-}
@@ -72,3 +73,4 @@ A tract is considered "vulnerable" if it exceeds the county subdivision value fo
   * Greater than `r inds_seaccd[['ed_VULN']]` of the population 25 years and older do not have a bachelor’s degree
   * Greater than `r inds_seaccd[['income_VULN']]` of households have incomes at or below 80% of the HUD-adjusted median family income (MFI)^[HUD's FY2015 MFI for the
 Seattle-Bellevue, WA HUD Metro FMR Area was $89,500; this does *not* account for household size.]
+

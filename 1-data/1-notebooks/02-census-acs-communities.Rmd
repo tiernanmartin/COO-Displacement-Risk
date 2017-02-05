@@ -1,8 +1,7 @@
 ---
-df_print: tibble
 output:
   html_notebook:
-    default
+    code_folding: hide
   pdf_document:
     keep_tex: yes
 always_allow_html: yes
@@ -255,8 +254,9 @@ acs_norml_all_geoms_sf <- read_rds(root_file('./1-data/4-interim/acs_norml_all_g
 acs_norml_all_geoms_sf %>% 
         arrange(fct_rev(GEOG_FCT)) %>% 
         select(NAME:GEOG_FCT,geometry,matches('2015'),matches('2009')) %>% 
-        unclass %>% 
-        as_tibble()
+        st_as_sf() %>% 
+        print_paged_sf
+
 
 ```
 
@@ -320,7 +320,8 @@ show_comm_map <- function(nm, color, float_dir){
                 as("Spatial") %>% 
                 as("SpatialLines")
         
-        comm_sp %>% 
+        map <- 
+                comm_sp %>% 
                 miscgis::myLfltGrey() %>%
                 myLfltOpts(tileLabels = FALSE, fullScreenBtn = FALSE, bumpTileLabels = FALSE) %>% 
                 addPolygons(smoothFactor = 0,
@@ -344,9 +345,10 @@ show_comm_map <- function(nm, color, float_dir){
                                                               direction = 'auto', 
                                                               textOnly = TRUE)) %>% 
                 setView(lng,lat,zoom = 9) %>% 
-                miscgis::styleWidget(style = paste0("float:",float_dir,";margin:1px;","text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF")) %>% 
-                print()
-}
+                miscgis::styleWidget(style = paste0("float:",float_dir,";margin:1px;","text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF")) 
+
+        return(map)
+        }
 
 names <- c('RV','WC','STKW')
 
@@ -354,7 +356,14 @@ colors <- c(blue, green, red)
 
 float_dirs <- c('left','left','none')
 
-pwalk(list(names, colors, float_dirs),show_comm_map)
+map_list <- pmap(list(names, colors, float_dirs),show_comm_map) 
+
+map_list %>% extract2(1)
+map_list %>% extract2(2)
+map_list %>% extract2(3)
+
 
 
 ```
+
+

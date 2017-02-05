@@ -1,5 +1,4 @@
 ---
-df_print: tibble
 output:
   html_notebook:
     code_folding: hide
@@ -7,7 +6,6 @@ output:
     keep_tex: yes
 always_allow_html: yes
 ---
-
 ```{r misc-setup, echo = FALSE, warning=FALSE,message=FALSE,comment=FALSE}
 library(magrittr)
 library(operator.tools)
@@ -44,7 +42,7 @@ pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","or
 
 Below is a collection of spatial datasets used in this project.
 
-### King County Boundary
+### King County Boundary  {-}
 ```{r misc-kc, fig.cap="King County\'s geographic boundary"}
 
 if(!file.exists(root_file('./1-data/4-interim/kc-noclip-sf.rds'))){
@@ -435,7 +433,7 @@ show_tr_kc_2015_sf()
 ```
 
 
-### Mixed Census Geometries Simple Feature Object
+### Mixed Census Geometries Simple Feature Object {-}
 
 Add a brief explanation of the `sf` package
 
@@ -474,7 +472,8 @@ coo_geoms_2015_sf <- read_rds(root_file('./1-data/4-interim/coo-acs-2015-geoms-s
 
 coo_geoms_2009_sf <- read_rds(root_file('./1-data/4-interim/coo-acs-2009-geoms-sf.rds'))
 
-print(coo_geoms_2015_sf,n =10)
+miscgis::print_paged_sf(coo_geoms_2015_sf,n =10)
+# rmarkdown::paged_table(coo_geoms_2015_sf)
 
 ```
 
