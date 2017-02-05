@@ -281,7 +281,7 @@ if(!file.exists(root_file('./1-data/5-tidy/coo-census-not-acs-all-sf.rds'))){
 
 
 
-#### Community Maps
+#### Community Maps {-}
 ```{r census-acs-comms-map, fig.height=1.25, fig.width=1,  fig.show='hold', dpi=150}
 
 # Print Community Maps
