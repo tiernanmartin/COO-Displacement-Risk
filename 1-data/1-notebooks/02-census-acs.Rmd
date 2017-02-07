@@ -290,19 +290,21 @@ acs_2015_sf <- read_rds(root_file('./1-data/4-interim/coo-acs-2015-sf.rds'))
 
 ```
 
-#### Census Tables, 2005-2009
+#### Census Tables, 2005-2009 {-}
 ```{r census-show-2000-table}
 
 miscgis::print_paged_sf(acs_2009_sf)
+
+
 ```
 
 
-#### Census Tables, 2011-2015
+#### Census Tables, 2011-2015 {-}
 ```{r census-show-2010-table}
 miscgis::print_paged_sf(acs_2015_sf)
 ```
 
-#### Data Structure: `acs` objects distributed in `sf` objects
+#### Data Structure: `acs` objects distributed in `sf` objects {-}
 
 In this method, each row contains a different census geography and each column contains a single column of a single census table. For instance, column `B03002_003` contains the third column of the 'Hispanic or Latino, By Race' table, which contains the estimate of people who identify as "Not Hispanic or Latino: White alone":
 
@@ -508,7 +510,7 @@ acs_norml_sf <-
                 
 
 
-miscgis::print_paged_sf(acs_norml_sf)
+miscgis::print_paged_sf(acs_norml_sf, n = 10)
 ```
 
 
