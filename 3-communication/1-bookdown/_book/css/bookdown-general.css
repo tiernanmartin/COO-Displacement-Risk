@@ -5,10 +5,17 @@
 /* tables */
 
 .book .book-body .page-wrapper .page-inner section.normal table{
-        line-height: 1 !important;
-        overflow-wrap: normal !important;
+        font-size: .85em !important;
+        line-height: 1;
+        overflow-wrap: normal;
         
 }
+
+.pagedtable-header-name {
+    overflow: visible;
+    text-overflow: initial;
+}
+
 
 /* code chunks */
 
