@@ -1,0 +1,18 @@
+
+/* general */
+
+
+/* tables */
+
+.book .book-body .page-wrapper .page-inner section.normal table{
+        line-height: 1 !important;
+        overflow-wrap: normal !important;
+        
+}
+
+/* code chunks */
+
+.book .book-body .page-wrapper .page-inner section.normal code, 
+.book .book-body .page-wrapper .page-inner section.normal pre{
+    line-height: 1em !important;
+}
