@@ -54,7 +54,7 @@ inds_seaccd <-
                'TOPIC' = c('race', 'housing', 'ed', 'income') %>% rep(2),
                'CATEGORY' = c(rep('DEMO_CHNG',4),rep('VULN',4))) %>% 
         mutate(VALUE = map_dbl(IND, ~ census_inds_sf %>% unclass %>% as_tibble %>% select(matches(.x)) %>% slice(1) %>% extract2(1)),
-               VALUE_CHR = scales::percent(VALUE) %>% as.character(),
+               VALUE_CHR = VALUE %>% multiply_by(100) %>% round_any(1) %>% str_c('%'),
                NAME = str_c(TOPIC,CATEGORY,sep = '_')) %>% 
                {set_names(x = .$VALUE_CHR, nm = .$NAME)}
 

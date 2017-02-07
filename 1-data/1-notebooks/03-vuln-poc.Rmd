@@ -100,7 +100,7 @@ make_acs_map(long_sf = map_acs_data_sf,
              .category = 'VULN',
              .topic = 'B03002',
              .pal = 'plasma',
-             .legend_title = "SHARE OF<br>PEOPLE OF COLOR<hr>2011-2015") %>% 
+             .legend_title = "") %>% 
         miscgis::styleWidget(style = paste0("float: left;","margin:1px;","text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF"))
 
 
@@ -110,7 +110,7 @@ make_acs_map(long_sf = map_acs_data_sf,
              .category = 'VULN',
              .topic = 'B03002',
              .pal = 'plasma',
-             .legend_title = "SHARE OF<br>PEOPLE OF COLOR<hr>2011-2015") %>% 
+             .legend_title = "") %>% 
         miscgis::styleWidget(style = paste0("float: none;","margin:1px;","text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF"))
 
 
