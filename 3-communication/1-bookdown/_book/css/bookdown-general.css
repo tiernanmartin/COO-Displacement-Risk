@@ -11,6 +11,10 @@
         
 }
 
+.book .book-body .page-wrapper .page-inner section.normal table tr:nth-child(2n) {
+    background-color: transparent !important;
+}
+
 .pagedtable-header-name {
     overflow: visible;
     text-overflow: initial;
@@ -20,6 +24,8 @@
   border: none !important;
   margin-bottom: 10px;
 }
+
+
 
 /* code chunks */
 
