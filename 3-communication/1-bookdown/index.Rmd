@@ -9,6 +9,8 @@ output:
     df_print: paged
 documentclass: book
 description: "This is a report."
+bibliography: ["coo.bib"]
+csl: planning-perspectives.csl
 ---
 
 # Preface {-}
