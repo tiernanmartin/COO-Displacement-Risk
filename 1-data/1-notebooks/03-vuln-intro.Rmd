@@ -7,6 +7,8 @@ output:
 always_allow_html: yes
 ---
 
+\cleardoublepage
+
 ```{r vuln-intro-setup, echo = FALSE, warning=FALSE,message=FALSE,comment=FALSE}
 library(plyr)
 library(knitr)
@@ -63,8 +65,7 @@ inds_seaccd <-
 
 ### Vulnerability {-}
 
-#### Overview
-Census data underlies two of the three typology indicator categories: vulnerability and demographic change.^[The other is indicator category is housing market trends] Both of these categories are comprised of four indicators that compare the census topic of a given census tract to its county subdivision. 
+The concept of "vulnerability" has received considerable attention by social science researchers, policy experts, and the media; it has also been subject to some criticism [@cardona_need_2004].
 
 A tract is considered "vulnerable" if it exceeds the county subdivision value for any **three of the four** indicators:
 

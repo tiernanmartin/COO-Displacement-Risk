@@ -473,7 +473,7 @@ coo_geoms_2015_sf <- read_rds(root_file('./1-data/4-interim/coo-acs-2015-geoms-s
 coo_geoms_2009_sf <- read_rds(root_file('./1-data/4-interim/coo-acs-2009-geoms-sf.rds'))
 
 miscgis::print_paged_sf(coo_geoms_2015_sf,n =10)
-# rmarkdown::paged_table(coo_geoms_2015_sf)
+
 
 ```
 
