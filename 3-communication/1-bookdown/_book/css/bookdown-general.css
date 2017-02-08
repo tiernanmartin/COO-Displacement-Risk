@@ -16,7 +16,10 @@
     text-overflow: initial;
 }
 
-
+.pagedtable-wrapper {
+  border: none !important;
+  margin-bottom: 10px;
+}
 /* code chunks */
 
 .book .book-body .page-wrapper .page-inner section.normal code, 
