@@ -8,3 +8,4 @@ always_allow_html: yes
 ---
 
 This method seeks to classify census tracts according to a typology of neighborhood change. This typology is determined using three indicators: vulnerability, demographic change, and the housing market [see @bates_gentrification_2013]. Vulnerability and demographic change are measured using US Census data, while the housing market is measured using King County Tax Assessor data.
+
