@@ -26,10 +26,17 @@
 }
 
 
-
 /* code chunks */
 
 .book .book-body .page-wrapper .page-inner section.normal code, 
 .book .book-body .page-wrapper .page-inner section.normal pre{
     line-height: 1em !important;
+}
+
+/* leaflet */
+.book .book-body .page-wrapper .page-inner section.normal hr {
+    -webkit-margin-before: 0.5em;
+    -webkit-margin-after: 0.5em;
+    -webkit-margin-start: auto;
+    -webkit-margin-end: auto;
 }
