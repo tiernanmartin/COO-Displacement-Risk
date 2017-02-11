@@ -168,6 +168,12 @@ Source: CRAN
 Version: 1.3-2
 Hash: 0bf8618b585fa98eb23414cd3ab95118
 
+Package: colourpicker
+Source: CRAN
+Version: 0.3
+Hash: 1f08b29f8b757064029c97360e01d83d
+Requires: ggplot2, htmltools, htmlwidgets, miniUI, shiny, shinyjs
+
 Package: crosstalk
 Source: github
 Version: 1.0.1
@@ -220,13 +226,13 @@ Requires: digest
 Package: dplyr
 Source: github
 Version: 0.5.0.9000
-Hash: 9b3919332d3bb21745a3a9a03b1be109
+Hash: 2a0f7fe19a974e11a4c891bdef334d44
 Requires: BH, DBI, R6, Rcpp, assertthat, bindrcpp, lazyeval, magrittr,
     plogr, tibble
 GithubRepo: dplyr
 GithubUsername: hadley
 GithubRef: master
-GithubSha1: f7866f3b0ae68c1b14d6475c6938a1b052e4c17b
+GithubSha1: 860082ffc125628c889ede97cda4753295f9af23
 
 Package: evaluate
 Source: CRAN
@@ -334,6 +340,11 @@ Version: 1.0.0
 Hash: 56dd56c1ecab2678f509385a5149d426
 Requires: BH, Rcpp, hms, readr, tibble
 
+Package: hexbin
+Source: CRAN
+Version: 1.27.1
+Hash: 9f94c576cc4b9e83fd714ae8387272e6
+
 Package: highr
 Source: CRAN
 Version: 0.6
@@ -403,23 +414,23 @@ Hash: 3d6e7608e65bbf5cb170dab1e3c9ed8b
 Package: leaflet
 Source: github
 Version: 1.0.2.9010
-Hash: 9e50272e9245860e16c041e42af04dc3
+Hash: 7128605f297681f91d60fac0ce7d6c24
 Requires: RColorBrewer, base64enc, crosstalk, htmltools, htmlwidgets,
     magrittr, markdown, png, raster, scales, sp, viridis
 GithubRepo: leaflet
 GithubUsername: rstudio
 GithubRef: master
-GithubSha1: b9736ecbe3f4941c92d37506c7fd9d6923f22768
+GithubSha1: 24a7dfa68528e32265aa325610eca7f8fa7a8050
 
 Package: leaflet.extras
 Source: github
-Version: 0.1.9006
-Hash: daf4c9a1a69e38a212a9fbf6c2571e11
+Version: 0.1.9008
+Hash: f6f4ae939672d9a6077537f241b463dc
 Requires: htmltools, htmlwidgets, leaflet, magrittr, shiny
 GithubRepo: leaflet.extras
 GithubUsername: bhaskarvk
 GithubRef: master
-GithubSha1: 3558bfe46d304a96204a9e5414574a1fe3c674b2
+GithubSha1: 633f3dd2f1d1b3d112db0888b21861259a973be5
 
 Package: lubridate
 Source: CRAN
@@ -474,14 +485,14 @@ Requires: htmltools, shiny
 
 Package: miscgis
 Source: github
-Version: 0.1.3-8
-Hash: a469f4cd9367c32e0bb4730da9036431
+Version: 0.1.3-9
+Hash: c79c1453c9b8995a089d6b41b41611dc
 Requires: acs, dplyr, leaflet, leaflet.extras, miniUI, operator.tools,
     rmarkdown, sf, shinydashboard, sp, tigris
 GithubRepo: miscgis
 GithubUsername: tiernanmartin
 GithubRef: master
-GithubSha1: 7fc538e2056851fef41cdd1c8aa4ae4cc7468ee4
+GithubSha1: 7f33de83eae438e7015b9da415a1e776505feeec
 
 Package: mnormt
 Source: CRAN
@@ -520,6 +531,18 @@ Source: CRAN
 Version: 0.1-1
 Hash: fb19215402e2d9f1c7f803dcaa806fc2
 
+Package: plotly
+Source: github
+Version: 4.5.6.9000
+Hash: 811909226f825e38f585bb24abd82efe
+Requires: RColorBrewer, base64enc, colourpicker, crosstalk, digest,
+    dplyr, ggplot2, hexbin, htmltools, htmlwidgets, httr, jsonlite,
+    lazyeval, magrittr, purrr, scales, tibble, tidyr, viridisLite
+GithubRepo: plotly
+GithubUsername: ropensci
+GithubRef: master
+GithubSha1: cef67b6651c5d329d28cae26a9581e46ac97fbc6
+
 Package: plyr
 Source: CRAN
 Version: 1.8.4
@@ -555,7 +578,7 @@ Requires: foreign, mnormt
 Package: purrr
 Source: CRAN
 Version: 0.2.2
-Hash: 6d2bc0610f9684cbc611c80c7d78c079
+Hash: b17f27fda62e8c85b81eed43f8db7dee
 Requires: BH, Rcpp, dplyr, lazyeval, magrittr
 
 Package: quadprog
@@ -686,12 +709,12 @@ Requires: httpuv, jsonlite, mime
 Package: sf
 Source: github
 Version: 0.3-5
-Hash: 512694d443d558b6852ad2e526667709
+Hash: 0e99b024ccda283079e136db21c02c64
 Requires: DBI, Rcpp, units
 GithubRepo: sfr
 GithubUsername: edzer
 GithubRef: master
-GithubSha1: 8bbba1d03a4c6bf36d5e54ee0e3545db66b65429
+GithubSha1: 3932f5681a47969e030875a4ccae7ff56ee795e6
 
 Package: shiny
 Source: CRAN
@@ -709,6 +732,11 @@ GithubRepo: shinydashboard
 GithubUsername: rstudio
 GithubRef: master
 GithubSha1: 44bf7c5154afe1d054de3386696d888602cf2b5e
+
+Package: shinyjs
+Source: CRAN
+Version: 0.9
+Requires: digest, htmltools, jsonlite, miniUI, shiny
 
 Package: sourcetools
 Source: CRAN
