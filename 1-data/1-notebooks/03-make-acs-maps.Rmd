@@ -304,7 +304,6 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-map-fun.rds'))){
         pal <- colorNumeric(.pal,data_all_geogs$VAL)
                         
         myLfltGrey() %>%
-                myLfltOpts() %>%
                 addPolygons(data = as(data,'Spatial'),
                             fillOpacity = .75,
                             fillColor = ~pal(VAL),
@@ -335,7 +334,8 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-map-fun.rds'))){
                 setView(lng = data_cnt[['xmin']],
                         lat = data_cnt[['ymin']],
                         zoom = zoom) %>% 
-                styleWidget(style = "text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF")       
+                styleWidget(style = "text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF") %>% 
+                myLfltOpts()
         
         
         }

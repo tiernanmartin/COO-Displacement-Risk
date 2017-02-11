@@ -1,0 +1,138 @@
+
+```{r crosstalk-setup}
+library(magrittr)
+library(crosstalk)
+# library(d3scatter)
+library(leaflet)
+library(leaflet.extras)
+library(sf)
+library(plotly)
+library(forcats)
+library(tidyverse)
+demo(nc, ask = FALSE, echo = FALSE, verbose = FALSE)
+```
+
+### Crosstalk Test  {-}
+Here is the test:
+
+```{r crosstalk-one}
+# row.names(mtcars) <- NULL
+# sd_mtcars_all <- SharedData$new(mtcars, group = "mtcars_subset")
+# sd_mtcars_auto <- SharedData$new(mtcars[mtcars$am == 0,], group = "mtcars_subset")
+# sd_mtcars_manual <- SharedData$new(mtcars[mtcars$am == 1,], group = "mtcars_subset")
+# 
+# bscols(widths = c(8, 4),
+#   d3scatter(sd_mtcars_all, ~hp, ~mpg, ~factor(cyl),
+#     x_lim = ~range(hp), y_lim = ~range(mpg),
+#     width = "100%", height = 400),
+#   list(
+#     d3scatter(sd_mtcars_auto, ~hp, ~mpg, ~factor(cyl),
+#       x_lim = range(mtcars$hp), y_lim = range(mtcars$mpg),
+#       width = "100%", height = 200),
+#     d3scatter(sd_mtcars_manual, ~hp, ~mpg, ~factor(cyl),
+#       x_lim = range(mtcars$hp), y_lim = range(mtcars$mpg),
+#       width = "100%", height = 200)
+#   )
+# )
+```
+
+
+
+```{r crosstalk-two}
+
+
+# shared_quakes <- SharedData$new(quakes[sample(nrow(quakes), 100),])
+# 
+# bscols(widths = c(8, 4),
+#   leaflet(shared_quakes, width = "100%", height = 300) %>%
+#     addTiles() %>%
+#     addMarkers(),
+#   list(
+#     d3scatter(shared_quakes, ~depth, ~mag, width = "100%", height = 300),
+#     d3scatter(shared_quakes, ~stations, ~mag, width = "100%", height = 300)
+#   )
+#   
+# )
+```
+
+
+
+```{r crosstalk-three}
+
+
+demo(nc, ask = FALSE, echo = FALSE, verbose = FALSE)
+
+shared_nc_pt <- nc %>% st_transform(4326) %>% st_centroid() %>% SharedData$new()
+
+bscols(leaflet(data = shared_nc_pt) %>%
+         addTiles() %>%
+         addMarkers(),
+       plot_ly(shared_nc_pt, x = ~BIR74, y=  ~SID79, type = 'scatter', mode = 'markers')       
+)
+
+
+
+```
+```{r crosstalk-four}
+
+library(forcats)
+
+nc_pt <- 
+  nc %>% 
+  st_transform(4326) %>% 
+  st_centroid() %>% 
+  arrange(desc(BIR74)) %>% 
+  mutate(SE = BIR74 * rnorm(BIR74,mean = 10,sd = .75),
+         NAME = fct_reorder(NAME,BIR74,.desc = TRUE))  
+  
+shared_nc_pt <-  SharedData$new(nc_pt)
+
+bscols(leaflet(data = shared_nc_pt) %>%
+         addTiles() %>%
+         addLabelOnlyMarkers() %>% 
+         addPolygons(data = nc %>% st_transform(4326) ,
+                     opacity = 1,
+                     color = 'white',
+                     weight = .25,
+                     fillOpacity = .5,
+                     fillColor = 'blue',
+                     smoothFactor = 0),
+       plot_ly(shared_nc_pt, x = ~BIR74, y=  ~NAME, error_x = ~list(value = SE, width = 0, thickness = 4, color = "#D9D9D9"), type = 'scatter', mode = 'markers') %>% 
+      highlight(off = "plotly_deselect") %>% 
+        config(displayModeBar = 'hover', showLink = FALSE, displaylogo = FALSE)
+)
+
+```
+
+
+
+```{r crosstalk-five}
+
+nc %>%  
+  st_transform(4326) %>% 
+  leaflet %>% 
+  addTiles() %>% 
+  addPolygons(opacity = 1,
+              color = 'white',
+              weight = .25,
+              fillOpacity = .5,
+              fillColor = 'blue',
+              smoothFactor = 0) %>% 
+  addFullscreenControl(pseudoFullscreen = TRUE)
+```
+
+
+```{r crosstalk-six}
+
+nc %>%  
+  st_transform(4326) %>% 
+  leaflet %>% 
+  addTiles() %>% 
+  addPolygons(opacity = 1,
+              color = 'white',
+              weight = .25,
+              fillOpacity = .5,
+              fillColor = 'blue',
+              smoothFactor = 0) %>% 
+        myLfltOpts()
+```
