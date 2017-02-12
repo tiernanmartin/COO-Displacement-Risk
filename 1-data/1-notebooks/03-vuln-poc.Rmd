@@ -86,8 +86,7 @@ make_acs_map(long_sf = map_acs_data_sf,
              .category = 'VULN',
              .topic = 'B03002',
              .pal = 'plasma',
-             .legend_title = "SHARE OF<br>PEOPLE OF COLOR<hr>2011-2015") %>% 
-  addFullscreenControl(pseudoFullscreen = TRUE)
+             .legend_title = "SHARE OF<br>PEOPLE OF COLOR<hr>2011-2015")
 ```
 
 #### COO Communities {-}
@@ -100,9 +99,8 @@ make_acs_map(long_sf = map_acs_data_sf,
              .category = 'VULN',
              .topic = 'B03002',
              .pal = 'plasma',
-             .legend_title = "") %>% 
-        miscgis::styleWidget(style = paste0("float: left;","margin:1px;","text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF")) %>% 
-        myLfltOpts()
+             .legend_title = "",
+             .css_style = paste0("float: left;","margin:3px;","text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF"))
 
 
 # Aggregated tracts for each COO community
@@ -111,8 +109,8 @@ make_acs_map(long_sf = map_acs_data_sf,
              .category = 'VULN',
              .topic = 'B03002',
              .pal = 'plasma',
-             .legend_title = "") %>% 
-        miscgis::styleWidget(style = paste0("float: none;","margin:1px;","text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF"))
+             .legend_title = "",
+             .css_style = paste0("float: none;","margin:3px;","text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF"))
 
 
 ```
