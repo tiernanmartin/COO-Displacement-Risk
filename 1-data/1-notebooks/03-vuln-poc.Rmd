@@ -38,6 +38,9 @@ library(leaflet.extras)
 library(viridisLite)
 library(htmlTable)
 library(tidyverse)
+library(forcats)
+library(crosstalk)
+library(plotly)
 library(sf)
 root <- rprojroot::is_rstudio_project
 root_file <- root$make_fix_file()
@@ -65,6 +68,10 @@ div_pal <- brewer.pal(11,'Spectral')[2:10]
 # Load the map-making function
 if(!exists('make_acs_map')){make_acs_map <- read_rds(root_file('./1-data/4-interim/make-acs-map-fun.rds'))}
 
+# Load the crosstalk function
+if(!exists('make_acs_crosstalk')){make_acs_crosstalk <- read_rds(root_file('./1-data/4-interim/make-acs-crosstalk-fun.rds'))}
+
+
 # Load the acs indicator object that is prepared for the above function
 if(!exists('map_acs_data_sf')){map_acs_data_sf <- read_rds(root_file('./1-data/4-interim/coo-acs-inds-map-sf.rds'))}
 
@@ -81,12 +88,16 @@ These maps show the share of the population that belongs to a community of color
 
 ```{r vuln-poc-seaccd-map}
 
-make_acs_map(long_sf = map_acs_data_sf,
+make_acs_crosstalk(long_sf = map_acs_data_sf,
              .geog = 'tract',
              .category = 'VULN',
              .topic = 'B03002',
              .pal = 'plasma',
-             .legend_title = "SHARE OF<br>PEOPLE OF COLOR<hr>2011-2015")
+             .legend_title = "PEOPLE OF COLOR<hr>2011-2015",
+             .height_lflt = 600,
+             .height_pltly = 300,
+             .width_pltly = 400,
+             zoom = 9)
 ```
 
 #### COO Communities {-}
@@ -100,8 +111,7 @@ make_acs_map(long_sf = map_acs_data_sf,
              .topic = 'B03002',
              .pal = 'plasma',
              .legend_title = "",
-             .css_style = paste0("float: left;","margin:3px;","text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF"))
-
+             .css_style = paste0("float: left;","margin:3px;","text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF")) 
 
 # Aggregated tracts for each COO community
 make_acs_map(long_sf = map_acs_data_sf,
@@ -110,7 +120,7 @@ make_acs_map(long_sf = map_acs_data_sf,
              .topic = 'B03002',
              .pal = 'plasma',
              .legend_title = "",
-             .css_style = paste0("float: none;","margin:3px;","text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF"))
+             .css_style = paste0("float: none;","margin:3px;","text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF")) 
 
 
 ```

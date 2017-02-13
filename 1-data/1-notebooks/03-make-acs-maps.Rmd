@@ -37,6 +37,9 @@ library(operator.tools)
 library(leaflet.extras)
 library(viridisLite)
 library(htmlTable)
+library(plotly)
+library(crosstalk)
+library(forcats)
 library(sf)
 root <- rprojroot::is_rstudio_project
 root_file <- root$make_fix_file()
@@ -272,6 +275,8 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-map-fun.rds'))){
                                  .pal,
                                  .legend_title,
                                  zoom = 10,
+                                 .width = NULL,
+                                 .height = NULL,
                                  .css_style = "text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF"){
         
         # browser()
@@ -291,42 +296,43 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-map-fun.rds'))){
         
         # Create outlines and labels for the COO communities
 
-        comm_cnt_sp <- 
+        comm_cnt_sf <- 
                 data_all_geogs %>% 
                 filter(GEOGRAPHY %in% 'community') %>% 
-                mutate(geometry = st_centroid(geometry)) %>%
-                as("Spatial")
+                mutate(geometry = st_centroid(geometry)) 
         
-        comm_bounds_sp <- 
+        comm_bounds_sf <- 
                 data_all_geogs %>% 
                 filter(GEOGRAPHY %in% 'community') %>%
-                as("Spatial") %>% 
-                as("SpatialLines")
+                st_cast('LINESTRING')
+                
         
         # Create center point for the map
         
         
         data_cnt <- data %>% st_union %>% st_centroid() %>% st_bbox()
         
-        
+        # Color palette
         pal <- colorNumeric(.pal,data_all_geogs$VAL)
-                        
-        myLfltGrey() %>%
-                addPolygons(data = as(data,'Spatial'),
-                            fillOpacity = .75,
+        
+        # Make the leaflet map
+        myLfltGrey(data,
+                   width = .width,
+                   height = .height) %>%
+                addPolygons(fillOpacity = .75,
                             fillColor = ~pal(VAL),
                             color = col2hex('white'),
                             opacity = 1,
                             weight = .5,
                             smoothFactor = 0,
                             popup = ~POPUP) %>%
-                addPolylines(data = comm_bounds_sp,
+                addPolylines(data = comm_bounds_sf,
                              fillOpacity = 0,
                              color = proj_dark_grey,
                              opacity = 1,
                              weight = 2,
                              smoothFactor = 0) %>%
-                addAwesomeMarkers(data = comm_cnt_sp,
+                addAwesomeMarkers(data = comm_cnt_sf,
                                   options = markerOptions(opacity = 0),
                                   label = ~ NAME_FULL, 
                                   labelOptions = labelOptions(noHide = TRUE,
@@ -343,8 +349,9 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-map-fun.rds'))){
                         lat = data_cnt[['ymin']],
                         zoom = zoom) %>% 
                 styleWidget(style = .css_style) %>% 
-                myLfltOpts() %>% 
+                myLfltOpts(hideControls = FALSE) %>% 
                 addFullscreenControl(pseudoFullscreen = TRUE)
+                
         
         
         }
@@ -353,7 +360,120 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-map-fun.rds'))){
         
 }
 
+if(!file.exists(root_file('./1-data/4-interim/make-acs-crosstalk-fun.rds'))){
+        make_acs_crosstalk <- function(long_sf,
+                                 .geog,
+                                 .comms_only = FALSE,
+                                 .category,
+                                 .topic,
+                                 .pal,
+                                 .legend_title,
+                                 zoom = 10,
+                                 .height_lflt = 400,
+                                 .width_lflt = '100%',
+                                 .height_pltly = 400,
+                                 .width_pltly = '100%',
+                                 .css_style = "text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF"){
+        
+        # browser()
+        
+        data <- 
+                long_sf %>% 
+                filter(GEOGRAPHY %in% .geog) %>% 
+                filter(CAT %in% .category) %>% 
+                filter(TOPIC %in% .topic) %>% 
+                mutate(NAME = fct_reorder(NAME,VAL,.desc = TRUE))
+                
+        
+        # Exclude non-COO tracts when .comms_only == TRUE
+        if(.comms_only){
+                data %<>% filter(!is.na(COMMUNITY))
+        }
+        
+        data_all_geogs <- long_sf %>% filter(CAT %in% .category & TOPIC %in% .topic)
+        
+        # Create outlines and labels for the COO communities
 
+        comm_cnt_sf <- 
+                data_all_geogs %>% 
+                filter(GEOGRAPHY %in% 'community') %>% 
+                mutate(geometry = st_centroid(geometry)) 
+        
+        comm_bounds_sf <- 
+                data_all_geogs %>% 
+                filter(GEOGRAPHY %in% 'community') %>%
+                st_cast('LINESTRING')
+                
+        
+        # Create center point for the map
+        
+        
+        data_cnt <- data %>% st_union %>% st_centroid() %>% st_bbox()
+        
+        # Color palette
+        pal <- colorNumeric(.pal,data_all_geogs$VAL)
+
+        
+        # Shared data
+                     
+        shared_data <- SharedData$new(data)
+        
+        
+        lflt_map <-            
+                myLfltGrey(shared_data,
+                           width = .width_lflt,
+                           height = .height_lflt) %>%
+                addPolygons(fillOpacity = .75,
+                            fillColor = ~pal(VAL),
+                            color = col2hex('white'),
+                            opacity = 1,
+                            weight = .5,
+                            smoothFactor = 0,
+                            popup = ~POPUP) %>%
+                addPolylines(data = comm_bounds_sf,
+                             fillOpacity = 0,
+                             color = proj_dark_grey,
+                             opacity = 1,
+                             weight = 2,
+                             smoothFactor = 0) %>%
+                addAwesomeMarkers(data = comm_cnt_sf,
+                                  options = markerOptions(opacity = 0),
+                                  label = ~ NAME_FULL, 
+                                  labelOptions = labelOptions(noHide = TRUE,
+                                                              offset = c(0,0),
+                                                              direction = 'auto', 
+                                                              textOnly = TRUE)) %>% 
+                addLegend(title = .legend_title,
+                          position = 'topright',
+                          pal = pal,
+                          values = data_all_geogs %>% extract2('VAL'),
+                          opacity = .75,
+                          labFormat = labelFormat(suffix = '%',transform = function(x) 100 * x)) %>%
+                setView(lng = data_cnt[['xmin']],
+                        lat = data_cnt[['ymin']],
+                        zoom = zoom) %>% 
+                styleWidget(style = .css_style) %>% 
+                myLfltOpts(hideControls = FALSE) %>% 
+                addFullscreenControl(pseudoFullscreen = TRUE)
+                
+        
+        # Crosstalk
+        
+        bscols(
+                widths = c(4, 8),
+                lflt_map,
+                list(
+                        plot_ly(shared_data, x = ~VAL, y=  ~NAME, type = 'scatter', mode = 'markers', height = .height_pltly, width = .width_pltly),
+                        plot_ly(shared_data, x = ~VAL, y=  ~NAME, type = 'scatter', mode = 'markers', height = .height_pltly, width = .width_pltly)
+                )
+                )
+        
+        
+        }
+        
+        make_acs_crosstalk %>% write_rds(root_file('./1-data/4-interim/make-acs-crosstalk-fun.rds'))
+        
+}
 ```
 
 ```{r make-acs-maps-examples, eval=FALSE}

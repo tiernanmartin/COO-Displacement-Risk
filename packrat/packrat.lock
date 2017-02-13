@@ -424,13 +424,13 @@ GithubSha1: 24a7dfa68528e32265aa325610eca7f8fa7a8050
 
 Package: leaflet.extras
 Source: github
-Version: 0.1.9008
-Hash: f6f4ae939672d9a6077537f241b463dc
+Version: 0.1.9009
+Hash: 3929eeab859443d397b9f304cdf8f530
 Requires: htmltools, htmlwidgets, leaflet, magrittr, shiny
 GithubRepo: leaflet.extras
 GithubUsername: bhaskarvk
 GithubRef: master
-GithubSha1: 633f3dd2f1d1b3d112db0888b21861259a973be5
+GithubSha1: d377e540614b83f06b1316e135cfb4cf583e23af
 
 Package: lubridate
 Source: CRAN
@@ -485,14 +485,14 @@ Requires: htmltools, shiny
 
 Package: miscgis
 Source: github
-Version: 0.1.3-9
-Hash: c79c1453c9b8995a089d6b41b41611dc
+Version: 0.1.3-10
+Hash: 163e6474c6febc2688825c4a5877ef77
 Requires: acs, dplyr, leaflet, leaflet.extras, miniUI, operator.tools,
     rmarkdown, sf, shinydashboard, sp, tigris
 GithubRepo: miscgis
 GithubUsername: tiernanmartin
 GithubRef: master
-GithubSha1: 7f33de83eae438e7015b9da415a1e776505feeec
+GithubSha1: 3e1b88af03cc01bc89eb0220a42fcd2256b991eb
 
 Package: mnormt
 Source: CRAN
@@ -709,12 +709,12 @@ Requires: httpuv, jsonlite, mime
 Package: sf
 Source: github
 Version: 0.3-5
-Hash: 0e99b024ccda283079e136db21c02c64
+Hash: dfbf4b8a56cf1634e01c2616731ad639
 Requires: DBI, Rcpp, units
 GithubRepo: sfr
 GithubUsername: edzer
 GithubRef: master
-GithubSha1: 3932f5681a47969e030875a4ccae7ff56ee795e6
+GithubSha1: 980001aa72e02308da2d62157d074de0c4e95bc9
 
 Package: shiny
 Source: CRAN
@@ -736,6 +736,7 @@ GithubSha1: 44bf7c5154afe1d054de3386696d888602cf2b5e
 Package: shinyjs
 Source: CRAN
 Version: 0.9
+Hash: 579098ad240eba826dc5d96c8c2a5d13
 Requires: digest, htmltools, jsonlite, miniUI, shiny
 
 Package: sourcetools
