@@ -1,8 +1,7 @@
 --- 
 title: Communities of Opportunity Displacement Risk Assessment
-author: Tiernan Martin, [Futurewise](http://www.futurewisewa.org/)
-date: Fall 2016
 subtitle: A User Guide
+date: Winter 2017
 site: bookdown::bookdown_site
 output:
   bookdown::gitbook:
