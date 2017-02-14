@@ -41,6 +41,7 @@ library(tidyverse)
 library(forcats)
 library(crosstalk)
 library(plotly)
+library(DT)
 library(sf)
 root <- rprojroot::is_rstudio_project
 root_file <- root$make_fix_file()
@@ -122,6 +123,19 @@ make_acs_map(long_sf = map_acs_data_sf,
              .pal = div_pal,
              .legend_title = "",
              .css_style = paste0("float: none;","margin:3px;","text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF")) 
+
+
+```
+
+
+
+#####Data: All Geographies {-}
+```{r demo-chng-white-dt}
+
+make_acs_dt(long_sf = map_acs_data_sf,
+            .category = 'DEMO',
+            .topic = 'B03002',
+            .col_title = "Change in Whites")
 
 
 ```

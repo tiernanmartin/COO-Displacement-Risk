@@ -41,6 +41,7 @@ library(tidyverse)
 library(forcats)
 library(crosstalk)
 library(plotly)
+library(DT)
 library(sf)
 root <- rprojroot::is_rstudio_project
 root_file <- root$make_fix_file()
@@ -71,9 +72,12 @@ if(!exists('make_acs_map')){make_acs_map <- read_rds(root_file('./1-data/4-inter
 # Load the crosstalk function
 if(!exists('make_acs_crosstalk')){make_acs_crosstalk <- read_rds(root_file('./1-data/4-interim/make-acs-crosstalk-fun.rds'))}
 
+# Load the DT function
+if(!exists('make_acs_dt')){make_acs_dt <- read_rds(root_file('./1-data/4-interim/make-acs-dt-fun.rds'))}
 
 # Load the acs indicator object that is prepared for the above function
 if(!exists('map_acs_data_sf')){map_acs_data_sf <- read_rds(root_file('./1-data/4-interim/coo-acs-inds-map-sf.rds'))}
+
 
 ```
 
@@ -125,3 +129,16 @@ make_acs_map(long_sf = map_acs_data_sf,
 
 
 ```
+
+
+#####Data: All Geographies {-}
+```{r vuln-poc-dt}
+
+make_acs_dt(long_sf = map_acs_data_sf,
+            .category = 'VULN',
+            .topic = 'B03002',
+            .col_title = 'People of Color')
+
+
+```
+
