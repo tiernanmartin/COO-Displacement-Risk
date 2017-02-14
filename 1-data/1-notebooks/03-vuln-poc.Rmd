@@ -77,11 +77,11 @@ if(!exists('map_acs_data_sf')){map_acs_data_sf <- read_rds(root_file('./1-data/4
 
 ```
 
-### Race: People Belonging to Communities of Color {-}
+#### Race: People Belonging to Communities of Color {-}
 
 [[_Descriptive text here_]]
 
-#### Seattle CCD {-}
+##### Seattle CCD {-}
 
 These maps show the share of the population that belongs to a community of color for each census tract in Seattle CCD.
 
@@ -101,7 +101,7 @@ make_acs_crosstalk(long_sf = map_acs_data_sf,
              zoom = 9)
 ```
 
-#### COO Communities {-}
+##### COO Communities {-}
 ```{r vuln-poc-comm-map, fig.height=3, fig.width=2,  fig.show='hold', dpi=150}
 
 # Tracts in COO communities
