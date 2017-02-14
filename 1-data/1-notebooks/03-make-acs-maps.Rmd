@@ -391,7 +391,10 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-crosstalk-fun.rds'))){
                                          .$COMMUNITY %in% 'STKW' ~ "#D62728",
                                          TRUE ~ 'grey50')) %>% 
                 arrange(NAME)
-                
+        
+        data_pt_sf <- data %>% st_centroid()
+        
+        data_poly_sf <- data
         
         # Exclude non-COO tracts when .comms_only == TRUE
         if(.comms_only){
@@ -424,14 +427,16 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-crosstalk-fun.rds'))){
         
         # Shared data
                      
-        shared_data <- SharedData$new(data)
+        shared_data <- SharedData$new(data_pt_sf)
         
         
         lflt_map <-            
                 myLfltGrey(shared_data,
                            width = .width_lflt,
                            height = .height_lflt) %>%
-                addPolygons(fillOpacity = .75,
+                addLabelOnlyMarkers(label = '') %>% 
+                addPolygons(data = data_poly_sf,
+                            fillOpacity = .75,
                             fillColor = ~pal(VAL),
                             color = col2hex('white'),
                             opacity = 1,
@@ -507,7 +512,7 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-crosstalk-fun.rds'))){
                                 height = .height_pltly_lower, 
                                 width = .width_pltly) %>% 
                                 layout(
-                                        xaxis = list(range = list(0,1), tickformat = '%'),
+                                        xaxis = list(range = list(0,1), tickformat = '%', title = ''),
                                         yaxis = list(title = "TRACTS")
                                 ) %>% 
                 hide_legend()
