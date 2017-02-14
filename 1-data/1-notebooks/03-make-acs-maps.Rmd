@@ -245,13 +245,14 @@ if(!exists('tbl_popup')){
 }
 
 if(!file.exists(root_file('./1-data/4-interim/coo-acs-inds-map-sf.rds'))){
+        
         inds %>% 
-                filter(GEOGRAPHY %in% c('tract','community','county subdivision')) %>% 
-                filter(SEACCD_LGL|NAME %in% c('SEACCD','COO','RV','WC','STKW')) %>% 
-                select(NAME,NAME_FULL,GEOGRAPHY,COMMUNITY,matches('EST')) %>% 
+                filter(GEOGRAPHY %in% c('tract','community','county subdivision','county')) %>% 
+                filter(SEACCD_LGL|NAME %in% c('SEACCD','COO','RV','WC','STKW','KC')) %>% 
+                select(NAME,NAME_FULL,GEOGRAPHY,GEOG_FCT,COMMUNITY,matches('EST')) %>% 
                 select(-matches('VULN_CNT_2009|VULN_PCT_2009|SEACCD')) %>% 
                 mutate(row = row_number()) %>% 
-                gather(TBL,VAL,-NAME,-NAME_FULL,-GEOGRAPHY,-COMMUNITY,-geometry,-row) %>% 
+                gather(TBL,VAL,-NAME,-NAME_FULL,-GEOGRAPHY,-GEOG_FCT,-COMMUNITY,-geometry,-row) %>% 
                 mutate(CAT = str_sub(TBL,1,4) %>% str_replace('_',''),
                        TOPIC = str_extract(TBL,'B[[:digit:]]{5}'),
                        CAT_TOP = str_c(CAT,TOPIC,sep = '_')) %>% 
@@ -371,8 +372,10 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-crosstalk-fun.rds'))){
                                  zoom = 10,
                                  .height_lflt = 400,
                                  .width_lflt = '100%',
-                                 .height_pltly = 400,
+                                 .height_pltly_upper = 200,
+                                 .height_pltly_lower = 200,
                                  .width_pltly = '100%',
+                                 .plotly_title,
                                  .css_style = "text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF"){
         
         # browser()
@@ -382,7 +385,12 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-crosstalk-fun.rds'))){
                 filter(GEOGRAPHY %in% .geog) %>% 
                 filter(CAT %in% .category) %>% 
                 filter(TOPIC %in% .topic) %>% 
-                mutate(NAME = fct_reorder(NAME,VAL,.desc = TRUE))
+                mutate(NAME = fct_reorder(NAME,VAL,.desc = TRUE),
+                        COLOR = case_when(.$COMMUNITY %in% 'RV' ~ "#1F77B4",
+                                         .$COMMUNITY %in% 'WC' ~ "#2CA02C",
+                                         .$COMMUNITY %in% 'STKW' ~ "#D62728",
+                                         TRUE ~ 'grey50')) %>% 
+                arrange(NAME)
                 
         
         # Exclude non-COO tracts when .comms_only == TRUE
@@ -456,16 +464,60 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-crosstalk-fun.rds'))){
                 myLfltOpts(hideControls = FALSE) %>% 
                 addFullscreenControl(pseudoFullscreen = TRUE)
                 
+        # Aggregate geoms
+        data_agg_geogs <- 
+                long_sf %>% 
+                filter(GEOGRAPHY %!in% 'tract') %>% 
+                filter(CAT %in% .category) %>% 
+                filter(TOPIC %in% .topic) %>% 
+                mutate(NAME = fct_reorder(NAME,as.numeric(GEOG_FCT),.desc = FALSE),
+                       COLOR = case_when(.$COMMUNITY %in% 'RV' ~ "#1F77B4",
+                                         .$COMMUNITY %in% 'WC' ~ "#2CA02C",
+                                         .$COMMUNITY %in% 'STKW' ~ "#D62728",
+                                         TRUE ~ 'grey50')) %>% 
+                arrange(NAME)
+        
+        
+        # Plots
+        
+        
+        upper <- 
+                plot_ly(data_agg_geogs,
+                                x = ~VAL, 
+                                y=  ~NAME, 
+                                color = ~NAME, 
+                                colors = ~COLOR, 
+                                type = 'scatter', 
+                                mode = 'markers',
+                                height = .height_pltly_upper, 
+                                width = .width_pltly) %>% 
+                                layout(xaxis = list(range = list(0,1), tickformat = '%', title = ''),
+                                       yaxis = list(title = "")) %>% 
+                hide_legend()
+
+        lower <-
+                plot_ly(shared_data, 
+                                x = ~VAL, 
+                                y=  ~NAME, 
+                                color = ~NAME, 
+                                colors = ~COLOR, 
+                                type = 'scatter', 
+                                mode = 'markers', 
+                                height = .height_pltly_lower, 
+                                width = .width_pltly) %>% 
+                                layout(
+                                        xaxis = list(range = list(0,1), tickformat = '%', title = .plotly_title),
+                                        yaxis = list(title = "TRACTS")
+                                ) %>% 
+                hide_legend()
         
         # Crosstalk
         
         bscols(
-                widths = c(4, 8),
+                widths = c(5, 7),
                 lflt_map,
-                list(
-                        plot_ly(shared_data, x = ~VAL, y=  ~NAME, type = 'scatter', mode = 'markers', height = .height_pltly, width = .width_pltly),
-                        plot_ly(shared_data, x = ~VAL, y=  ~NAME, type = 'scatter', mode = 'markers', height = .height_pltly, width = .width_pltly)
-                )
+                list(upper,lower)
+                
                 )
         
         
