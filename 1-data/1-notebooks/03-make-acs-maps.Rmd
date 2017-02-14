@@ -372,11 +372,11 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-crosstalk-fun.rds'))){
                                  zoom = 10,
                                  .height_lflt = 400,
                                  .width_lflt = '100%',
+                                 .css_style = "text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF",
                                  .height_pltly_upper = 200,
                                  .height_pltly_lower = 200,
                                  .width_pltly = '100%',
-                                 .plotly_title,
-                                 .css_style = "text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF"){
+                                 .plotly_title){
         
         # browser()
         
@@ -485,6 +485,19 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-crosstalk-fun.rds'))){
         
         # Plots
         
+        if(.category %in% 'VULN'){
+                plotly_range <- list(0,1)
+        }else{
+                plotly_range <- 
+                        long_sf %>% 
+                        filter(CAT %in% 'DEMO') %>% 
+                        filter(TOPIC %in% 'B03002') %>% 
+                        extract2('VAL') %>% 
+                        abs %>% 
+                        max %>% 
+                        plyr::round_any(.1) %>% 
+                        list(multiply_by(.,-1),.)
+                        }
         
         upper <- 
                 plot_ly(data_agg_geogs,
@@ -497,7 +510,7 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-crosstalk-fun.rds'))){
                                 height = .height_pltly_upper, 
                                 width = .width_pltly) %>% 
                                 layout(title = .plotly_title,
-                                       xaxis = list(range = list(0,1), tickformat = '%', title = ''),
+                                       xaxis = list(range = plotly_range, tickformat = '%', title = ''),
                                        yaxis = list(title = "")) %>% 
                 hide_legend()
 
@@ -512,7 +525,7 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-crosstalk-fun.rds'))){
                                 height = .height_pltly_lower, 
                                 width = .width_pltly) %>% 
                                 layout(
-                                        xaxis = list(range = list(0,1), tickformat = '%', title = ''),
+                                        xaxis = list(range = plotly_range, tickformat = '%', title = ''),
                                         yaxis = list(title = "TRACTS")
                                 ) %>% 
                 hide_legend()
