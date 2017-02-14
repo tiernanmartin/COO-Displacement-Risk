@@ -68,8 +68,6 @@ demo_chng_own_fp <- root_file('1-data/1-notebooks/03-demo-change-own.Rmd')
 demo_chng_bach_fp <- root_file('1-data/1-notebooks/03-demo-change-bach.Rmd')
 
 demo_chng_income_fp <- root_file('1-data/1-notebooks/03-demo-change-inc.Rmd')
-
-test_crosstalk_fp <- root_file('1-data/1-notebooks/tmp/tmp-crosstalk-test.Rmd')
 ```
 
 `r knit_child(ind_intro_fp)`
@@ -77,6 +75,6 @@ test_crosstalk_fp <- root_file('1-data/1-notebooks/tmp/tmp-crosstalk-test.Rmd')
 `r knit_child(make_acs_maps_fp)`
 `r knit_child(vuln_intro_fp)`
 `r knit_child(vuln_poc_fp)`
-`r knit_child(test_crosstalk_fp)`
+
 
 ## Typology

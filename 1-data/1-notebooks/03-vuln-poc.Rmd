@@ -75,7 +75,6 @@ if(!exists('make_acs_crosstalk')){make_acs_crosstalk <- read_rds(root_file('./1-
 # Load the acs indicator object that is prepared for the above function
 if(!exists('map_acs_data_sf')){map_acs_data_sf <- read_rds(root_file('./1-data/4-interim/coo-acs-inds-map-sf.rds'))}
 
-
 ```
 
 ### Race: People Belonging to Communities of Color {-}
@@ -95,8 +94,10 @@ make_acs_crosstalk(long_sf = map_acs_data_sf,
              .pal = 'plasma',
              .legend_title = "PEOPLE OF COLOR<hr>2011-2015",
              .height_lflt = 600,
-             .height_pltly = 300,
+             .height_pltly_upper = 200,
+             .height_pltly_lower = 400,
              .width_pltly = 400,
+             .plotly_title = 'PEOPLE OF COLOR',
              zoom = 9)
 ```
 
