@@ -14,10 +14,14 @@ Version: 0.5-1
 Hash: 375869004db963f9915f2b8a49b4a718
 
 Package: DT
-Source: CRAN
-Version: 0.2
-Hash: 36b032203797956fedad5a25055016a9
-Requires: htmltools, htmlwidgets, magrittr
+Source: github
+Version: 0.2.11
+Hash: 48ea822e0fec5e3ad0c73884c0b46792
+Requires: crosstalk, htmltools, htmlwidgets, magrittr
+GithubRepo: DT
+GithubUsername: rstudio
+GithubRef: master
+GithubSha1: 08731fee2e12beead3d03db73c130c6522bb47c8
 
 Package: GISTools
 Source: CRAN
