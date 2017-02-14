@@ -39,7 +39,7 @@ census_acs_comms_fp <- root_file('1-data/1-notebooks/02-census-acs-communities.R
 ```
 
 
-## Indicators
+## Indicators   
 
 ```{r data-methods-indicators}
 
@@ -74,7 +74,14 @@ demo_chng_income_fp <- root_file('1-data/1-notebooks/03-demo-change-inc.Rmd')
 `r knit_child(make_acs_inds_fp)`
 `r knit_child(make_acs_maps_fp)`
 `r knit_child(vuln_intro_fp)`
+<br>
 `r knit_child(vuln_poc_fp)`
-
+<br>
+`r knit_child(vuln_lt_bach_fp)`
+<br>
+`r knit_child(vuln_low_inc_fp)`
+<br>
+`r knit_child(vuln_rent_fp)`
+<br>
 
 ## Typology
