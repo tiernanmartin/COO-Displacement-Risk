@@ -491,7 +491,8 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-crosstalk-fun.rds'))){
                                 mode = 'markers',
                                 height = .height_pltly_upper, 
                                 width = .width_pltly) %>% 
-                                layout(xaxis = list(range = list(0,1), tickformat = '%', title = ''),
+                                layout(title = .plotly_title,
+                                       xaxis = list(range = list(0,1), tickformat = '%', title = ''),
                                        yaxis = list(title = "")) %>% 
                 hide_legend()
 
@@ -506,7 +507,7 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-crosstalk-fun.rds'))){
                                 height = .height_pltly_lower, 
                                 width = .width_pltly) %>% 
                                 layout(
-                                        xaxis = list(range = list(0,1), tickformat = '%', title = .plotly_title),
+                                        xaxis = list(range = list(0,1), tickformat = '%'),
                                         yaxis = list(title = "TRACTS")
                                 ) %>% 
                 hide_legend()
