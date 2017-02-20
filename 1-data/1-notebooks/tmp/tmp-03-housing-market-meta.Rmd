@@ -214,6 +214,70 @@ tribble(
 ```
 
 
+```{r hous-meta-presentuse-guide}
+
+if(!file.exists(root_file('1-data/4-interim/prcl-presuse-tbl-2015.csv'))){
+        
+        # check the layer names (looking for 'rpacct_extr')
+        list(
+                root_file('./1-data/3-external/manual/over-size-limit/Year2016.gdb/'),
+                root_file('./1-data/3-external/manual/over-size-limit/Year2005.gdb/'),
+                root_file('./1-data/3-external/manual/over-size-limit/Year2000.gdb/')
+        ) %>% map(ogrListLayers)
+        
+        
+        # Write the metadata to the interim folder
+        
+        tribble(
+                                                                             ~ src_fp,                                                             ~ dest_fp,       ~ layer,
+                root_file('./1-data/3-external/manual/over-size-limit/Year2016.gdb/'),     root_file('1-data/4-interim/prcl-presuse-tbl-2015.csv'), 'LOOKUP_EXTR',
+                root_file('./1-data/3-external/manual/over-size-limit/Year2005.gdb/'),     root_file('1-data/4-interim/prcl-presuse-tbl-2004.csv'), 'lookup_extr',
+                root_file('./1-data/3-external/manual/over-size-limit/Year2000.gdb/'),     root_file('1-data/4-interim/prcl-presuse-tbl-1999.csv'), 'lookup_extr'
+        ) %>% 
+                transpose() %>% 
+                walk(~ ogr2ogr(src_datasource_name = .x$src_fp, 
+                        dst_datasource_name = .x$dest_fp,
+                        layer = .x$layer,
+                        f = 'CSV',
+                        overwrite = TRUE))
+}
+
+if(!file.exists(root_file('1-data/4-interim/prcl-presuse-tbl-all.rds'))){
+        p_pu_2015 <- read_csv("~/COO/Displacement-Phase-1/COO-Displacement-Risk/1-data/4-interim/prcl-presuse-tbl-2015.csv",
+                              col_types = 'iic') 
+        
+        p_pu_2004 <- read_csv("~/COO/Displacement-Phase-1/COO-Displacement-Risk/1-data/4-interim/prcl-presuse-tbl-2004.csv",
+                              col_types = 'iic')
+        
+        p_pu_1999 <- read_csv("~/COO/Displacement-Phase-1/COO-Displacement-Risk/1-data/4-interim/prcl-presuse-tbl-1999.csv",
+                              col_types = 'iic')
+        
+        tribble(
+                ~ data, ~year,
+                p_pu_2015,  2015,
+                p_pu_2004,  2004,
+                p_pu_1999,  1999
+        ) %>% 
+                transpose %>% 
+                map(~ .x$data %>% 
+                            set_colnames(toupper(colnames(.x$data))) %>% 
+                            mutate(YEAR = .x$year) %>% 
+                            filter(LUTYPE %in% 102) %>% 
+                            select(CODE = LUITEM,
+                                   DESC = matches('DESCRIPT'),
+                                   YEAR)
+                ) %>% 
+                reduce(bind_rows) %>% 
+                arrange(CODE,YEAR) %>% 
+                write_rds(root_file('1-data/4-interim/prcl-presuse-tbl-all.rds'))
+}
+
+
+```
+
+
+
+
 ```{r hous-meta-join}
 
 # Read in the two metadata objects, join by PIN and YEAR, sort by PIN, and save the object
