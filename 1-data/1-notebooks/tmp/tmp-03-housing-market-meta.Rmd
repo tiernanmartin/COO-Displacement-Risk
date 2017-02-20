@@ -1,0 +1,1005 @@
+---
+df_print: tibble
+output:
+  html_notebook:
+    code_folding: hide
+  pdf_document:
+    keep_tex: yes
+always_allow_html: yes
+---
+
+```{r hous-meta-setup, echo = FALSE, warning=FALSE,message=FALSE,comment=FALSE}
+library(plyr)
+library(gdalUtils)
+library(knitr)
+library(rprojroot)
+library(rgdal)
+library(sp)
+library(rgeos)
+library(tigris)
+library(leaflet)
+library(foreign)
+library(ggthemes)
+library(magrittr)
+library(stringr)
+library(downloader)
+library(webshot)
+library(htmltools)
+library(gplots)
+library(ggmap)
+library(shiny)
+library(htmlwidgets)
+library(readxl)
+library(acs)
+library(RColorBrewer)
+library(tidyverse)
+library(miscgis)
+library(operator.tools)
+library(leaflet.extras)
+library(viridisLite)
+library(maptools)
+library(cleangeo)
+library(sf)
+root <- rprojroot::is_rstudio_project
+root_file <- root$make_fix_file()
+opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
+```
+
+```{r hous-meta-colors}
+green <- miscgis::miscgis_pals$tableau_cat[["green"]]
+blue <- miscgis::miscgis_pals$tableau_cat[["blue"]]
+orange <- miscgis::miscgis_pals$tableau_cat[["orange"]]
+red <- miscgis::miscgis_pals$tableau_cat[["red"]]
+teal <- miscgis::miscgis_pals$tableau_cat[["teal"]]
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+proj_light_grey <- col2hex("grey75")
+proj_grey <- col2hex("grey50")
+proj_dark_grey <- col2hex("grey25")
+```
+
+### Parcel Metadata 
+
+```{r hous-meta-value}
+
+# Extract the value meta data from the geodatabases
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl-value-2015.csv'))){
+        
+        # check the layer names (looking for 'rpacct_extr')
+        list(
+                root_file('./1-data/3-external/manual/over-size-limit/Year2016.gdb/'),
+                root_file('./1-data/3-external/manual/over-size-limit/Year2005.gdb/'),
+                root_file('./1-data/3-external/manual/over-size-limit/Year2000.gdb/')
+        ) %>% map(ogrListLayers)
+        
+        
+        # Write the metadata to the interim folder
+        
+        tribble(
+                                                                             ~ src_fp,                                                             ~ dest_fp,       ~ layer,
+                root_file('./1-data/3-external/manual/over-size-limit/Year2016.gdb/'),     root_file('1-data/4-interim/over-size-limit/prcl-value-2015.csv'), 'RPACCT_EXTR',
+                root_file('./1-data/3-external/manual/over-size-limit/Year2005.gdb/'),     root_file('1-data/4-interim/over-size-limit/prcl-value-2004.csv'), 'rpacct_extr',
+                root_file('./1-data/3-external/manual/over-size-limit/Year2000.gdb/'),     root_file('1-data/4-interim/over-size-limit/prcl-value-1999.csv'), 'rpacct_extr'
+        ) %>% 
+                transpose() %>% 
+                walk(~ ogr2ogr(src_datasource_name = .x$src_fp, 
+                        dst_datasource_name = .x$dest_fp,
+                        layer = .x$layer,
+                        f = 'CSV',
+                        overwrite = TRUE))
+}
+
+# Combine the value metadata
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl-value-all-3-years.rds'))){
+        
+# Load the value metadata
+p_val_2015 <- read_csv(root_file('1-data/4-interim/over-size-limit/prcl-value-2015.csv'),
+                         col_types = cols_only(PIN = 'c',BILLYR = 'i',APPRLANDVAL = 'i',APPRIMPSVAL = 'i'),
+                         progress = FALSE)
+
+p_val_2004 <- read_csv(root_file('1-data/4-interim/over-size-limit/prcl-value-2004.csv'),
+                       col_types = cols_only(PIN = 'c',BILLYR = 'i',APPRLANDVA = 'i',APPRIMPSVA = 'i'),
+                       progress = FALSE) %>% 
+        rename(APPRLANDVAL = APPRLANDVA,
+               APPRIMPSVAL = APPRIMPSVA)
+
+p_val_1999 <- read_csv(root_file('1-data/4-interim/over-size-limit/prcl-value-1999.csv'),
+                         col_types = cols_only(PIN = 'c',BillYr = 'i',ApprLandVal = 'i',ApprImpsVal = 'i'),
+                         progress = FALSE) %>% 
+        rename(BILLYR = BillYr,
+               APPRLANDVAL = ApprLandVal,
+               APPRIMPSVAL = ApprImpsVal)
+
+# Remove duplicates, join the three datasets, and save
+
+list(
+                p_val_2015,
+                p_val_2004,
+                p_val_1999
+        ) %>% 
+        map(~ .x %>% 
+                    distinct() %>% 
+                    miscgis::subset_duplicated(nm = 'PIN',notin = FALSE) %>% 
+                    filter(APPRLANDVAL!=0 & APPRIMPSVAL!=0) %>% 
+                    mutate(SUM = APPRLANDVAL + APPRIMPSVAL,
+                           YEAR = subtract(BILLYR,1)) %>% 
+                    group_by(PIN) %>% 
+                    arrange(desc(SUM)) %>% 
+                    slice(1) %>% 
+                    select(-SUM) %>%
+                    bind_rows(miscgis::subset_duplicated(.x,
+                                                         nm = 'PIN',
+                                                         notin = TRUE))) %>% 
+        reduce(rbind) %>% 
+        select(-BILLYR) %>% 
+        arrange(PIN) %>% 
+        write_rds(root_file('1-data/4-interim/over-size-limit/prcl-value-all-3-years.rds'))
+}
+
+
+```
+
+
+```{r hous-meta-proptype}
+
+# Extract the property type meta data from the geodatabases
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl-proptype-2015.csv'))){
+        
+        # check the layer names (looking for 'rpacct_extr')
+        list(
+                root_file('./1-data/3-external/manual/over-size-limit/Year2016.gdb/'),
+                root_file('./1-data/3-external/manual/over-size-limit/Year2005.gdb/'),
+                root_file('./1-data/3-external/manual/over-size-limit/Year2000.gdb/')
+        ) %>% map(ogrListLayers)
+        
+        
+        # Write the metadata to the interim folder
+        
+        tribble(
+                                                                             ~ src_fp,                                                             ~ dest_fp,       ~ layer,
+                root_file('./1-data/3-external/manual/over-size-limit/Year2016.gdb/'),     root_file('1-data/4-interim/over-size-limit/prcl-proptype-2015.csv'), 'PARCEL_EXTR',
+                root_file('./1-data/3-external/manual/over-size-limit/Year2005.gdb/'),     root_file('1-data/4-interim/over-size-limit/prcl-proptype-2004.csv'), 'parcel_extr',
+                root_file('./1-data/3-external/manual/over-size-limit/Year2000.gdb/'),     root_file('1-data/4-interim/over-size-limit/prcl-proptype-1999.csv'), 'parcel_extr'
+        ) %>% 
+                transpose() %>% 
+                walk(~ ogr2ogr(src_datasource_name = .x$src_fp, 
+                        dst_datasource_name = .x$dest_fp,
+                        layer = .x$layer,
+                        f = 'CSV',
+                        overwrite = TRUE))
+}
+
+# Combine the property type metadata
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl-proptype-all-3-years.rds'))){
+        
+# Load the property type metadata
+
+p_pt_2015 <- prcl_type_2015 <- read_csv(root_file('1-data/4-interim/over-size-limit/prcl-proptype-2015.csv'),
+                         col_types = cols_only(PIN = 'c',PROPTYPE = 'c',PRESENTUSE = 'i'),
+                         progress = FALSE)
+        
+p_pt_2004 <- read_csv(root_file('1-data/4-interim/over-size-limit/prcl-proptype-2004.csv'),
+                         col_types = cols_only(PIN = 'c',PROPTYPE = 'c',PRESENTUSE = 'i'),
+                         progress = FALSE)
+
+p_pt_1999 <- read_csv(root_file('1-data/4-interim/over-size-limit/prcl-proptype-1999.csv'),
+                         col_types = cols_only(PIN = 'c',PropType = 'c',PresentUse = 'i'),
+                         progress = FALSE)
+        
+# Remove duplicates, join the three datasets, and save
+
+tribble(
+               ~ data, ~ year, 
+            p_pt_2015,   2015,
+            p_pt_2004,   2004,
+            p_pt_1999,   1999
+        ) %>% 
+        transpose %>% 
+        map(.f = ~ .x$data %>% 
+                    mutate(YEAR = .x$year) %>% 
+                    set_colnames(toupper(colnames(.x$data)))
+            ) %>% 
+        reduce(rbind) %>% 
+        arrange(PIN) %>% 
+        write_rds(root_file('1-data/4-interim/over-size-limit/prcl-proptype-all-3-years.rds'))
+}
+
+
+```
+
+
+
+
+
+
+
+```{r hous-meta-prcl-tr-2004}
+
+if(!file.exists(root_file('1-data/4-interim/prcl-all-2004-pt-geoid-sf.rds'))){
+        
+        # NOTE: the size of these datasets makes for long wait times 
+        
+        
+        prcl_all_2004_pt_sf <- read_rds(root_file('1-data/4-interim/over-size-limit/prcl_all_2004_pt_sf.rds'))
+        
+        
+        # Read in the tract sf object
+        
+        tr_kc_sf <- 
+                read_rds(root_file('1-data/5-tidy/coo-census-not-acs-all-sf.rds')) %>% 
+                select(NAME:GEOG_FCT,geom) %>% 
+                filter(GEOGRAPHY %in% 'tract') %>% 
+                st_set_crs(crs_proj@projargs)
+        
+        # Spatial join to the census tracts
+        
+        
+        over_sf(prcl_all_2004_pt_sf,tr_kc_sf) %>% 
+                write_rds(root_file('1-data/4-interim/prcl-all-2004-pt-geoid-sf.rds'))
+        
+}
+
+prcl_all_2004_pt_geoid_sf  <- read_rds(root_file('1-data/4-interim/prcl-all-2004-pt-geoid-sf.rds'))
+
+```
+
+```{r hous-meta-prcl-tr-1999}
+
+if(!file.exists(root_file('1-data/4-interim/prcl-all-1999-pt-geoid-sf.rds'))){
+        
+        # NOTE: the size of these datasets makes for long wait times 
+        
+        
+        prcl_all_1999_pt_sf <- read_rds(root_file('1-data/4-interim/over-size-limit/prcl_all_1999_pt_sf.rds'))
+        
+        
+        # Read in the tract sf object
+        
+        tr_kc_sf <- 
+                read_rds(root_file('1-data/5-tidy/coo-census-not-acs-all-sf.rds')) %>% 
+                select(NAME:GEOG_FCT,geom) %>% 
+                filter(GEOGRAPHY %in% 'tract') %>% 
+                st_set_crs(crs_proj@projargs)
+        
+        # Spatial join to the census tracts
+        
+        
+        over_sf(prcl_all_1999_pt_sf,tr_kc_sf) %>% 
+                write_rds(root_file('1-data/4-interim/prcl-all-1999-pt-geoid-sf.rds'))
+        
+}
+
+prcl_all_1999_pt_geoid_sf  <- read_rds(root_file('1-data/4-interim/prcl-all-1999-pt-geoid-sf.rds'))
+
+
+
+
+```
+
+### Parcel Metadata
+#### 2014
+```{r hous-meta-meta-2015}
+
+# Set the file path to the geodatabase
+
+fp_2015 <- root_file('1-data/3-external/manual/over-size-limit/Year2016.gdb/')
+
+
+# Value Metadata
+# -----------------------------------------------------------------------------
+
+# Read in value data
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl-value-2015.csv'))){
+        
+        # Check out the names of the layers in the geodatabase
+        ogrListLayers(fp_2015)
+        
+        # Convert the layer with the values into a CSV and save it in an appropriate dir
+        fp_values_2015 <- root_file('1-data/4-interim/over-size-limit/prcl-value-2015.csv')
+        
+        ogr2ogr(src_datasource_name = fp_2015, 
+                dst_datasource_name = fp_values_2015,
+                layer = 'RPACCT_EXTR',
+                f = 'CSV',
+                overwrite = TRUE)
+}
+
+p_val_2015 <- read_csv(root_file('1-data/4-interim/over-size-limit/prcl-value-2015.csv'),
+                         col_types = cols_only(PIN = 'c',BILLYR = 'i',APPRLANDVAL = 'i',APPRIMPSVAL = 'i'),
+                         progress = FALSE)
+
+p_val_2004 <- read_csv(root_file('1-data/4-interim/over-size-limit/prcl-value-2004.csv'),
+                       col_types = cols_only(PIN = 'c',BILLYR = 'i',APPRLANDVA = 'i',APPRIMPSVA = 'i'),
+                       progress = FALSE) %>% 
+        rename(APPRLANDVAL = APPRLANDVA,
+               APPRIMPSVAL = APPRIMPSVA)
+
+p_val_1999 <- read_csv(root_file('1-data/4-interim/over-size-limit/prcl-value-1999.csv'),
+                         col_types = cols_only(PIN = 'c',BillYr = 'i',ApprLandVal = 'i',ApprImpsVal = 'i'),
+                         progress = FALSE) %>% 
+        rename(BILLYR = BillYr,
+               APPRLANDVAL = ApprLandVal,
+               APPRIMPSVAL = ApprImpsVal)
+# Remove duplicate records, and filter records with duplicate PINs
+# Note: duplicate records appear to be those parcels that are not ownable -
+# they are distinguished from ownable parcels by their MINOR,
+# which uses letters instead of numbers (e.g., 377930TRCT - see http://gismaps.kingcounty.gov/parcelviewer2/?xmin=-13610520.883967169&ymin=6018904.158060968&xmax=-13610341.883973252&ymax=6018989.253971338)
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl-value-clean-2015.csv'))){
+        prcl_value_2015 %>% 
+                distinct() %>% 
+                miscgis::subset_duplicated(nm = 'PIN',notin = FALSE) %>% 
+                filter(APPRLANDVAL!=0 & APPRIMPSVAL!=0) %>% 
+                mutate(SUM = APPRLANDVAL + APPRIMPSVAL) %>% 
+                group_by(PIN) %>% 
+                arrange(desc(SUM)) %>%
+                slice(1) %>% 
+                select(-SUM) %>%
+                bind_rows(miscgis::subset_duplicated(prcl_value_2015,
+                                                     nm = 'PIN',
+                                                     notin = TRUE)) %>% 
+                arrange(PIN) %>% 
+                write_rds(root_file('1-data/4-interim/over-size-limit/prcl-value-clean-2015.csv'))
+}
+
+prcl_value_clean_2015 <- read_rds(root_file('1-data/4-interim/over-size-limit/prcl-value-clean-2015.csv'))
+
+# Property type metadata
+# -----------------------------------------------------------------------------
+
+# Read in the property type data
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl-type-2015.csv'))){
+        layers <- ogrListLayers(fp_2015)
+
+        layers[1:length(layers)]
+
+        fp_prop_type_2015 <- root_file('1-data/4-interim/over-size-limit/prcl-type-2015.csv')
+
+        ogr_cmd <- paste("ogr2ogr -f CSV",fp_prop_type_2015,fp_2015,'PARCEL_EXTR',sep = ' ')
+
+        system(ogr_cmd)
+}
+
+prcl_type_2015 <- read_csv(root_file('1-data/4-interim/over-size-limit/prcl-type-2015.csv'),
+                         col_types = cols_only(PIN = 'c',PROPTYPE = 'c',PRESENTUSE = 'i'),
+                         progress = FALSE)
+
+# Apartment complex metadata
+# -----------------------------------------------------------------------------
+
+# Read in the apartment complex data
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl-apt-2015.csv'))){
+        layers <- ogrListLayers(fp_2015)
+
+        layers[1:length(layers)]
+
+        fp_prop_apt_2015 <- root_file('1-data/4-interim/over-size-limit/prcl-apt-2015.csv')
+
+        ogr_cmd <- paste("ogr2ogr -f CSV",fp_prop_apt_2015,fp_2015,'aptcomplex_extr',sep = ' ')
+
+        system(ogr_cmd)
+}
+
+prcl_apt_2015 <- read_csv(root_file('1-data/4-interim/over-size-limit/prcl-apt-2015.csv'),
+                         col_types = cols_only(PIN = 'c',NUMUNITS = 'i'),
+                         progress = FALSE)
+
+
+
+# Condo Complex and Condo Unit Metadata
+# -----------------------------------------------------------------------------
+
+# Read in the condo units data
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl-condo-units-2015.csv'))){
+        layers <- ogrListLayers(fp_2015)
+
+        layers[1:length(layers)]
+
+        fp_prop_condo_units_2015 <- root_file('1-data/4-interim/over-size-limit/prcl-condo-units-2015.csv')
+
+        ogr_cmd <- paste("ogr2ogr -f CSV",fp_prop_condo_units_2015,fp_2015,'CONDOUNIT_EXTR',sep = ' ')
+
+        system(ogr_cmd)
+}
+
+prcl_condo_units_2015 <- read_csv(root_file('1-data/4-interim/over-size-limit/prcl-condo-units-2015.csv'),
+                         col_types = cols_only(PIN = 'c',UNITTYPE = 'i'),
+                         progress = FALSE)
+
+# Read in the condo complex data
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl-condo-2015.csv'))){
+        layers <- ogrListLayers(fp_2015)
+
+        layers[1:length(layers)]
+
+        fp_prop_condo_2015 <- root_file('1-data/4-interim/over-size-limit/prcl-condo-2015.csv')
+
+        ogr_cmd <- paste("ogr2ogr -f CSV",fp_prop_condo_2015,fp_2015,'CONDOCOMPLEX_EXTR',sep = ' ')
+
+        system(ogr_cmd)
+}
+
+prcl_condo_2015 <- read_csv(root_file('1-data/4-interim/over-size-limit/prcl-condo-2015.csv'),
+                         col_types = cols_only(PIN = 'c',COMPLEXTYPE = 'c', NBRUNITS = 'i'),
+                         progress = FALSE)
+
+```
+
+```{r hous-meta-meta-combined-2014}
+
+# Combine the metadata objects and join to the sf object
+# -----------------------------------------------------------------------------
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl-all-meta-2014.rds'))){
+        
+        p_condo_unit <- 
+                prcl_condo_units_2014 %>% 
+                mutate(PIN_COMPLEX = str_sub(PIN,1,6))
+        
+        p_condo_complex <- 
+                prcl_condo_2014 %>% 
+                mutate(PIN_COMPLEX = str_sub(PIN,1,6)) %>% 
+                select(-PIN)
+        
+        p_condo_unit_type <- 
+                left_join(p_condo_unit,p_condo_complex, by = 'PIN_COMPLEX') %>% 
+                select(-PIN_COMPLEX)
+        
+        res_use_codes <- c(2,3,4,5,6,7,8,9,11,17,18,20,29,38,48,49)
+        
+        mixed_use_codes <- c(16,25)
+        
+        res_condo_use_codes <- c(1:4,15,26,27)
+        
+        p_all <- 
+                prcl_value_clean_2014 %>% 
+                left_join(prcl_apt_2014, by = 'PIN') %>% 
+                left_join(prcl_type_2014, by = 'PIN') %>% 
+                left_join(p_condo_unit_type,by = 'PIN') %>% 
+                ungroup %>% 
+                mutate(PROPTYPE = case_when(!is.na(.$PROPTYPE) ~ .$PROPTYPE,
+                                             !is.na(.$UNITTYPE) ~ 'K',
+                                             TRUE ~ NA_character_)) %>% 
+                mutate(RES_TYPE = case_when(.$PROPTYPE %in% 'R' ~ 'residential',
+                                            .$UNITTYPE %in% res_condo_use_codes ~ 'residential condo',
+                                            .$PROPTYPE %in% 'C' & .$PRESENTUSE %in% res_use_codes ~ 'residential apartment',
+                                            .$PROPTYPE %in% 'C' & .$PRESENTUSE %in% mixed_use_codes & .$NUMUNITS >= 10 & !is.na(.$NUMUNITS) ~ 'mixed use apartment',
+                                            TRUE ~ 'not residential')) %>% 
+                mutate(RES_LGL = ifelse(RES_TYPE %!in% 'not residential',TRUE,FALSE),
+                       TOTAL_VALUE = APPRLANDVAL + APPRIMPSVAL,
+                       TOTAL_VALUE = as.numeric(TOTAL_VALUE)) %>% 
+                mutate(UNIT_VALUE = case_when(.$RES_TYPE %in% c('residential','residential apartment','mixed use apartment') & !is.na(.$NUMUNITS) ~ .$TOTAL_VALUE/.$NUMUNITS,
+                                              .$RES_TYPE %in% 'residential condo' ~ .$TOTAL_VALUE/.$NBRUNITS,
+                                              TRUE ~ .$TOTAL_VALUE),
+                       UNIT_VALUE = round_any(UNIT_VALUE,10),
+                       UNIT_VALUE = ifelse(is.infinite(UNIT_VALUE),TOTAL_VALUE,UNIT_VALUE))
+        
+p_all %>% write_rds(root_file('1-data/4-interim/over-size-limit/prcl-all-meta-2014.rds'))
+}
+
+prcl_all_meta_2014 <- read_rds(root_file('1-data/4-interim/over-size-limit/prcl-all-meta-2014.rds'))
+
+```
+#### 2004
+```{r hous-meta-meta-2004}
+
+# Set the file path to the geodatabase
+
+fp_2004 <- root_file('1-data/3-external/manual/over-size-limit/Year2005.gdb/')
+
+
+# Value Metadata
+# -----------------------------------------------------------------------------
+
+# Read in value data
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl-value-2004.csv'))){
+        layers <- ogrListLayers(fp_2004)
+
+        layers[1:length(layers)]
+
+        fp_values_2004 <- root_file('1-data/4-interim/over-size-limit/prcl-value-2004.csv')
+
+        ogr_cmd <- paste("ogr2ogr -f CSV",fp_values_2004,fp_2004,'rpacct_extr',sep = ' ')
+
+        system(ogr_cmd)
+}
+
+prcl_value_2004 <- read_csv(root_file('1-data/4-interim/over-size-limit/prcl-value-2004.csv'),
+                         col_types = cols_only(PIN = 'c',BILLYR = 'i',APPRLANDVA = 'i',APPRIMPSVA = 'i'),
+                         progress = FALSE) %>% 
+        rename(APPRLANDVAL = APPRLANDVA,
+               APPRIMPSVAL = APPRIMPSVA)
+
+# Remove duplicate records, and filter records with duplicate PINs
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl-value-clean-2004.csv'))){
+        prcl_value_2004 %>% 
+                distinct() %>% 
+                miscgis::subset_duplicated(nm = 'PIN',notin = FALSE) %>% 
+                filter(APPRLANDVAL!=0 | APPRIMPSVAL!=0) %>% 
+                mutate(SUM = APPRLANDVAL + APPRIMPSVAL) %>% 
+                group_by(PIN) %>% 
+                arrange(desc(SUM)) %>%
+                slice(1) %>% 
+                select(-SUM) %>%
+                bind_rows(miscgis::subset_duplicated(prcl_value_2004,
+                                                     nm = 'PIN',
+                                                     notin = TRUE)) %>% 
+                arrange(PIN) %>% 
+                write_rds(root_file('1-data/4-interim/over-size-limit/prcl-value-clean-2004.csv'))
+}
+
+prcl_value_clean_2004 <- read_rds(root_file('1-data/4-interim/over-size-limit/prcl-value-clean-2004.csv'))
+
+# Property type metadata
+# -----------------------------------------------------------------------------
+
+# Read in the property type data
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl-type-2004.csv'))){
+        layers <- ogrListLayers(fp_2004)
+
+        layers[1:length(layers)]
+
+        fp_prop_type_2004 <- root_file('1-data/4-interim/over-size-limit/prcl-type-2004.csv')
+
+        ogr_cmd <- paste("ogr2ogr -f CSV",fp_prop_type_2004,fp_2004,'parcel_extr',sep = ' ')
+
+        system(ogr_cmd)
+}
+
+prcl_type_2004 <- read_csv(root_file('1-data/4-interim/over-size-limit/prcl-type-2004.csv'),
+                         col_types = cols_only(PIN = 'c',PROPTYPE = 'c',PRESENTUSE = 'i'),
+                         progress = FALSE)
+
+# Apartment complex metadata
+# -----------------------------------------------------------------------------
+
+# Read in the apartment complex data
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl-apt-2004.csv'))){
+        layers <- ogrListLayers(fp_2004)
+
+        layers[1:length(layers)]
+
+        fp_prop_apt_2004 <- root_file('1-data/4-interim/over-size-limit/prcl-apt-2004.csv')
+
+        ogr_cmd <- paste("ogr2ogr -f CSV",fp_prop_apt_2004,fp_2004,'aptcomplex_extr',sep = ' ')
+
+        system(ogr_cmd)
+}
+
+prcl_apt_2004 <- read_csv(root_file('1-data/4-interim/over-size-limit/prcl-apt-2004.csv'),
+                         col_types = cols_only(PIN = 'c',NUMUNITS = 'i'),
+                         progress = FALSE)
+
+
+
+# Condo Complex and Condo Unit Metadata
+# -----------------------------------------------------------------------------
+
+# Read in the condo units data
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl-condo-units-2004.csv'))){
+        layers <- ogrListLayers(fp_2004)
+
+        layers[1:length(layers)]
+
+        fp_prop_condo_units_2004 <- root_file('1-data/4-interim/over-size-limit/prcl-condo-units-2004.csv')
+
+        ogr_cmd <- paste("ogr2ogr -f CSV",fp_prop_condo_units_2004,fp_2004,'condounit_extr',sep = ' ')
+
+        system(ogr_cmd)
+}
+
+prcl_condo_units_2004 <- read_csv(root_file('1-data/4-interim/over-size-limit/prcl-condo-units-2004.csv'),
+                         col_types = cols_only(PIN = 'c',UNITTYPE = 'i'),
+                         progress = FALSE)
+
+# Read in the condo complex data
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl-condo-2004.csv'))){
+        layers <- ogrListLayers(fp_2004)
+
+        layers[1:length(layers)]
+
+        fp_prop_condo_2004 <- root_file('1-data/4-interim/over-size-limit/prcl-condo-2004.csv')
+
+        ogr_cmd <- paste("ogr2ogr -f CSV",fp_prop_condo_2004,fp_2004,'condocomplex_extr',sep = ' ')
+
+        system(ogr_cmd)
+}
+
+prcl_condo_2004 <- read_csv(root_file('1-data/4-interim/over-size-limit/prcl-condo-2004.csv'),
+                         col_types = cols_only(PIN = 'c',COMPLEXTYP = 'c', NBRUNITS = 'i'),
+                         progress = FALSE) %>% 
+        rename(COMPLEXTYPE = COMPLEXTYP)
+
+```
+
+```{r hous-meta-meta-combined-2004}
+
+# Combine the metadata objects and join to the sf object
+# -----------------------------------------------------------------------------
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl-all-meta-2004.rds'))){
+        
+        p_condo_unit <- 
+                prcl_condo_units_2004 %>% 
+                mutate(PIN_COMPLEX = str_sub(PIN,1,6))
+        
+        p_condo_complex <- 
+                prcl_condo_2004 %>% 
+                mutate(PIN_COMPLEX = str_sub(PIN,1,6)) %>% 
+                select(-PIN)
+        
+        p_condo_unit_type <- 
+                left_join(p_condo_unit,p_condo_complex, by = 'PIN_COMPLEX') %>% 
+                select(-PIN_COMPLEX)
+        
+        res_use_codes <- c(2,3,4,5,6,7,8,9,11,17,18,20,29,38,48,49)
+        
+        mixed_use_codes <- c(16,25)
+        
+        res_condo_use_codes <- c(1:4,15,26,27)
+        
+        p_all <- 
+                prcl_value_clean_2004 %>% 
+                left_join(prcl_apt_2004, by = 'PIN') %>% 
+                left_join(prcl_type_2004, by = 'PIN') %>% 
+                left_join(p_condo_unit_type,by = 'PIN') %>% 
+                ungroup %>% 
+                mutate(PROPTYPE = case_when(!is.na(.$PROPTYPE) ~ .$PROPTYPE,
+                                             !is.na(.$UNITTYPE) ~ 'K',
+                                             TRUE ~ NA_character_)) %>% 
+                mutate(RES_TYPE = case_when(.$PROPTYPE %in% 'R' ~ 'residential',
+                                            .$UNITTYPE %in% res_condo_use_codes ~ 'residential condo',
+                                            .$PROPTYPE %in% 'C' & .$PRESENTUSE %in% res_use_codes ~ 'residential apartment',
+                                            .$PROPTYPE %in% 'C' & .$PRESENTUSE %in% mixed_use_codes & .$NUMUNITS >= 10 & !is.na(.$NUMUNITS) ~ 'mixed use apartment',
+                                            TRUE ~ 'not residential')) %>% 
+                mutate(RES_LGL = ifelse(RES_TYPE %!in% 'not residential',TRUE,FALSE),
+                       TOTAL_VALUE = APPRLANDVAL + APPRIMPSVAL,
+                       TOTAL_VALUE = as.numeric(TOTAL_VALUE)) %>% 
+                mutate(UNIT_VALUE = case_when(.$RES_TYPE %in% c('residential','residential apartment','mixed use apartment') & !is.na(.$NUMUNITS) ~ .$TOTAL_VALUE/.$NUMUNITS,
+                                              .$RES_TYPE %in% 'residential condo' ~ .$TOTAL_VALUE/.$NBRUNITS,
+                                              TRUE ~ .$TOTAL_VALUE),
+                       UNIT_VALUE = round_any(UNIT_VALUE,10),
+                       UNIT_VALUE = ifelse(is.infinite(UNIT_VALUE),TOTAL_VALUE,UNIT_VALUE))
+        
+p_all %>% write_rds(root_file('1-data/4-interim/over-size-limit/prcl-all-meta-2004.rds'))
+}
+
+prcl_all_meta_2004 <- read_rds(root_file('1-data/4-interim/over-size-limit/prcl-all-meta-2004.rds'))
+
+```
+
+#### 1999
+_Note: there is no metadata concerning apartment complex, condo complex, or condo units for this dataset_
+```{r hous-meta-meta-1999}
+
+# Set the file path to the geodatabase
+
+fp_1999 <- root_file('1-data/3-external/manual/over-size-limit/Year2000.gdb/')
+
+
+# Value Metadata
+# -----------------------------------------------------------------------------
+
+# Read in value data
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl-value-1999.csv'))){
+        layers <- ogrListLayers(fp_1999)
+
+        layers[1:length(layers)]
+
+        fp_values_1999 <- root_file('1-data/4-interim/over-size-limit/prcl-value-1999.csv')
+
+        ogr_cmd <- paste("ogr2ogr -f CSV",fp_values_1999,fp_1999,'rpacct_extr',sep = ' ')
+
+        system(ogr_cmd)
+}
+
+prcl_value_1999 <- read_csv(root_file('1-data/4-interim/over-size-limit/prcl-value-1999.csv'),
+                         col_types = cols_only(PIN = 'c',BillYr = 'i',ApprLandVal = 'i',ApprImpsVal = 'i'),
+                         progress = FALSE) %>% 
+        rename(BILLYR = BillYr,
+               APPRLANDVAL = ApprLandVal,
+               APPRIMPSVAL = ApprImpsVal)
+
+# Remove duplicate records, and filter records with duplicate PINs
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl-value-clean-1999.csv'))){
+        prcl_value_1999 %>% 
+                distinct() %>% 
+                miscgis::subset_duplicated(nm = 'PIN',notin = FALSE) %>% 
+                filter(APPRLANDVAL!=0 | APPRIMPSVAL!=0) %>% 
+                mutate(SUM = APPRLANDVAL + APPRIMPSVAL) %>% 
+                group_by(PIN) %>% 
+                arrange(desc(SUM)) %>%
+                slice(1) %>% 
+                select(-SUM) %>%
+                bind_rows(miscgis::subset_duplicated(prcl_value_1999,
+                                                     nm = 'PIN',
+                                                     notin = TRUE)) %>% 
+                arrange(PIN) %>% 
+                write_rds(root_file('1-data/4-interim/over-size-limit/prcl-value-clean-1999.csv'))
+}
+
+prcl_value_clean_1999 <- read_rds(root_file('1-data/4-interim/over-size-limit/prcl-value-clean-1999.csv'))
+
+# Property type metadata
+# -----------------------------------------------------------------------------
+
+# Read in the property type data
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl-type-1999.csv'))){
+        layers <- ogrListLayers(fp_1999)
+
+        layers[1:length(layers)]
+
+        fp_prop_type_1999 <- root_file('1-data/4-interim/over-size-limit/prcl-type-1999.csv')
+
+        ogr_cmd <- paste("ogr2ogr -f CSV",fp_prop_type_1999,fp_1999,'parcel_extr',sep = ' ')
+
+        system(ogr_cmd)
+}
+
+prcl_type_1999 <- read_csv(root_file('1-data/4-interim/over-size-limit/prcl-type-1999.csv'),
+                         col_types = cols_only(PIN = 'c',PropType = 'c',PresentUse = 'i'),
+                         progress = FALSE) %>% 
+        rename(PROPTYPE = PropType,
+               PRESENTUSE = PresentUse)
+
+# Note: there is no metadata concerning apartment complex, condo complex, or condo units for this dataset
+
+```
+
+```{r hous-meta-meta-combined-1999}
+
+# Combine the metadata objects and join to the sf object
+# -----------------------------------------------------------------------------
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl-all-meta-1999.rds'))){
+        
+        p_all <- 
+                prcl_value_clean_1999 %>%  
+                left_join(prcl_type_1999, by = 'PIN') %>%
+                ungroup %>% 
+                mutate(RES_TYPE = case_when(.$PROPTYPE %in% 'R' ~ 'residential',
+                                            TRUE ~ 'not residential')) %>% 
+                mutate(RES_LGL = ifelse(RES_TYPE %!in% 'not residential',TRUE,FALSE),
+                       TOTAL_VALUE = APPRLANDVAL + APPRIMPSVAL,
+                       TOTAL_VALUE = as.numeric(TOTAL_VALUE),
+                       UNIT_VALUE = NA_integer_)
+        
+p_all %>% write_rds(root_file('1-data/4-interim/over-size-limit/prcl-all-meta-1999.rds'))
+}
+
+prcl_all_meta_1999 <- read_rds(root_file('1-data/4-interim/over-size-limit/prcl-all-meta-1999.rds'))
+
+```
+
+#### Combined Observation Periods: 2014,2004, 1999
+
+```{r hous-meta-meta-all}
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl_meta_combined.rds'))){
+        
+        
+        rename_cols <- function(df){df %>% colnames() %>% paste0(.,'_1999 = ',.) %>% paste0(collapse = ",")}
+        
+        
+        prcl_meta_rename_2014 <- 
+                prcl_all_meta_2014 %>%  
+                select(PIN,
+                       APPRLANDVAL_2014 = APPRLANDVAL,
+                       APPRIMPSVAL_2014 = APPRIMPSVAL,
+                       NUMUNITS_2014 = NUMUNITS,
+                       PROPTYPE_2014 = PROPTYPE,
+                       PRESENTUSE_2014 = PRESENTUSE,
+                       UNITTYPE_2014 = UNITTYPE,
+                       COMPLEXTYPE_2014 = COMPLEXTYPE,
+                       NBRUNITS_2014 = NBRUNITS,
+                       RES_TYPE_2014 = RES_TYPE,
+                       RES_LGL_2014 = RES_LGL,
+                       TOTAL_VALUE_2014 = TOTAL_VALUE,
+                       UNIT_VALUE_2014 = UNIT_VALUE)
+        
+        prcl_meta_rename_2004 <- 
+                prcl_all_meta_2004 %>% 
+                select(PIN,
+                       APPRLANDVAL_2004 = APPRLANDVAL,
+                       APPRIMPSVAL_2004 = APPRIMPSVAL,
+                       NUMUNITS_2004 = NUMUNITS,
+                       PROPTYPE_2004 = PROPTYPE,
+                       PRESENTUSE_2004 = PRESENTUSE,
+                       UNITTYPE_2004 = UNITTYPE,
+                       COMPLEXTYPE_2004 = COMPLEXTYPE,
+                       NBRUNITS_2004 = NBRUNITS,
+                       RES_TYPE_2004 = RES_TYPE,
+                       RES_LGL_2004 = RES_LGL,
+                       TOTAL_VALUE_2004 = TOTAL_VALUE,
+                       UNIT_VALUE_2004 = UNIT_VALUE)
+        
+        prcl_meta_rename_1999 <- 
+                prcl_all_meta_1999 %>% 
+                select(PIN,
+                       APPRLANDVAL_1999 = APPRLANDVAL,
+                       APPRIMPSVAL_1999 = APPRIMPSVAL,
+                       PROPTYPE_1999 = PROPTYPE,
+                       PRESENTUSE_1999 = PRESENTUSE,
+                       RES_TYPE_1999 = RES_TYPE,
+                       RES_LGL_1999 = RES_LGL,
+                       TOTAL_VALUE_1999 = TOTAL_VALUE,
+                       UNIT_VALUE_1999 = UNIT_VALUE)
+        
+        prcl_meta_combined <- 
+                full_join(prcl_meta_rename_2014,prcl_meta_rename_2004,by = 'PIN') %>% 
+                full_join(prcl_meta_rename_1999, by = 'PIN')
+        
+        prcl_meta_combined %>% write_rds(root_file('1-data/4-interim/over-size-limit/prcl_meta_combined.rds'))
+}
+
+prcl_meta_combined <- read_rds(root_file('1-data/4-interim/over-size-limit/prcl_meta_combined.rds'))
+
+```
+
+```{r hous-meta-tr-val}
+
+tr_kc_sf <- 
+        read_rds(root_file('1-data/4-interim/tr-kc-sf.rds')) %>% 
+                select(GEOID,geometry)
+
+coo_geos_join <- 
+        read_rds(root_file('1-data/4-interim/coo-geos-sf.rds')) %>% 
+        select(GEOID,NAME,GEOGRAPHY,SEACCD_LGL,JOIN_ID)
+
+
+pin_geoid <- 
+        Reduce('bind_rows',list(prcl_all_2014_pt_geoid_sf,
+                               prcl_all_2004_pt_geoid_sf,
+                               prcl_all_1999_pt_geoid_sf)) %>% 
+        select(PIN,GEOID) %>% 
+        distinct %>% 
+        filter(!duplicated(PIN))
+
+# Save an object with all the parcel value data and corresponding census identifiers
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl-hous-value.rds'))){
+        inner_join(pin_geoid,prcl_meta_combined, by = 'PIN') %>% 
+        left_join(coo_geos_join,by = "GEOID") %>% 
+                write_rds(root_file('1-data/4-interim/over-size-limit/prcl-hous-value.rds'))
+}
+prcl_hous_value <- read_rds(root_file('1-data/4-interim/over-size-limit/prcl-hous-value.rds'))
+        
+
+# Create a summary object with all the census geographies
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/hous-tr-value.rds'))){
+        round_mean <- function(x) x[!is.na(x)] %>% mean() %>% round_any(1000)
+
+tr_hous_value <- 
+        inner_join(pin_geoid,prcl_meta_combined, by = 'PIN') %>% 
+        filter(!is.na(GEOID)) %>%                                       #Note: mostly puget sound tract
+        left_join(coo_geos_join,by = "GEOID") 
+
+tr_hous_tr <- 
+        tr_hous_value %>% 
+        group_by(GEOID) %>% 
+        summarise(TOTAL_VALUE_2014_MEDIAN = median(TOTAL_VALUE_2014,na.rm = TRUE),
+                  TOTAL_VALUE_2014_MEAN = round_mean(TOTAL_VALUE_2014),
+                  TOTAL_VALUE_2014_COUNT = n(),
+                  TOTAL_VALUE_2004_MEDIAN = median(TOTAL_VALUE_2004,na.rm = TRUE),
+                  TOTAL_VALUE_2004_MEAN = round_mean(TOTAL_VALUE_2004),
+                  TOTAL_VALUE_2004_COUNT = n(),
+                  TOTAL_VALUE_1999_MEDIAN = median(TOTAL_VALUE_1999,na.rm = TRUE),
+                  TOTAL_VALUE_1999_MEAN = round_mean(TOTAL_VALUE_1999),
+                  TOTAL_VALUE_1999_COUNT = n(),
+                  UNIT_VALUE_2014_MEDIAN = median(UNIT_VALUE_2014,na.rm = TRUE),
+                  UNIT_VALUE_2004_MEDIAN = median(UNIT_VALUE_2004,na.rm = TRUE)) %>% 
+        mutate(JOIN_ID = str_sub(GEOID,6,11))
+
+tr_hous_coo_comms <- 
+        tr_hous_value %>% 
+        filter(NAME %in% c('RV','WC','STKW')) %>% 
+        group_by(NAME) %>% 
+        summarise(TOTAL_VALUE_2014_MEDIAN = median(TOTAL_VALUE_2014,na.rm = TRUE),
+                  TOTAL_VALUE_2014_MEAN = round_mean(TOTAL_VALUE_2014),
+                  TOTAL_VALUE_2014_COUNT = n(),
+                  TOTAL_VALUE_2004_MEDIAN = median(TOTAL_VALUE_2004,na.rm = TRUE),
+                  TOTAL_VALUE_2004_MEAN = round_mean(TOTAL_VALUE_2004),
+                  TOTAL_VALUE_2004_COUNT = n(),
+                  TOTAL_VALUE_1999_MEDIAN = median(TOTAL_VALUE_1999,na.rm = TRUE),
+                  TOTAL_VALUE_1999_MEAN = round_mean(TOTAL_VALUE_1999),
+                  TOTAL_VALUE_1999_COUNT = n(),
+                  UNIT_VALUE_2014_MEDIAN = median(UNIT_VALUE_2014,na.rm = TRUE),
+                  UNIT_VALUE_2004_MEDIAN = median(UNIT_VALUE_2004,na.rm = TRUE)) %>% 
+        mutate(JOIN_ID = NAME)
+
+tr_hous_coo <- 
+        tr_hous_value %>% 
+        filter(NAME %in% c('RV','WC','STKW')) %>% 
+        summarise(TOTAL_VALUE_2014_MEDIAN = median(TOTAL_VALUE_2014,na.rm = TRUE),
+                  TOTAL_VALUE_2014_MEAN = round_mean(TOTAL_VALUE_2014),
+                  TOTAL_VALUE_2014_COUNT = n(),
+                  TOTAL_VALUE_2004_MEDIAN = median(TOTAL_VALUE_2004,na.rm = TRUE),
+                  TOTAL_VALUE_2004_MEAN = round_mean(TOTAL_VALUE_2004),
+                  TOTAL_VALUE_2004_COUNT = n(),
+                  TOTAL_VALUE_1999_MEDIAN = median(TOTAL_VALUE_1999,na.rm = TRUE),
+                  TOTAL_VALUE_1999_MEAN = round_mean(TOTAL_VALUE_1999),
+                  TOTAL_VALUE_1999_COUNT = n(),
+                  UNIT_VALUE_2014_MEDIAN = median(UNIT_VALUE_2014,na.rm = TRUE),
+                  UNIT_VALUE_2004_MEDIAN = median(UNIT_VALUE_2004,na.rm = TRUE)) %>% 
+        mutate(JOIN_ID = 'COO')
+
+tr_hous_seaccd <-
+        tr_hous_value %>% 
+        filter(GEOID %in% coo_geos_join[coo_geos_join$SEACCD_LGL,'GEOID']) %>% 
+        summarise(TOTAL_VALUE_2014_MEDIAN = median(TOTAL_VALUE_2014,na.rm = TRUE),
+                  TOTAL_VALUE_2014_MEAN = round_mean(TOTAL_VALUE_2014),
+                  TOTAL_VALUE_2014_COUNT = n(),
+                  TOTAL_VALUE_2004_MEDIAN = median(TOTAL_VALUE_2004,na.rm = TRUE),
+                  TOTAL_VALUE_2004_MEAN = round_mean(TOTAL_VALUE_2004),
+                  TOTAL_VALUE_2004_COUNT = n(),
+                  TOTAL_VALUE_1999_MEDIAN = median(TOTAL_VALUE_1999,na.rm = TRUE),
+                  TOTAL_VALUE_1999_MEAN = round_mean(TOTAL_VALUE_1999),
+                  TOTAL_VALUE_1999_COUNT = n(),
+                  UNIT_VALUE_2014_MEDIAN = median(UNIT_VALUE_2014,na.rm = TRUE),
+                  UNIT_VALUE_2004_MEDIAN = median(UNIT_VALUE_2004,na.rm = TRUE)) %>% 
+        mutate(JOIN_ID = 'SEACCD')
+
+tr_hous_kc <- 
+        tr_hous_value %>% 
+        summarise(TOTAL_VALUE_2014_MEDIAN = median(TOTAL_VALUE_2014,na.rm = TRUE),
+                  TOTAL_VALUE_2014_MEAN = round_mean(TOTAL_VALUE_2014),
+                  TOTAL_VALUE_2014_COUNT = n(),
+                  TOTAL_VALUE_2004_MEDIAN = median(TOTAL_VALUE_2004,na.rm = TRUE),
+                  TOTAL_VALUE_2004_MEAN = round_mean(TOTAL_VALUE_2004),
+                  TOTAL_VALUE_2004_COUNT = n(),
+                  TOTAL_VALUE_1999_MEDIAN = median(TOTAL_VALUE_1999,na.rm = TRUE),
+                  TOTAL_VALUE_1999_MEAN = round_mean(TOTAL_VALUE_1999),
+                  TOTAL_VALUE_1999_COUNT = n(),
+                  UNIT_VALUE_2014_MEDIAN = median(UNIT_VALUE_2014,na.rm = TRUE),
+                  UNIT_VALUE_2004_MEDIAN = median(UNIT_VALUE_2004,na.rm = TRUE)) %>% 
+        mutate(JOIN_ID = 'KC')
+
+tr_hous_value_all <- 
+        Reduce('bind_rows',list(tr_hous_kc,tr_hous_seaccd,tr_hous_coo,tr_hous_coo_comms,tr_hous_tr)) %>% 
+        mutate(NAME = ifelse(is.na(NAME),
+                             JOIN_ID,
+                             NAME)) %>% 
+        select(JOIN_ID,NAME,GEOID,everything())
+
+tr_hous_value_all %>% write_rds(root_file('1-data/4-interim/over-size-limit/hous-tr-value.rds'))
+
+tr_hous_value_all_sf <- 
+        tr_hous_value_all %>% 
+        select(-NAME,-GEOID) %>% 
+        right_join(read_rds(root_file('1-data/4-interim/coo-geos-sf.rds')), by = "JOIN_ID") %>% 
+        select(JOIN_ID,NAME:GEOG_FCT,everything())
+
+tr_hous_value_all_sf %>% write_rds(root_file('1-data/4-interim/over-size-limit/hous-tr-value-sf.rds'))
+
+
+}
+
+hous_tr_value <- read_rds(root_file('1-data/4-interim/over-size-limit/hous-tr-value.rds'))
+
+hous_tr_value_sf <- read_rds(root_file('1-data/4-interim/over-size-limit/hous-tr-value-sf.rds'))
+
+```
+
+
+
+

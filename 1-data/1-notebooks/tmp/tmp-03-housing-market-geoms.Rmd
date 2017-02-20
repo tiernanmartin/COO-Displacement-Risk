@@ -8,7 +8,7 @@ output:
 always_allow_html: yes
 ---
 
-```{r hous-setup, echo = FALSE, warning=FALSE,message=FALSE,comment=FALSE}
+```{r hous-geom-setup, echo = FALSE, warning=FALSE,message=FALSE,comment=FALSE}
 library(plyr)
 library(gdalUtils)
 library(knitr)
@@ -45,7 +45,7 @@ root_file <- root$make_fix_file()
 opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
 ```
 
-```{r hous-colors}
+```{r hous-geom-colors}
 green <- miscgis::miscgis_pals$tableau_cat[["green"]]
 blue <- miscgis::miscgis_pals$tableau_cat[["blue"]]
 orange <- miscgis::miscgis_pals$tableau_cat[["orange"]]
@@ -63,7 +63,7 @@ proj_dark_grey <- col2hex("grey25")
 
 ### Parcel Geoms
 
-```{r hous-prcl-tr}
+```{r hous-geom-prcl-tr}
 
 # Read in the 2015 parcel data as points
 
