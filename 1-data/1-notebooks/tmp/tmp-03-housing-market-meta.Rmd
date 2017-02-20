@@ -292,6 +292,7 @@ if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl-meta.rds'))){
                   read_rds(root_file('1-data/4-interim/over-size-limit/prcl-proptype-all-3-years.rds')),
                   by = c('PIN','YEAR')) %>% 
                 left_join(pu, by = c('PRESENTUSE' = 'CODE')) %>% 
+                ungroup %>% 
                 arrange(PIN) %>% 
         write_rds(root_file('1-data/4-interim/over-size-limit/prcl-meta.rds'))
 }

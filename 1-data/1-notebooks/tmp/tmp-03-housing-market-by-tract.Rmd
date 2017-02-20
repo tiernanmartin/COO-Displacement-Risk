@@ -1,0 +1,114 @@
+---
+df_print: tibble
+output:
+  html_notebook:
+    code_folding: hide
+  pdf_document:
+    keep_tex: yes
+always_allow_html: yes
+---
+
+```{r hous-tract-setup, echo = FALSE, warning=FALSE,message=FALSE,comment=FALSE}
+library(plyr)
+library(gdalUtils)
+library(knitr)
+library(rprojroot)
+library(rgdal)
+library(sp)
+library(rgeos)
+library(tigris)
+library(leaflet)
+library(foreign)
+library(ggthemes)
+library(magrittr)
+library(stringr)
+library(downloader)
+library(webshot)
+library(htmltools)
+library(gplots)
+library(ggmap)
+library(shiny)
+library(htmlwidgets)
+library(readxl)
+library(acs)
+library(RColorBrewer)
+library(tidyverse)
+library(miscgis)
+library(operator.tools)
+library(leaflet.extras)
+library(viridisLite)
+library(maptools)
+library(cleangeo)
+library(sf)
+root <- rprojroot::is_rstudio_project
+root_file <- root$make_fix_file()
+opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
+```
+
+```{r hous-tract-colors}
+green <- miscgis::miscgis_pals$tableau_cat[["green"]]
+blue <- miscgis::miscgis_pals$tableau_cat[["blue"]]
+orange <- miscgis::miscgis_pals$tableau_cat[["orange"]]
+red <- miscgis::miscgis_pals$tableau_cat[["red"]]
+teal <- miscgis::miscgis_pals$tableau_cat[["teal"]]
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+proj_light_grey <- col2hex("grey75")
+proj_grey <- col2hex("grey50")
+proj_dark_grey <- col2hex("grey25")
+```
+
+
+```{r hous-tract-presentuses}
+
+if(!file.exists(root_file(root_file('1-data/4-interim/prcl-presuse-incl-condo.rds')))){
+        pu_tbl <- 
+                read_rds(root_file('1-data/4-interim/over-size-limit/prcl-meta.rds')) %>% 
+                select(PRESENTUSE,DESC) %>% 
+                distinct() %>% 
+                arrange(PRESENTUSE)
+
+        pu_tbl %>% 
+                filter(between(PRESENTUSE,1,9)) %>% 
+                mutate(UNIT_CNT = case_when(
+                        .$DESC %in% 'Duplex' ~ 2,
+                        .$DESC %in% 'Triplex' ~ 3,
+                        .$DESC %in% '4-Plex' ~ 4,
+                        TRUE ~ 1
+                )) %>% 
+                write_rds(root_file('1-data/4-interim/prcl-presuse-no-condo.rds'))
+        
+        
+        pu_tbl %>% 
+                filter(between(PRESENTUSE,1,9) | PRESENTUSE %in% 20) %>% 
+                mutate(UNIT_CNT = case_when(
+                        .$DESC %in% 'Duplex' ~ 2,
+                        .$DESC %in% 'Triplex' ~ 3,
+                        .$DESC %in% '4-Plex' ~ 4,
+                        TRUE ~ 1
+                )) %>% 
+                write_rds(root_file('1-data/4-interim/prcl-presuse-incl-condo.rds'))
+        
+}
+
+```
+
+
+```{r hous-tract-merge}
+
+geom <- read_rds(root_file('./1-data/4-interim/over-size-limit/prcl-all-3-years-sf.rds')) %>% unclass %>% as_tibble
+
+meta <- read_rds(root_file('1-data/4-interim/over-size-limit/prcl-meta.rds'))
+
+# 
+# Join the geom and metadata,
+# create logical columns for the two types of res. property:
+# typically owner-occ (no condo) & typically owner-occ (incl. condo)
+join <- inner_join(geom,meta,by = c('PIN','YEAR')) %>% arrange(PIN)
+
+
+        
+```
+

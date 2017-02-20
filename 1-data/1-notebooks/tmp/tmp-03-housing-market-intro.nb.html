@@ -171,14 +171,314 @@ $(document).ready(function () {
 
 
 <!-- rnb-text-begin -->
-<p>Housing market patterns provide an important compliment to the two demographic indicator groups, but they come with their own set of challenges. While all of the data underlying the vulnerability and demographic change indicators comes from the American Community Survey, the housing market data used in this method is provided by the King County tax assessor. The first and most obvious challenge is the size and accessibility of this data; King County has approximate 600,000 parcels and their spatial and metadata is stored across a set of large tabular files that must be manually joined. Additionally, there is no official documentation linking a given parcel to a census tract, so this relationship must be established with using geospatial methods that are computationally expensive (i.e., time consuming). Finally, determining the unit of measure for this indicator is more complicated than it might at first appear: ultimately there must be a median housing value for each tract, but determining which properties to include in the sample requires consideration. The method used by Lisa Bates uses ACS Table B25077 (Median Value of Owner-Occupied Housing Units), but that sample is not directly reproducible given the available metadata from the King County dataset. The tax assessor data is structured around parcels as the primary unit (with some exception given to condominium units), and there is no simple method for transforming those units into housing units. This method considers the following approximations samples as reasonable approximations of value per housing unit:</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjpbImxpYnJhcnkocGx5cikiLCJsaWJyYXJ5KGdkYWxVdGlscykiLCJsaWJyYXJ5KGtuaXRyKSIsImxpYnJhcnkocnByb2pyb290KSIsImxpYnJhcnkocmdkYWwpIl19 -->
+<pre class="r"><code>library(plyr)
+library(gdalUtils)
+library(knitr)
+library(rprojroot)
+library(rgdal)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-message-begin eyJkYXRhIjoiTG9hZGluZyByZXF1aXJlZCBwYWNrYWdlOiBzcFxuIn0= -->
+<pre><code>Loading required package: sp</code></pre>
+<!-- rnb-message-end -->
+<!-- rnb-message-begin eyJkYXRhIjoicmdkYWw6IHZlcnNpb246IDEuMi01LCAoU1ZOIHJldmlzaW9uIDY0OClcbiBHZW9zcGF0aWFsIERhdGEgQWJzdHJhY3Rpb24gTGlicmFyeSBleHRlbnNpb25zIHRvIFIgc3VjY2Vzc2Z1bGx5IGxvYWRlZFxuIExvYWRlZCBHREFMIHJ1bnRpbWU6IEdEQUwgMi4wLjEsIHJlbGVhc2VkIDIwMTUvMDkvMTVcbiBQYXRoIHRvIEdEQUwgc2hhcmVkIGZpbGVzOiBDOi9Vc2Vycy9VcmJhbkRlc2lnbmVyL0RvY3VtZW50cy9DT08vRGlzcGxhY2VtZW50LVBoYXNlLTEvQ09PLURpc3BsYWNlbWVudC1SaXNrL3BhY2tyYXQvbGliL3g4Nl82NC13NjQtbWluZ3czMi8zLjMuMi9yZ2RhbC9nZGFsXG4gTG9hZGVkIFBST0ouNCBydW50aW1lOiBSZWwuIDQuOS4yLCAwOCBTZXB0ZW1iZXIgMjAxNSwgW1BKX1ZFUlNJT046IDQ5Ml1cbiBQYXRoIHRvIFBST0ouNCBzaGFyZWQgZmlsZXM6IEM6L1VzZXJzL1VyYmFuRGVzaWduZXIvRG9jdW1lbnRzL0NPTy9EaXNwbGFjZW1lbnQtUGhhc2UtMS9DT08tRGlzcGxhY2VtZW50LVJpc2svcGFja3JhdC9saWIveDg2XzY0LXc2NC1taW5ndzMyLzMuMy4yL3JnZGFsL3Byb2pcbiBMaW5raW5nIHRvIHNwIHZlcnNpb246IDEuMi00IFxuIn0= -->
+<pre><code>rgdal: version: 1.2-5, (SVN revision 648)
+ Geospatial Data Abstraction Library extensions to R successfully loaded
+ Loaded GDAL runtime: GDAL 2.0.1, released 2015/09/15
+ Path to GDAL shared files: C:/Users/UrbanDesigner/Documents/COO/Displacement-Phase-1/COO-Displacement-Risk/packrat/lib/x86_64-w64-mingw32/3.3.2/rgdal/gdal
+ Loaded PROJ.4 runtime: Rel. 4.9.2, 08 September 2015, [PJ_VERSION: 492]
+ Path to PROJ.4 shared files: C:/Users/UrbanDesigner/Documents/COO/Displacement-Phase-1/COO-Displacement-Risk/packrat/lib/x86_64-w64-mingw32/3.3.2/rgdal/proj
+ Linking to sp version: 1.2-4 </code></pre>
+<!-- rnb-message-end -->
+<!-- rnb-source-begin eyJkYXRhIjpbImxpYnJhcnkoc3ApIiwibGlicmFyeShyZ2VvcykiXX0= -->
+<pre class="r"><code>library(sp)
+library(rgeos)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-message-begin eyJkYXRhIjoicmdlb3MgdmVyc2lvbjogMC4zLTIyLCAoU1ZOIHJldmlzaW9uIDU0NClcbiBHRU9TIHJ1bnRpbWUgdmVyc2lvbjogMy41LjAtQ0FQSS0xLjkuMCByNDA4NCBcbiBMaW5raW5nIHRvIHNwIHZlcnNpb246IDEuMi00IFxuIFBvbHlnb24gY2hlY2tpbmc6IFRSVUUgXG4ifQ== -->
+<pre><code>rgeos version: 0.3-22, (SVN revision 544)
+ GEOS runtime version: 3.5.0-CAPI-1.9.0 r4084 
+ Linking to sp version: 1.2-4 
+ Polygon checking: TRUE </code></pre>
+<!-- rnb-message-end -->
+<!-- rnb-source-begin eyJkYXRhIjoibGlicmFyeSh0aWdyaXMpIn0= -->
+<pre class="r"><code>library(tigris)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-message-begin eyJkYXRhIjoiXG5BdHRhY2hpbmcgcGFja2FnZTogJ3RpZ3JpcydcbiJ9 -->
+<pre><code>
+Attaching package: 'tigris'</code></pre>
+<!-- rnb-message-end -->
+<!-- rnb-message-begin eyJkYXRhIjoiVGhlIGZvbGxvd2luZyBvYmplY3QgaXMgbWFza2VkIGZyb20gJ3BhY2thZ2U6Z3JhcGhpY3MnOlxuXG4gICAgcGxvdFxuIn0= -->
+<pre><code>The following object is masked from 'package:graphics':
+
+    plot</code></pre>
+<!-- rnb-message-end -->
+<!-- rnb-source-begin eyJkYXRhIjpbImxpYnJhcnkobGVhZmxldCkiLCJsaWJyYXJ5KGZvcmVpZ24pIiwibGlicmFyeShnZ3RoZW1lcykiLCJsaWJyYXJ5KG1hZ3JpdHRyKSIsImxpYnJhcnkoc3RyaW5ncikiLCJsaWJyYXJ5KGRvd25sb2FkZXIpIiwibGlicmFyeSh3ZWJzaG90KSIsImxpYnJhcnkoaHRtbHRvb2xzKSIsImxpYnJhcnkoZ3Bsb3RzKSJdfQ== -->
+<pre class="r"><code>library(leaflet)
+library(foreign)
+library(ggthemes)
+library(magrittr)
+library(stringr)
+library(downloader)
+library(webshot)
+library(htmltools)
+library(gplots)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-message-begin eyJkYXRhIjoiXG5BdHRhY2hpbmcgcGFja2FnZTogJ2dwbG90cydcbiJ9 -->
+<pre><code>
+Attaching package: 'gplots'</code></pre>
+<!-- rnb-message-end -->
+<!-- rnb-message-begin eyJkYXRhIjoiVGhlIGZvbGxvd2luZyBvYmplY3QgaXMgbWFza2VkIGZyb20gJ3BhY2thZ2U6c3RhdHMnOlxuXG4gICAgbG93ZXNzXG4ifQ== -->
+<pre><code>The following object is masked from 'package:stats':
+
+    lowess</code></pre>
+<!-- rnb-message-end -->
+<!-- rnb-source-begin eyJkYXRhIjoibGlicmFyeShnZ21hcCkifQ== -->
+<pre class="r"><code>library(ggmap)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-message-begin eyJkYXRhIjoiTG9hZGluZyByZXF1aXJlZCBwYWNrYWdlOiBnZ3Bsb3QyXG4ifQ== -->
+<pre><code>Loading required package: ggplot2</code></pre>
+<!-- rnb-message-end -->
+<!-- rnb-message-begin eyJkYXRhIjoiXG5BdHRhY2hpbmcgcGFja2FnZTogJ2dnbWFwJ1xuIn0= -->
+<pre><code>
+Attaching package: 'ggmap'</code></pre>
+<!-- rnb-message-end -->
+<!-- rnb-message-begin eyJkYXRhIjoiVGhlIGZvbGxvd2luZyBvYmplY3QgaXMgbWFza2VkIGZyb20gJ3BhY2thZ2U6bWFncml0dHInOlxuXG4gICAgaW5zZXRcbiJ9 -->
+<pre><code>The following object is masked from 'package:magrittr':
+
+    inset</code></pre>
+<!-- rnb-message-end -->
+<!-- rnb-source-begin eyJkYXRhIjpbImxpYnJhcnkoc2hpbnkpIiwibGlicmFyeShodG1sd2lkZ2V0cykiLCJsaWJyYXJ5KHJlYWR4bCkiLCJsaWJyYXJ5KGFjcykiXX0= -->
+<pre class="r"><code>library(shiny)
+library(htmlwidgets)
+library(readxl)
+library(acs)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-message-begin eyJkYXRhIjoiTG9hZGluZyByZXF1aXJlZCBwYWNrYWdlOiBYTUxcbiJ9 -->
+<pre><code>Loading required package: XML</code></pre>
+<!-- rnb-message-end -->
+<!-- rnb-message-begin eyJkYXRhIjoiXG5BdHRhY2hpbmcgcGFja2FnZTogJ2FjcydcbiJ9 -->
+<pre><code>
+Attaching package: 'acs'</code></pre>
+<!-- rnb-message-end -->
+<!-- rnb-message-begin eyJkYXRhIjoiVGhlIGZvbGxvd2luZyBvYmplY3QgaXMgbWFza2VkIGZyb20gJ3BhY2thZ2U6c2hpbnknOlxuXG4gICAgc3BhblxuIn0= -->
+<pre><code>The following object is masked from 'package:shiny':
+
+    span</code></pre>
+<!-- rnb-message-end -->
+<!-- rnb-message-begin eyJkYXRhIjoiVGhlIGZvbGxvd2luZyBvYmplY3QgaXMgbWFza2VkIGZyb20gJ3BhY2thZ2U6aHRtbHRvb2xzJzpcblxuICAgIHNwYW5cbiJ9 -->
+<pre><code>The following object is masked from 'package:htmltools':
+
+    span</code></pre>
+<!-- rnb-message-end -->
+<!-- rnb-message-begin eyJkYXRhIjoiVGhlIGZvbGxvd2luZyBvYmplY3QgaXMgbWFza2VkIGZyb20gJ3BhY2thZ2U6YmFzZSc6XG5cbiAgICBhcHBseVxuIn0= -->
+<pre><code>The following object is masked from 'package:base':
+
+    apply</code></pre>
+<!-- rnb-message-end -->
+<!-- rnb-source-begin eyJkYXRhIjpbImxpYnJhcnkoUkNvbG9yQnJld2VyKSIsImxpYnJhcnkodGlkeXZlcnNlKSJdfQ== -->
+<pre class="r"><code>library(RColorBrewer)
+library(tidyverse)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-message-begin eyJkYXRhIjoiTG9hZGluZyB0aWR5dmVyc2U6IHRpYmJsZVxuTG9hZGluZyB0aWR5dmVyc2U6IHRpZHlyXG5Mb2FkaW5nIHRpZHl2ZXJzZTogcmVhZHJcbkxvYWRpbmcgdGlkeXZlcnNlOiBwdXJyclxuTG9hZGluZyB0aWR5dmVyc2U6IGRwbHlyXG4ifQ== -->
+<pre><code>Loading tidyverse: tibble
+Loading tidyverse: tidyr
+Loading tidyverse: readr
+Loading tidyverse: purrr
+Loading tidyverse: dplyr</code></pre>
+<!-- rnb-message-end -->
+<!-- rnb-message-begin eyJkYXRhIjoiQ29uZmxpY3RzIHdpdGggdGlkeSBwYWNrYWdlcyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tXG4ifQ== -->
+<pre><code>Conflicts with tidy packages ----------------------------------------------</code></pre>
+<!-- rnb-message-end -->
+<!-- rnb-message-begin eyJkYXRhIjoiYXJyYW5nZSgpOiAgIGRwbHlyLCBwbHlyXG5jb21iaW5lKCk6ICAgZHBseXIsIGFjc1xuY29tcGFjdCgpOiAgIHB1cnJyLCBwbHlyXG5jb3VudCgpOiAgICAgZHBseXIsIHBseXJcbmZhaWx3aXRoKCk6ICBkcGx5ciwgcGx5clxuZmlsdGVyKCk6ICAgIGRwbHlyLCBzdGF0c1xuaWQoKTogICAgICAgIGRwbHlyLCBwbHlyXG5pbnNldCgpOiAgICAgbWFncml0dHIsIGdnbWFwXG5sYWcoKTogICAgICAgZHBseXIsIHN0YXRzXG5tdXRhdGUoKTogICAgZHBseXIsIHBseXJcbnJlbmFtZSgpOiAgICBkcGx5ciwgcGx5clxuc3VtbWFyaXNlKCk6IGRwbHlyLCBwbHlyXG5zdW1tYXJpemUoKTogZHBseXIsIHBseXJcbiJ9 -->
+<pre><code>arrange():   dplyr, plyr
+combine():   dplyr, acs
+compact():   purrr, plyr
+count():     dplyr, plyr
+failwith():  dplyr, plyr
+filter():    dplyr, stats
+id():        dplyr, plyr
+inset():     magrittr, ggmap
+lag():       dplyr, stats
+mutate():    dplyr, plyr
+rename():    dplyr, plyr
+summarise(): dplyr, plyr
+summarize(): dplyr, plyr</code></pre>
+<!-- rnb-message-end -->
+<!-- rnb-source-begin eyJkYXRhIjoibGlicmFyeShtaXNjZ2lzKSJ9 -->
+<pre class="r"><code>library(miscgis)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-warning-begin eyJkYXRhIjoiV2FybmluZzogcmVwbGFjaW5nIHByZXZpb3VzIGltcG9ydCAnYWNzOjpjb21iaW5lJyBieSAnZHBseXI6OmNvbWJpbmUnIHdoZW5cbmxvYWRpbmcgJ21pc2NnaXMnXG4ifQ== -->
+<pre><code>Warning: replacing previous import 'acs::combine' by 'dplyr::combine' when
+loading 'miscgis'</code></pre>
+<!-- rnb-warning-end -->
+<!-- rnb-warning-begin eyJkYXRhIjoiV2FybmluZzogcmVwbGFjaW5nIHByZXZpb3VzIGltcG9ydCAnYWNzOjpzcGFuJyBieSAnaHRtbHRvb2xzOjpzcGFuJyB3aGVuXG5sb2FkaW5nICdtaXNjZ2lzJ1xuIn0= -->
+<pre><code>Warning: replacing previous import 'acs::span' by 'htmltools::span' when
+loading 'miscgis'</code></pre>
+<!-- rnb-warning-end -->
+<!-- rnb-warning-begin eyJkYXRhIjoiV2FybmluZzogcmVwbGFjaW5nIHByZXZpb3VzIGltcG9ydCAnZHBseXI6OmNvbnRhaW5zJyBieSAncHVycnI6OmNvbnRhaW5zJ1xud2hlbiBsb2FkaW5nICdtaXNjZ2lzJ1xuIn0= -->
+<pre><code>Warning: replacing previous import 'dplyr::contains' by 'purrr::contains'
+when loading 'miscgis'</code></pre>
+<!-- rnb-warning-end -->
+<!-- rnb-warning-begin eyJkYXRhIjoiV2FybmluZzogcmVwbGFjaW5nIHByZXZpb3VzIGltcG9ydCAnZHBseXI6Om9yZGVyX2J5JyBieSAncHVycnI6Om9yZGVyX2J5J1xud2hlbiBsb2FkaW5nICdtaXNjZ2lzJ1xuIn0= -->
+<pre><code>Warning: replacing previous import 'dplyr::order_by' by 'purrr::order_by'
+when loading 'miscgis'</code></pre>
+<!-- rnb-warning-end -->
+<!-- rnb-source-begin eyJkYXRhIjpbImxpYnJhcnkob3BlcmF0b3IudG9vbHMpIiwibGlicmFyeShsZWFmbGV0LmV4dHJhcykiLCJsaWJyYXJ5KHZpcmlkaXNMaXRlKSIsImxpYnJhcnkobWFwdG9vbHMpIl19 -->
+<pre class="r"><code>library(operator.tools)
+library(leaflet.extras)
+library(viridisLite)
+library(maptools)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-message-begin eyJkYXRhIjoiQ2hlY2tpbmcgcmdlb3MgYXZhaWxhYmlsaXR5OiBUUlVFXG4ifQ== -->
+<pre><code>Checking rgeos availability: TRUE</code></pre>
+<!-- rnb-message-end -->
+<!-- rnb-source-begin eyJkYXRhIjpbImxpYnJhcnkoY2xlYW5nZW8pIiwibGlicmFyeShzZikiXX0= -->
+<pre class="r"><code>library(cleangeo)
+library(sf)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-message-begin eyJkYXRhIjoiTGlua2luZyB0byBHRU9TIDMuNS4wLCBHREFMIDIuMS4xLCBwcm9qLjQgNC45LjNcbiJ9 -->
+<pre><code>Linking to GEOS 3.5.0, GDAL 2.1.1, proj.4 4.9.3</code></pre>
+<!-- rnb-message-end -->
+<!-- rnb-source-begin eyJkYXRhIjpbInJvb3QgPC0gcnByb2pyb290Ojppc19yc3R1ZGlvX3Byb2plY3QiLCJyb290X2ZpbGUgPC0gcm9vdCRtYWtlX2ZpeF9maWxlKCkiLCJvcHRzX2NodW5rJHNldChlY2hvPUZBTFNFLCB3YXJuaW5nPUZBTFNFLCBtZXNzYWdlPUZBTFNFLCBjb21tZW50PUZBTFNFKSJdfQ== -->
+<pre class="r"><code>root &lt;- rprojroot::is_rstudio_project
+root_file &lt;- root$make_fix_file()
+opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Housing market patterns provide an important compliment to the two demographic indicator groups, but they come with their own set of challenges. While all of the data underlying the vulnerability and demographic change indicators comes from the American Community Survey, the housing market data used in this method is provided by the King County tax assessor.</p>
+<p>The first and most obvious challenge is the size and accessibility of this data; King County has approximate 600,000 parcels and their spatial and metadata is stored across a set of large tabular files that must be manually joined. Additionally, there is no official documentation linking a given parcel to a census tract, so this relationship must be established with using geospatial methods that are computationally expensive (i.e., time consuming). Finally, determining the unit of measure for this indicator is more complicated than it might at first appear: ultimately there must be a median housing value for each tract, but determining which properties to include in the sample requires consideration.</p>
+<p>The method used by Lisa Bates uses ACS Table B25077 (Median Value of Owner-Occupied Housing Units), but that sample is not directly reproducible given the available metadata from the King County dataset. The tax assessor data is structured around parcels as the primary unit (with some exception given to condominium units), and there is no simple method for transforming those units into housing units. This method considers the following approximations samples as reasonable approximations of value per housing unit:</p>
 <ul>
 <li>residential types that are <em>typically</em> owner-occupied (not vacant)</li>
 <li>residential types that are <em>typically</em> owner-occupied (not vacant, including condos)</li>
 </ul>
+<div id="present-use-codes" class="section level4">
+<h4>Present Use Codes</h4>
+<p>The following categories of “Present Use” (a classification used by the King County assessor) are used to distinguish these two subsets of the parcel data:</p>
+<div id="condos-excluded" class="section level5">
+<h5>Condos Excluded</h5>
+<table>
+<thead>
+<tr class="header">
+<th align="right">CODE</th>
+<th align="left">DESCRIPTION</th>
+<th align="right">ASSUMED UNIT COUNT</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">2</td>
+<td align="left">Single Family(Res Use/Zone)</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">3</td>
+<td align="left">Duplex</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="right">4</td>
+<td align="left">Triplex</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="right">5</td>
+<td align="left">4-Plex</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="right">6</td>
+<td align="left">Single Family(C/I Zone)</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">7</td>
+<td align="left">Houseboat</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="right">8</td>
+<td align="left">Mobile Home</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">9</td>
+<td align="left">Single Family(C/I Use)</td>
+<td align="right">1</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="condos-included" class="section level5">
+<h5>Condos Included</h5>
+<table>
+<thead>
+<tr class="header">
+<th align="right">CODE</th>
+<th align="left">DESCRIPTION</th>
+<th align="right">ASSUMED UNIT COUNT</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">2</td>
+<td align="left">Single Family(Res Use/Zone)</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">3</td>
+<td align="left">Duplex</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="right">4</td>
+<td align="left">Triplex</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="right">5</td>
+<td align="left">4-Plex</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="right">6</td>
+<td align="left">Single Family(C/I Zone)</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">7</td>
+<td align="left">Houseboat</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="right">8</td>
+<td align="left">Mobile Home</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">9</td>
+<td align="left">Single Family(C/I Use)</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="right">20</td>
+<td align="left">Condominium(Residential)</td>
+<td align="right">1</td>
+</tr>
+</tbody>
+</table>
 <!-- rnb-text-end -->
+</div>
+</div>
 
-<div id="rmd-source-code">LS0tDQpkZl9wcmludDogdGliYmxlDQpvdXRwdXQ6DQogIGh0bWxfbm90ZWJvb2s6DQogICAgY29kZV9mb2xkaW5nOiBoaWRlDQogIHBkZl9kb2N1bWVudDoNCiAgICBrZWVwX3RleDogeWVzDQphbHdheXNfYWxsb3dfaHRtbDogeWVzDQotLS0NCg0KSG91c2luZyBtYXJrZXQgcGF0dGVybnMgcHJvdmlkZSBhbiBpbXBvcnRhbnQgY29tcGxpbWVudCB0byB0aGUgdHdvIGRlbW9ncmFwaGljIGluZGljYXRvciBncm91cHMsIGJ1dCB0aGV5IGNvbWUgd2l0aCB0aGVpciBvd24gc2V0IG9mIGNoYWxsZW5nZXMuIFdoaWxlIGFsbCBvZiB0aGUgZGF0YSB1bmRlcmx5aW5nIHRoZSB2dWxuZXJhYmlsaXR5IGFuZCBkZW1vZ3JhcGhpYyBjaGFuZ2UgaW5kaWNhdG9ycyBjb21lcyBmcm9tIHRoZSBBbWVyaWNhbiBDb21tdW5pdHkgU3VydmV5LCB0aGUgaG91c2luZyBtYXJrZXQgZGF0YSB1c2VkIGluIHRoaXMgbWV0aG9kIGlzIHByb3ZpZGVkIGJ5IHRoZSBLaW5nIENvdW50eSB0YXggYXNzZXNzb3IuIFRoZSBmaXJzdCBhbmQgbW9zdCBvYnZpb3VzIGNoYWxsZW5nZSBpcyB0aGUgc2l6ZSBhbmQgYWNjZXNzaWJpbGl0eSBvZiB0aGlzIGRhdGE7IEtpbmcgQ291bnR5IGhhcyBhcHByb3hpbWF0ZSA2MDAsMDAwIHBhcmNlbHMgYW5kIHRoZWlyIHNwYXRpYWwgYW5kIG1ldGFkYXRhIGlzIHN0b3JlZCBhY3Jvc3MgYSBzZXQgb2YgbGFyZ2UgdGFidWxhciBmaWxlcyB0aGF0IG11c3QgYmUgbWFudWFsbHkgam9pbmVkLiBBZGRpdGlvbmFsbHksIHRoZXJlIGlzIG5vIG9mZmljaWFsIGRvY3VtZW50YXRpb24gbGlua2luZyBhIGdpdmVuIHBhcmNlbCB0byBhIGNlbnN1cyB0cmFjdCwgc28gdGhpcyByZWxhdGlvbnNoaXAgbXVzdCBiZSBlc3RhYmxpc2hlZCB3aXRoIHVzaW5nIGdlb3NwYXRpYWwgbWV0aG9kcyB0aGF0IGFyZSBjb21wdXRhdGlvbmFsbHkgZXhwZW5zaXZlIChpLmUuLCB0aW1lIGNvbnN1bWluZykuIEZpbmFsbHksIGRldGVybWluaW5nIHRoZSB1bml0IG9mIG1lYXN1cmUgZm9yIHRoaXMgaW5kaWNhdG9yIGlzIG1vcmUgY29tcGxpY2F0ZWQgdGhhbiBpdCBtaWdodCBhdCBmaXJzdCBhcHBlYXI6IHVsdGltYXRlbHkgdGhlcmUgbXVzdCBiZSBhIG1lZGlhbiBob3VzaW5nIHZhbHVlIGZvciBlYWNoIHRyYWN0LCBidXQgZGV0ZXJtaW5pbmcgd2hpY2ggcHJvcGVydGllcyB0byBpbmNsdWRlIGluIHRoZSBzYW1wbGUgcmVxdWlyZXMgY29uc2lkZXJhdGlvbi4gVGhlIG1ldGhvZCB1c2VkIGJ5IExpc2EgQmF0ZXMgdXNlcyBBQ1MgVGFibGUgQjI1MDc3IChNZWRpYW4gVmFsdWUgb2YgT3duZXItT2NjdXBpZWQgSG91c2luZyBVbml0cyksIGJ1dCB0aGF0IHNhbXBsZSBpcyBub3QgZGlyZWN0bHkgcmVwcm9kdWNpYmxlIGdpdmVuIHRoZSBhdmFpbGFibGUgbWV0YWRhdGEgZnJvbSB0aGUgS2luZyBDb3VudHkgZGF0YXNldC4gVGhlIHRheCBhc3Nlc3NvciBkYXRhIGlzIHN0cnVjdHVyZWQgYXJvdW5kIHBhcmNlbHMgYXMgdGhlIHByaW1hcnkgdW5pdCAod2l0aCBzb21lIGV4Y2VwdGlvbiBnaXZlbiB0byBjb25kb21pbml1bSB1bml0cyksIGFuZCB0aGVyZSBpcyBubyBzaW1wbGUgbWV0aG9kIGZvciB0cmFuc2Zvcm1pbmcgdGhvc2UgdW5pdHMgaW50byBob3VzaW5nIHVuaXRzLiBUaGlzIG1ldGhvZCBjb25zaWRlcnMgdGhlIGZvbGxvd2luZyBhcHByb3hpbWF0aW9ucyBzYW1wbGVzIGFzIHJlYXNvbmFibGUgYXBwcm94aW1hdGlvbnMgb2YgdmFsdWUgcGVyIGhvdXNpbmcgdW5pdDoNCg0KKiByZXNpZGVudGlhbCB0eXBlcyB0aGF0IGFyZSBfdHlwaWNhbGx5XyBvd25lci1vY2N1cGllZCAobm90IHZhY2FudCkNCiogcmVzaWRlbnRpYWwgdHlwZXMgdGhhdCBhcmUgX3R5cGljYWxseV8gb3duZXItb2NjdXBpZWQgKG5vdCB2YWNhbnQsIGluY2x1ZGluZyBjb25kb3MpDQoNCg0K</div>
+<div id="rmd-source-code">LS0tDQpkZl9wcmludDogdGliYmxlDQpvdXRwdXQ6DQogIGh0bWxfbm90ZWJvb2s6DQogICAgY29kZV9mb2xkaW5nOiBoaWRlDQogIHBkZl9kb2N1bWVudDoNCiAgICBrZWVwX3RleDogeWVzDQphbHdheXNfYWxsb3dfaHRtbDogeWVzDQotLS0NCg0KYGBge3IgaG91cy1pbnRyby1zZXR1cH0NCmxpYnJhcnkocGx5cikNCmxpYnJhcnkoZ2RhbFV0aWxzKQ0KbGlicmFyeShrbml0cikNCmxpYnJhcnkocnByb2pyb290KQ0KbGlicmFyeShyZ2RhbCkNCmxpYnJhcnkoc3ApDQpsaWJyYXJ5KHJnZW9zKQ0KbGlicmFyeSh0aWdyaXMpDQpsaWJyYXJ5KGxlYWZsZXQpDQpsaWJyYXJ5KGZvcmVpZ24pDQpsaWJyYXJ5KGdndGhlbWVzKQ0KbGlicmFyeShtYWdyaXR0cikNCmxpYnJhcnkoc3RyaW5ncikNCmxpYnJhcnkoZG93bmxvYWRlcikNCmxpYnJhcnkod2Vic2hvdCkNCmxpYnJhcnkoaHRtbHRvb2xzKQ0KbGlicmFyeShncGxvdHMpDQpsaWJyYXJ5KGdnbWFwKQ0KbGlicmFyeShzaGlueSkNCmxpYnJhcnkoaHRtbHdpZGdldHMpDQpsaWJyYXJ5KHJlYWR4bCkNCmxpYnJhcnkoYWNzKQ0KbGlicmFyeShSQ29sb3JCcmV3ZXIpDQpsaWJyYXJ5KHRpZHl2ZXJzZSkNCmxpYnJhcnkobWlzY2dpcykNCmxpYnJhcnkob3BlcmF0b3IudG9vbHMpDQpsaWJyYXJ5KGxlYWZsZXQuZXh0cmFzKQ0KbGlicmFyeSh2aXJpZGlzTGl0ZSkNCmxpYnJhcnkobWFwdG9vbHMpDQpsaWJyYXJ5KGNsZWFuZ2VvKQ0KbGlicmFyeShzZikNCnJvb3QgPC0gcnByb2pyb290Ojppc19yc3R1ZGlvX3Byb2plY3QNCnJvb3RfZmlsZSA8LSByb290JG1ha2VfZml4X2ZpbGUoKQ0Kb3B0c19jaHVuayRzZXQoZWNobz1GQUxTRSwgd2FybmluZz1GQUxTRSwgbWVzc2FnZT1GQUxTRSwgY29tbWVudD1GQUxTRSkNCmBgYA0KDQpgYGB7ciBob3VzLWludHJvLXB1fQ0KDQpwdV9ub19jb25kb190YmwgPC0gcmVhZF9yZHMocm9vdF9maWxlKCcxLWRhdGEvNC1pbnRlcmltL3ByY2wtcHJlc3VzZS1uby1jb25kby5yZHMnKSkgJT4lIA0KICAgICAgICBrYWJsZShjb2wubmFtZXMgPSBjKCdDT0RFJywNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAnREVTQ1JJUFRJT04nLA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICdBU1NVTUVEIFVOSVQgQ09VTlQnKSkNCg0KcHVfaW5jbF9jb25kb190YmwgPC0gcmVhZF9yZHMocm9vdF9maWxlKCcxLWRhdGEvNC1pbnRlcmltL3ByY2wtcHJlc3VzZS1pbmNsLWNvbmRvLnJkcycpKSAlPiUgDQogICAgICAgIGthYmxlKGNvbC5uYW1lcyA9IGMoJ0NPREUnLA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICdERVNDUklQVElPTicsDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgJ0FTU1VNRUQgVU5JVCBDT1VOVCcpKQ0KDQoNCmBgYA0KDQoNCkhvdXNpbmcgbWFya2V0IHBhdHRlcm5zIHByb3ZpZGUgYW4gaW1wb3J0YW50IGNvbXBsaW1lbnQgdG8gdGhlIHR3byBkZW1vZ3JhcGhpYyBpbmRpY2F0b3IgZ3JvdXBzLCBidXQgdGhleSBjb21lIHdpdGggdGhlaXIgb3duIHNldCBvZiBjaGFsbGVuZ2VzLiBXaGlsZSBhbGwgb2YgdGhlIGRhdGEgdW5kZXJseWluZyB0aGUgdnVsbmVyYWJpbGl0eSBhbmQgZGVtb2dyYXBoaWMgY2hhbmdlIGluZGljYXRvcnMgY29tZXMgZnJvbSB0aGUgQW1lcmljYW4gQ29tbXVuaXR5IFN1cnZleSwgdGhlIGhvdXNpbmcgbWFya2V0IGRhdGEgdXNlZCBpbiB0aGlzIG1ldGhvZCBpcyBwcm92aWRlZCBieSB0aGUgS2luZyBDb3VudHkgdGF4IGFzc2Vzc29yLiANCg0KVGhlIGZpcnN0IGFuZCBtb3N0IG9idmlvdXMgY2hhbGxlbmdlIGlzIHRoZSBzaXplIGFuZCBhY2Nlc3NpYmlsaXR5IG9mIHRoaXMgZGF0YTsgS2luZyBDb3VudHkgaGFzIGFwcHJveGltYXRlIDYwMCwwMDAgcGFyY2VscyBhbmQgdGhlaXIgc3BhdGlhbCBhbmQgbWV0YWRhdGEgaXMgc3RvcmVkIGFjcm9zcyBhIHNldCBvZiBsYXJnZSB0YWJ1bGFyIGZpbGVzIHRoYXQgbXVzdCBiZSBtYW51YWxseSBqb2luZWQuIEFkZGl0aW9uYWxseSwgdGhlcmUgaXMgbm8gb2ZmaWNpYWwgZG9jdW1lbnRhdGlvbiBsaW5raW5nIGEgZ2l2ZW4gcGFyY2VsIHRvIGEgY2Vuc3VzIHRyYWN0LCBzbyB0aGlzIHJlbGF0aW9uc2hpcCBtdXN0IGJlIGVzdGFibGlzaGVkIHdpdGggdXNpbmcgZ2Vvc3BhdGlhbCBtZXRob2RzIHRoYXQgYXJlIGNvbXB1dGF0aW9uYWxseSBleHBlbnNpdmUgKGkuZS4sIHRpbWUgY29uc3VtaW5nKS4gRmluYWxseSwgZGV0ZXJtaW5pbmcgdGhlIHVuaXQgb2YgbWVhc3VyZSBmb3IgdGhpcyBpbmRpY2F0b3IgaXMgbW9yZSBjb21wbGljYXRlZCB0aGFuIGl0IG1pZ2h0IGF0IGZpcnN0IGFwcGVhcjogdWx0aW1hdGVseSB0aGVyZSBtdXN0IGJlIGEgbWVkaWFuIGhvdXNpbmcgdmFsdWUgZm9yIGVhY2ggdHJhY3QsIGJ1dCBkZXRlcm1pbmluZyB3aGljaCBwcm9wZXJ0aWVzIHRvIGluY2x1ZGUgaW4gdGhlIHNhbXBsZSByZXF1aXJlcyBjb25zaWRlcmF0aW9uLiANCg0KVGhlIG1ldGhvZCB1c2VkIGJ5IExpc2EgQmF0ZXMgdXNlcyBBQ1MgVGFibGUgQjI1MDc3IChNZWRpYW4gVmFsdWUgb2YgT3duZXItT2NjdXBpZWQgSG91c2luZyBVbml0cyksIGJ1dCB0aGF0IHNhbXBsZSBpcyBub3QgZGlyZWN0bHkgcmVwcm9kdWNpYmxlIGdpdmVuIHRoZSBhdmFpbGFibGUgbWV0YWRhdGEgZnJvbSB0aGUgS2luZyBDb3VudHkgZGF0YXNldC4gVGhlIHRheCBhc3Nlc3NvciBkYXRhIGlzIHN0cnVjdHVyZWQgYXJvdW5kIHBhcmNlbHMgYXMgdGhlIHByaW1hcnkgdW5pdCAod2l0aCBzb21lIGV4Y2VwdGlvbiBnaXZlbiB0byBjb25kb21pbml1bSB1bml0cyksIGFuZCB0aGVyZSBpcyBubyBzaW1wbGUgbWV0aG9kIGZvciB0cmFuc2Zvcm1pbmcgdGhvc2UgdW5pdHMgaW50byBob3VzaW5nIHVuaXRzLiBUaGlzIG1ldGhvZCBjb25zaWRlcnMgdGhlIGZvbGxvd2luZyBhcHByb3hpbWF0aW9ucyBzYW1wbGVzIGFzIHJlYXNvbmFibGUgYXBwcm94aW1hdGlvbnMgb2YgdmFsdWUgcGVyIGhvdXNpbmcgdW5pdDoNCg0KKiByZXNpZGVudGlhbCB0eXBlcyB0aGF0IGFyZSBfdHlwaWNhbGx5XyBvd25lci1vY2N1cGllZCAobm90IHZhY2FudCkNCiogcmVzaWRlbnRpYWwgdHlwZXMgdGhhdCBhcmUgX3R5cGljYWxseV8gb3duZXItb2NjdXBpZWQgKG5vdCB2YWNhbnQsIGluY2x1ZGluZyBjb25kb3MpDQoNCiMjIyMgUHJlc2VudCBVc2UgQ29kZXMNCg0KVGhlIGZvbGxvd2luZyBjYXRlZ29yaWVzIG9mICJQcmVzZW50IFVzZSIgKGEgY2xhc3NpZmljYXRpb24gdXNlZCBieSB0aGUgS2luZyBDb3VudHkgYXNzZXNzb3IpIGFyZSB1c2VkIHRvIGRpc3Rpbmd1aXNoIHRoZXNlIHR3byBzdWJzZXRzIG9mIHRoZSBwYXJjZWwgZGF0YToNCg0KIyMjIyMgQ29uZG9zIEV4Y2x1ZGVkDQoNCmByIHB1X25vX2NvbmRvX3RibGANCg0KIyMjIyMgQ29uZG9zIEluY2x1ZGVkDQoNCmByIHB1X2luY2xfY29uZG9fdGJsYA==</div>
 
 
 

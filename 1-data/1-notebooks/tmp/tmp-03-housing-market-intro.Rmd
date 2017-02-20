@@ -8,9 +8,76 @@ output:
 always_allow_html: yes
 ---
 
-Housing market patterns provide an important compliment to the two demographic indicator groups, but they come with their own set of challenges. While all of the data underlying the vulnerability and demographic change indicators comes from the American Community Survey, the housing market data used in this method is provided by the King County tax assessor. The first and most obvious challenge is the size and accessibility of this data; King County has approximate 600,000 parcels and their spatial and metadata is stored across a set of large tabular files that must be manually joined. Additionally, there is no official documentation linking a given parcel to a census tract, so this relationship must be established with using geospatial methods that are computationally expensive (i.e., time consuming). Finally, determining the unit of measure for this indicator is more complicated than it might at first appear: ultimately there must be a median housing value for each tract, but determining which properties to include in the sample requires consideration. The method used by Lisa Bates uses ACS Table B25077 (Median Value of Owner-Occupied Housing Units), but that sample is not directly reproducible given the available metadata from the King County dataset. The tax assessor data is structured around parcels as the primary unit (with some exception given to condominium units), and there is no simple method for transforming those units into housing units. This method considers the following approximations samples as reasonable approximations of value per housing unit:
+```{r hous-intro-setup}
+library(plyr)
+library(gdalUtils)
+library(knitr)
+library(rprojroot)
+library(rgdal)
+library(sp)
+library(rgeos)
+library(tigris)
+library(leaflet)
+library(foreign)
+library(ggthemes)
+library(magrittr)
+library(stringr)
+library(downloader)
+library(webshot)
+library(htmltools)
+library(gplots)
+library(ggmap)
+library(shiny)
+library(htmlwidgets)
+library(readxl)
+library(acs)
+library(RColorBrewer)
+library(tidyverse)
+library(miscgis)
+library(operator.tools)
+library(leaflet.extras)
+library(viridisLite)
+library(maptools)
+library(cleangeo)
+library(sf)
+root <- rprojroot::is_rstudio_project
+root_file <- root$make_fix_file()
+opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
+```
+
+```{r hous-intro-pu}
+
+pu_no_condo_tbl <- read_rds(root_file('1-data/4-interim/prcl-presuse-no-condo.rds')) %>% 
+        kable(col.names = c('CODE',
+                            'DESCRIPTION',
+                            'ASSUMED UNIT COUNT'))
+
+pu_incl_condo_tbl <- read_rds(root_file('1-data/4-interim/prcl-presuse-incl-condo.rds')) %>% 
+        kable(col.names = c('CODE',
+                            'DESCRIPTION',
+                            'ASSUMED UNIT COUNT'))
+
+
+```
+
+
+Housing market patterns provide an important compliment to the two demographic indicator groups, but they come with their own set of challenges. While all of the data underlying the vulnerability and demographic change indicators comes from the American Community Survey, the housing market data used in this method is provided by the King County tax assessor. 
+
+The first and most obvious challenge is the size and accessibility of this data; King County has approximate 600,000 parcels and their spatial and metadata is stored across a set of large tabular files that must be manually joined. Additionally, there is no official documentation linking a given parcel to a census tract, so this relationship must be established with using geospatial methods that are computationally expensive (i.e., time consuming). Finally, determining the unit of measure for this indicator is more complicated than it might at first appear: ultimately there must be a median housing value for each tract, but determining which properties to include in the sample requires consideration. 
+
+The method used by Lisa Bates uses ACS Table B25077 (Median Value of Owner-Occupied Housing Units), but that sample is not directly reproducible given the available metadata from the King County dataset. The tax assessor data is structured around parcels as the primary unit (with some exception given to condominium units), and there is no simple method for transforming those units into housing units. This method considers the following approximations samples as reasonable approximations of value per housing unit:
 
 * residential types that are _typically_ owner-occupied (not vacant)
 * residential types that are _typically_ owner-occupied (not vacant, including condos)
 
+#### Present Use Codes
 
+The following categories of "Present Use" (a classification used by the King County assessor) are used to distinguish these two subsets of the parcel data:
+
+##### Condos Excluded
+
+`r pu_no_condo_tbl`
+
+##### Condos Included
+
+`r pu_incl_condo_tbl`
