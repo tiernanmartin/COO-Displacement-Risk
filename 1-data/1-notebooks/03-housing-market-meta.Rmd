@@ -1,0 +1,323 @@
+---
+df_print: tibble
+output:
+  html_notebook:
+    code_folding: hide
+  pdf_document:
+    keep_tex: yes
+always_allow_html: yes
+---
+
+```{r hous-meta-setup, echo = FALSE, warning=FALSE,message=FALSE,comment=FALSE}
+library(plyr)
+library(gdalUtils)
+library(knitr)
+library(rprojroot)
+library(rgdal)
+library(sp)
+library(rgeos)
+library(tigris)
+library(leaflet)
+library(foreign)
+library(ggthemes)
+library(magrittr)
+library(stringr)
+library(downloader)
+library(webshot)
+library(htmltools)
+library(gplots)
+library(ggmap)
+library(shiny)
+library(htmlwidgets)
+library(readxl)
+library(acs)
+library(RColorBrewer)
+library(tidyverse)
+library(miscgis)
+library(operator.tools)
+library(leaflet.extras)
+library(viridisLite)
+library(maptools)
+library(cleangeo)
+library(sf)
+root <- rprojroot::is_rstudio_project
+root_file <- root$make_fix_file()
+opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
+```
+
+```{r hous-meta-colors}
+green <- miscgis::miscgis_pals$tableau_cat[["green"]]
+blue <- miscgis::miscgis_pals$tableau_cat[["blue"]]
+orange <- miscgis::miscgis_pals$tableau_cat[["orange"]]
+red <- miscgis::miscgis_pals$tableau_cat[["red"]]
+teal <- miscgis::miscgis_pals$tableau_cat[["teal"]]
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+proj_light_grey <- col2hex("grey75")
+proj_grey <- col2hex("grey50")
+proj_dark_grey <- col2hex("grey25")
+```
+
+### Parcel Metadata 
+
+```{r hous-meta-value}
+
+# Extract the value meta data from the geodatabases
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl-value-2015.csv'))){
+        
+        # check the layer names (looking for 'rpacct_extr')
+        list(
+                root_file('./1-data/3-external/manual/over-size-limit/Year2016.gdb/'),
+                root_file('./1-data/3-external/manual/over-size-limit/Year2005.gdb/'),
+                root_file('./1-data/3-external/manual/over-size-limit/Year2000.gdb/')
+        ) %>% map(ogrListLayers)
+        
+        
+        # Write the metadata to the interim folder
+        
+        tribble(
+                                                                             ~ src_fp,                                                             ~ dest_fp,       ~ layer,
+                root_file('./1-data/3-external/manual/over-size-limit/Year2016.gdb/'),     root_file('1-data/4-interim/over-size-limit/prcl-value-2015.csv'), 'RPACCT_EXTR',
+                root_file('./1-data/3-external/manual/over-size-limit/Year2005.gdb/'),     root_file('1-data/4-interim/over-size-limit/prcl-value-2004.csv'), 'rpacct_extr',
+                root_file('./1-data/3-external/manual/over-size-limit/Year2000.gdb/'),     root_file('1-data/4-interim/over-size-limit/prcl-value-1999.csv'), 'rpacct_extr'
+        ) %>% 
+                transpose() %>% 
+                walk(~ ogr2ogr(src_datasource_name = .x$src_fp, 
+                        dst_datasource_name = .x$dest_fp,
+                        layer = .x$layer,
+                        f = 'CSV',
+                        overwrite = TRUE))
+}
+
+# Combine the value metadata
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl-value-all-3-years.rds'))){
+        
+# Load the value metadata
+p_val_2015 <- read_csv(root_file('1-data/4-interim/over-size-limit/prcl-value-2015.csv'),
+                         col_types = cols_only(PIN = 'c',BILLYR = 'i',APPRLANDVAL = 'i',APPRIMPSVAL = 'i'),
+                         progress = FALSE)
+
+p_val_2004 <- read_csv(root_file('1-data/4-interim/over-size-limit/prcl-value-2004.csv'),
+                       col_types = cols_only(PIN = 'c',BILLYR = 'i',APPRLANDVA = 'i',APPRIMPSVA = 'i'),
+                       progress = FALSE) %>% 
+        rename(APPRLANDVAL = APPRLANDVA,
+               APPRIMPSVAL = APPRIMPSVA)
+
+p_val_1999 <- read_csv(root_file('1-data/4-interim/over-size-limit/prcl-value-1999.csv'),
+                         col_types = cols_only(PIN = 'c',BillYr = 'i',ApprLandVal = 'i',ApprImpsVal = 'i'),
+                         progress = FALSE) %>% 
+        rename(BILLYR = BillYr,
+               APPRLANDVAL = ApprLandVal,
+               APPRIMPSVAL = ApprImpsVal)
+
+# Remove duplicates, join the three datasets, and save
+
+currency_rates <- 
+        list(1,currency_convert_rate(2015,2004),currency_convert_rate(2015,1999)) %>% 
+        set_names(c(2015,2004,1999))
+        
+
+list(
+                p_val_2015,
+                p_val_2004,
+                p_val_1999
+        ) %>% 
+        map(~ .x %>% 
+                    distinct() %>% 
+                    miscgis::subset_duplicated(nm = 'PIN',notin = FALSE) %>% 
+                    filter(APPRLANDVAL!=0 & APPRIMPSVAL!=0) %>% 
+                    mutate(SUM = APPRLANDVAL + APPRIMPSVAL) %>% 
+                    group_by(PIN) %>% 
+                    arrange(desc(SUM)) %>% 
+                    slice(1) %>% 
+                    select(-SUM) %>%
+                    bind_rows(miscgis::subset_duplicated(.x,
+                                                         nm = 'PIN',
+                                                         notin = TRUE))) %>% 
+        reduce(rbind) %>% 
+        mutate(YEAR = subtract(BILLYR,1)) %>% 
+        mutate(RATE = map_dbl(YEAR, ~ .x %>% as.character %>% extract2(currency_rates,.))) %>% 
+        mutate(APPRLANDVAL = multiply_by(APPRLANDVAL,RATE) %>% round_any(1),
+               APPRIMPSVAL = multiply_by(APPRIMPSVAL,RATE) %>% round_any(1)) %>% 
+        select(-BILLYR) %>% 
+        arrange(PIN) %>% 
+        write_rds(root_file('1-data/4-interim/over-size-limit/prcl-value-all-3-years.rds'))
+}
+
+
+```
+
+
+```{r hous-meta-proptype}
+
+# Extract the property type meta data from the geodatabases
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl-proptype-2015.csv'))){
+        
+        # check the layer names (looking for 'rpacct_extr')
+        list(
+                root_file('./1-data/3-external/manual/over-size-limit/Year2016.gdb/'),
+                root_file('./1-data/3-external/manual/over-size-limit/Year2005.gdb/'),
+                root_file('./1-data/3-external/manual/over-size-limit/Year2000.gdb/')
+        ) %>% map(ogrListLayers)
+        
+        
+        # Write the metadata to the interim folder
+        
+        tribble(
+                                                                             ~ src_fp,                                                             ~ dest_fp,       ~ layer,
+                root_file('./1-data/3-external/manual/over-size-limit/Year2016.gdb/'),     root_file('1-data/4-interim/over-size-limit/prcl-proptype-2015.csv'), 'PARCEL_EXTR',
+                root_file('./1-data/3-external/manual/over-size-limit/Year2005.gdb/'),     root_file('1-data/4-interim/over-size-limit/prcl-proptype-2004.csv'), 'parcel_extr',
+                root_file('./1-data/3-external/manual/over-size-limit/Year2000.gdb/'),     root_file('1-data/4-interim/over-size-limit/prcl-proptype-1999.csv'), 'parcel_extr'
+        ) %>% 
+                transpose() %>% 
+                walk(~ ogr2ogr(src_datasource_name = .x$src_fp, 
+                        dst_datasource_name = .x$dest_fp,
+                        layer = .x$layer,
+                        f = 'CSV',
+                        overwrite = TRUE))
+}
+
+# Combine the property type metadata
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl-proptype-all-3-years.rds'))){
+        
+# Load the property type metadata
+
+p_pt_2015 <- prcl_type_2015 <- read_csv(root_file('1-data/4-interim/over-size-limit/prcl-proptype-2015.csv'),
+                         col_types = cols_only(PIN = 'c',PROPTYPE = 'c',PRESENTUSE = 'i'),
+                         progress = FALSE)
+        
+p_pt_2004 <- read_csv(root_file('1-data/4-interim/over-size-limit/prcl-proptype-2004.csv'),
+                         col_types = cols_only(PIN = 'c',PROPTYPE = 'c',PRESENTUSE = 'i'),
+                         progress = FALSE)
+
+p_pt_1999 <- read_csv(root_file('1-data/4-interim/over-size-limit/prcl-proptype-1999.csv'),
+                         col_types = cols_only(PIN = 'c',PropType = 'c',PresentUse = 'i'),
+                         progress = FALSE)
+        
+# Remove duplicates, join the three datasets, and save
+
+tribble(
+               ~ data, ~ year, 
+            p_pt_2015,   2015,
+            p_pt_2004,   2004,
+            p_pt_1999,   1999
+        ) %>% 
+        transpose %>% 
+        map(.f = ~ .x$data %>% 
+                    set_colnames(toupper(colnames(.x$data))) %>% 
+                    mutate(YEAR = .x$year)  
+            ) %>% 
+        reduce(rbind) %>% 
+        arrange(PIN) %>% 
+        write_rds(root_file('1-data/4-interim/over-size-limit/prcl-proptype-all-3-years.rds'))
+}
+
+
+```
+
+
+```{r hous-meta-presentuse-guide}
+
+if(!file.exists(root_file('1-data/4-interim/prcl-presuse-tbl-2015.csv'))){
+        
+        # check the layer names (looking for 'rpacct_extr')
+        list(
+                root_file('./1-data/3-external/manual/over-size-limit/Year2016.gdb/'),
+                root_file('./1-data/3-external/manual/over-size-limit/Year2005.gdb/'),
+                root_file('./1-data/3-external/manual/over-size-limit/Year2000.gdb/')
+        ) %>% map(ogrListLayers)
+        
+        
+        # Write the metadata to the interim folder
+        
+        tribble(
+                                                                             ~ src_fp,                                                             ~ dest_fp,       ~ layer,
+                root_file('./1-data/3-external/manual/over-size-limit/Year2016.gdb/'),     root_file('1-data/4-interim/prcl-presuse-tbl-2015.csv'), 'LOOKUP_EXTR',
+                root_file('./1-data/3-external/manual/over-size-limit/Year2005.gdb/'),     root_file('1-data/4-interim/prcl-presuse-tbl-2004.csv'), 'lookup_extr',
+                root_file('./1-data/3-external/manual/over-size-limit/Year2000.gdb/'),     root_file('1-data/4-interim/prcl-presuse-tbl-1999.csv'), 'lookup_extr'
+        ) %>% 
+                transpose() %>% 
+                walk(~ ogr2ogr(src_datasource_name = .x$src_fp, 
+                        dst_datasource_name = .x$dest_fp,
+                        layer = .x$layer,
+                        f = 'CSV',
+                        overwrite = TRUE))
+}
+
+if(!file.exists(root_file('1-data/4-interim/prcl-presuse-tbl-all.rds'))){
+        p_pu_2015 <- read_csv("~/COO/Displacement-Phase-1/COO-Displacement-Risk/1-data/4-interim/prcl-presuse-tbl-2015.csv",
+                              col_types = 'iic') 
+        
+        p_pu_2004 <- read_csv("~/COO/Displacement-Phase-1/COO-Displacement-Risk/1-data/4-interim/prcl-presuse-tbl-2004.csv",
+                              col_types = 'iic')
+        
+        p_pu_1999 <- read_csv("~/COO/Displacement-Phase-1/COO-Displacement-Risk/1-data/4-interim/prcl-presuse-tbl-1999.csv",
+                              col_types = 'iic')
+        
+        tribble(
+                ~ data, ~year,
+                p_pu_2015,  2015,
+                p_pu_2004,  2004,
+                p_pu_1999,  1999
+        ) %>% 
+                transpose %>% 
+                map(~ .x$data %>% 
+                            set_colnames(toupper(colnames(.x$data))) %>% 
+                            mutate(YEAR = .x$year) %>% 
+                            filter(LUTYPE %in% 102) %>% 
+                            select(CODE = LUITEM,
+                                   DESC = matches('DESCRIPT'),
+                                   YEAR)
+                ) %>% 
+                reduce(bind_rows) %>% 
+                arrange(CODE,YEAR) %>% 
+                mutate(UNIT_CNT = case_when(
+                        .$DESC %in% 'Duplex' ~ 2,
+                        .$DESC %in% 'Triplex' ~ 3,
+                        .$DESC %in% '4-Plex' ~ 4,
+                        TRUE ~ 1
+                )) %>%
+                mutate(RES_LGL = between(CODE,1,9),
+                       UNIT_CNT = if_else(RES_LGL,
+                                          UNIT_CNT,
+                                          NA_real_)
+                ) %>%  
+                write_rds(root_file('1-data/4-interim/prcl-presuse-tbl-all.rds'))
+}
+
+# Note: some of the present use codes from the 1999 data do not exactly match those of the 2004 and 2015 data, 
+# but they are minor difference (e.g., Park & Zoo vs. Park) and do not effect the codes used in this analysis
+
+# Note: this is where the 
+```
+
+
+```{r hous-meta-join}
+
+# Read in the two metadata objects, join by PIN and YEAR, sort by PIN, and save the object
+
+if(!file.exists(root_file('1-data/4-interim/over-size-limit/prcl-meta.rds'))){
+        
+        pu <- read_rds(root_file('1-data/4-interim/prcl-presuse-tbl-all.rds')) %>% 
+                filter(YEAR %in% 2015) %>% 
+                select(-YEAR)
+        
+        
+        inner_join(read_rds(root_file('1-data/4-interim/over-size-limit/prcl-value-all-3-years.rds')),
+                  read_rds(root_file('1-data/4-interim/over-size-limit/prcl-proptype-all-3-years.rds')),
+                  by = c('PIN','YEAR')) %>% 
+                left_join(pu, by = c('PRESENTUSE' = 'CODE')) %>% 
+                ungroup %>% 
+                arrange(PIN) %>% 
+        write_rds(root_file('1-data/4-interim/over-size-limit/prcl-meta.rds'))
+}
+
+```
+
+
