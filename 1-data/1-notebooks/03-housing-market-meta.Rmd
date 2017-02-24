@@ -114,12 +114,13 @@ p_val_1999 <- read_csv(root_file('1-data/4-interim/over-size-limit/prcl-value-19
                APPRLANDVAL = ApprLandVal,
                APPRIMPSVAL = ApprImpsVal)
 
-# Remove duplicates, join the three datasets, and save
+
 
 currency_rates <- 
         list(1,currency_convert_rate(2015,2004),currency_convert_rate(2015,1999)) %>% 
         set_names(c(2015,2004,1999))
-        
+
+# Remove duplicates, join the three datasets, convert the currency to 2015 dollars and save
 
 list(
                 p_val_2015,
