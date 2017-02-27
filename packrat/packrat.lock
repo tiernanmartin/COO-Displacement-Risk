@@ -257,13 +257,13 @@ Requires: digest
 Package: dplyr
 Source: github
 Version: 0.5.0.9000
-Hash: e105a71a8945b8108eba6e4ef6cdaeee
+Hash: 6c68afacfc30d944f5c6d8bef5dc2737
 Requires: BH, DBI, R6, Rcpp, assertthat, bindrcpp, lazyeval, magrittr,
     plogr, tibble
 GithubRepo: dplyr
 GithubUsername: hadley
 GithubRef: master
-GithubSha1: 20acd588fa20fe3e8c4b8ff763cdebb36a7906f5
+GithubSha1: 3b8e1e3dd2625421af6dd38f9511fd18a06060bc
 
 Package: evaluate
 Source: CRAN
@@ -467,14 +467,14 @@ Hash: 3d6e7608e65bbf5cb170dab1e3c9ed8b
 
 Package: leaflet
 Source: github
-Version: 1.1.0
-Hash: afa1d64d37c6c3bfe816dcb495d7d890
+Version: 1.1.0.9000
+Hash: ff027b0962422bc7e7601472470a4789
 Requires: RColorBrewer, base64enc, crosstalk, htmltools, htmlwidgets,
     magrittr, markdown, png, raster, scales, sp, viridis
 GithubRepo: leaflet
 GithubUsername: rstudio
 GithubRef: master
-GithubSha1: ccc1559784e6d94541f73dbbe5e8890d9cb3d00e
+GithubSha1: b35b57323cee867e354a03544cb1abb0a4315138
 
 Package: leaflet.extras
 Source: github
@@ -547,14 +547,14 @@ Requires: htmltools, shiny
 
 Package: miscgis
 Source: github
-Version: 0.1.3-13
-Hash: 75ca224d87dae5cbe9a7b59dbe96ab01
+Version: 0.1.3-14
+Hash: 7d89b16f88b03061d8e72903edd2d73f
 Requires: acs, dplyr, leaflet, leaflet.extras, miniUI, operator.tools,
     rmarkdown, sf, shinydashboard, sp, tigris
 GithubRepo: miscgis
 GithubUsername: tiernanmartin
 GithubRef: master
-GithubSha1: 23551a6b5dab98aa9862bcb714a9535ea87e0efc
+GithubSha1: 277a698ab7c645c594df41c011f0389641ed1f13
 
 Package: mnormt
 Source: CRAN
@@ -646,7 +646,7 @@ Requires: foreign, mnormt
 Package: purrr
 Source: CRAN
 Version: 0.2.2
-Hash: a3517c10fbd803ee4d5d604eac4b50c3
+Hash: b79cabc480cf2af00c47fcc7d46087ed
 Requires: BH, Rcpp, dplyr, lazyeval, magrittr
 
 Package: quadprog
@@ -783,12 +783,12 @@ Requires: httpuv, jsonlite, mime
 Package: sf
 Source: github
 Version: 0.3-5
-Hash: 25c77f4ea3d0270dfeb59ec0935ab67a
+Hash: 679d84efb89a0effd3069364d585ba71
 Requires: DBI, Rcpp, magrittr, units
 GithubRepo: sfr
 GithubUsername: edzer
 GithubRef: master
-GithubSha1: cce135afba43538940b9780451cf174d15953d5b
+GithubSha1: 9cf4160f68a53b9fb5c5e6ce447e66477532b7fb
 
 Package: shiny
 Source: CRAN

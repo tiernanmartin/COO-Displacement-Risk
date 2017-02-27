@@ -44,8 +44,6 @@ root_file <- root$make_fix_file()
 opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
 ```
 
-### Introduction
-
 ```{r hous-colors}
 green <- miscgis::miscgis_pals$tableau_cat[["green"]]
 blue <- miscgis::miscgis_pals$tableau_cat[["blue"]]
@@ -65,67 +63,103 @@ _NOTE: this text is placeholder and must be changed_
 
 ### Parcel Spatial Data
 
-```{r hous-prcl-tr-2014}
+```{r hous-prcl-tr-2015}
 
 # Read in the parcel data as points
-if(!file.exists(root_file('1-data/4-interim/prcl-all-2014-pt-geoid-sf.rds'))){
+if(!file.exists(root_file('1-data/4-interim/prcl-all-2015-pt-geoid-sf.rds'))){
+        
+        # NOTE: because these datasets are large in size, 
+        # it is beneficial to split the dataset  in half,
+        # perform the spatial join to the parcel data,
+        # and then bind the two halves together
         
         
-        # Read in the simple feature object
-        prcl_all_2014_pt_sf <- read_rds(root_file('1-data/4-interim/over-size-limit/prcl_all_2014_pt_sf.rds'))
+        prcl_all_2015_pt_sf <- read_rds(root_file('1-data/4-interim/over-size-limit/prcl_all_2015_pt_sf.rds'))
         
-        # Convert it back to sp-class
-        prcl_all_2014_pt_sp <- prcl_all_2014_pt_sf %>% as("Spatial")
+        # First half bounds
         
-        # Read in the tract object, convert it to sp, select the GEOID column
+        prcl_rows_first_half <- 
+                prcl_all_2015_pt_sf %>% 
+                nrow() %>% 
+                divide_by(2) %>% 
+                round_any(1e5) %>% 
+                subtract(1) %>% 
+                c(1:.)
         
-        tr_kc_sp <- 
-                read_rds(root_file('1-data/4-interim/tr-kc-sf.rds')) %>% 
-                select(GEOID,geometry) %>% 
-                as("Spatial")
+        prcl_rows_second_half <- 
+                prcl_all_2015_pt_sf %>% 
+                nrow() %>% 
+                divide_by(2) %>% 
+                round_any(1e5) %>% 
+                c(.:nrow(prcl_all_2015_pt_sf))
         
-        # Use sp::over() to identify which tract each parcel belongs to
         
-        prcl_over_geoid <- over(prcl_all_2014_pt_sp,tr_kc_sp)
+        # Read in the simple feature object (first half)
+        prcl_all_2015_pt_sf_first <- slice(prcl_all_2015_pt_sf,prcl_rows_first_half)
         
-        # Join the GEOID column to the parcel sf object
+        # Spatial join to the census tracts
         
-        prcl_all_2014_pt_geoid_sf <-
-                prcl_all_2014_pt_sf %>% 
-                bind_cols(prcl_over_geoid) %>% 
-                select(MAJOR:PIN,GEOID,everything())
+                read_rds(root_file('1-data/5-tidy/coo-census-not-acs-all-sf.rds')) %>% 
+                select(NAME:GEOG_FCT,geom) %>% 
+                filter(GEOGRAPHY %in% 'tract') %>% 
+                st_set_crs(st_crs(prcl_all_2015_pt_sf_first)) %>% 
+                st_join(prcl_all_2015_pt_sf_first,., FUN = first) %>% 
+                        write_rds(root_file('1-data/4-interim/prcl-all-2015-pt-geoid-first-sf.rds'))
         
-        # Double-check
+        # Read in the simple feature object (first half)
+        prcl_all_2015_pt_sf_second <- slice(prcl_all_2015_pt_sf,prcl_rows_second_half)
         
-        show_prcl_over_test <- function(){
-                prcl_sample_sp <- 
-                        prcl_all_2014_pt_geoid_sf %>% 
-                        sample_n(10) %>% 
-                        as("Spatial")
+        # Spatial join to the census tracts
+        
+                read_rds(root_file('1-data/5-tidy/coo-census-not-acs-all-sf.rds')) %>% 
+                select(NAME:GEOG_FCT,geom) %>% 
+                filter(GEOGRAPHY %in% 'tract') %>% 
+                st_set_crs(st_crs(prcl_all_2015_pt_sf_second)) %>% 
+                st_join(prcl_all_2015_pt_sf_second,., FUN = first) %>% 
+                        write_rds(root_file('1-data/4-interim/prcl-all-2015-pt-geoid-second-sf.rds'))
+        
+        
+        
+        # Bind the two halves and save the object
+        
+                bind_rows(read_rds(root_file('1-data/4-interim/prcl-all-2015-pt-geoid-first-sf.rds')),
+                          read_rds(root_file('1-data/4-interim/prcl-all-2015-pt-geoid-second-sf.rds'))) %>%
+                        write_rds(root_file('1-data/4-interim/prcl-all-2015-pt-geoid-sf.rds'))
+}
+
+prcl_all_2015_pt_geoid_sf  <- read_rds(root_file('1-data/4-interim/prcl-all-2015-pt-geoid-sf.rds'))
+
+show_prcl_over_test <- function(prcl,tr){
+        # browser()
+                prcl_sample_sf <- 
+                        prcl %>% 
+                        as_tibble %>% 
+                        sample_n(25) %>% 
+                        st_as_sf()
+                
+                tr_kc <- 
+                        tr %>% filter(GEOGRAPHY %in% 'tract') 
                 
                 myLfltGrey() %>% 
-                        addPolygons(data = tr_kc_sp,
+                        addPolygons(data = tr_kc,
                                     smoothFactor = 0,
                                     color = orange,
                                     weight = .5, 
                                     opacity = 1,
                                     fillColor = orange,
                                     fillOpacity = .25,
-                                    label = ~GEOID,
+                                    label = ~GEOID6,
                                     labelOptions = labelOptions(noHide  =TRUE)) %>% 
-                        addAwesomeMarkers(data = prcl_sample_sp,
-                                          label = ~GEOID, 
+                        addAwesomeMarkers(data = prcl_sample_sf,
+                                          label = ~GEOID6, 
                                           labelOptions = labelOptions(noHide  =TRUE))
         }
-        
-        show_prcl_over_test()
-        
-        # Save the object
-        
-        prcl_all_2014_pt_geoid_sf %>% write_rds(root_file('1-data/4-interim/prcl-all-2014-pt-geoid-sf.rds'))
-}
 
-prcl_all_2014_pt_geoid_sf  <- read_rds(root_file('1-data/4-interim/prcl-all-2014-pt-geoid-sf.rds'))
+tr <- 
+        read_rds(root_file('1-data/5-tidy/coo-census-not-acs-all-sf.rds')) 
+show_prcl_over_test(prcl_all_2015_pt_geoid_sf,tr)
+        
+
 
 
 ```
@@ -144,8 +178,10 @@ if(!file.exists(root_file('1-data/4-interim/prcl-all-2004-pt-geoid-sf.rds'))){
         # Read in the tract object, convert it to sp, select the GEOID column
         
         tr_kc_sp <- 
-                read_rds(root_file('1-data/4-interim/tr-kc-sf.rds')) %>% 
-                select(GEOID,geometry) %>% 
+                read_rds(root_file('1-data/5-tidy/coo-census-not-acs-all-sf.rds')) %>% 
+                select(NAME:GEOG_FCT,geom) %>% 
+                filter(GEOGRAPHY %in% 'tract') %>% 
+                st_set_crs(st_crs(prcl_all_2015_pt_sf)) %>% 
                 as("Spatial")
         
         # Use sp::over() to identify which tract each parcel belongs to
@@ -157,7 +193,7 @@ if(!file.exists(root_file('1-data/4-interim/prcl-all-2004-pt-geoid-sf.rds'))){
         prcl_all_2004_pt_geoid_sf <-
                 prcl_all_2004_pt_sf %>% 
                 bind_cols(prcl_over_geoid) %>% 
-                select(MAJOR:PIN,GEOID,everything())
+                select(MAJOR:PIN,everything())
         
         # Double-check
         
@@ -175,10 +211,10 @@ if(!file.exists(root_file('1-data/4-interim/prcl-all-2004-pt-geoid-sf.rds'))){
                                     opacity = 1,
                                     fillColor = orange,
                                     fillOpacity = .25,
-                                    label = ~GEOID,
+                                    label = ~GEOID6,
                                     labelOptions = labelOptions(noHide  =TRUE)) %>% 
                         addAwesomeMarkers(data = prcl_sample_sp,
-                                          label = ~GEOID, 
+                                          label = ~GEOID6, 
                                           labelOptions = labelOptions(noHide  =TRUE))
         }
         

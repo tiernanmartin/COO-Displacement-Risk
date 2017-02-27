@@ -1,0 +1,292 @@
+---
+df_print: tibble
+output:
+  html_notebook:
+    code_folding: hide
+  pdf_document:
+    keep_tex: yes
+always_allow_html: yes
+editor_options:
+  chunk_output_type: console
+---
+
+```{r hous-tract-setup, echo = FALSE, warning=FALSE,message=FALSE,comment=FALSE}
+library(plyr)
+library(gdalUtils)
+library(knitr)
+library(rprojroot)
+library(rgdal)
+library(sp)
+library(rgeos)
+library(tigris)
+library(leaflet)
+library(foreign)
+library(ggthemes)
+library(magrittr)
+library(stringr)
+library(downloader)
+library(webshot)
+library(htmltools)
+library(gplots)
+library(ggmap)
+library(shiny)
+library(htmlwidgets)
+library(readxl)
+library(acs)
+library(RColorBrewer)
+library(tidyverse)
+library(miscgis)
+library(operator.tools)
+library(leaflet.extras)
+library(viridisLite)
+library(maptools)
+library(cleangeo)
+library(sf)
+root <- rprojroot::is_rstudio_project
+root_file <- root$make_fix_file()
+opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
+```
+
+```{r hous-tract-colors}
+green <- miscgis::miscgis_pals$tableau_cat[["green"]]
+blue <- miscgis::miscgis_pals$tableau_cat[["blue"]]
+orange <- miscgis::miscgis_pals$tableau_cat[["orange"]]
+red <- miscgis::miscgis_pals$tableau_cat[["red"]]
+teal <- miscgis::miscgis_pals$tableau_cat[["teal"]]
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+proj_light_grey <- col2hex("grey75")
+proj_grey <- col2hex("grey50")
+proj_dark_grey <- col2hex("grey25")
+```
+
+```{r hous-tract-merge}
+
+if(!file.exists(root_file('./1-data/4-interim/over-size-limit/prcl-geom-meta-sf.rds'))){
+        
+geom <- read_rds(root_file('./1-data/4-interim/over-size-limit/prcl-all-3-years-sf.rds')) %>% unclass %>% as_tibble
+
+meta <- read_rds(root_file('1-data/4-interim/over-size-limit/prcl-meta.rds'))
+
+inner_join(geom,meta,by = c('PIN','YEAR')) %>% 
+        group_by(PIN) %>% 
+        mutate(ALL_YRS_LGL = length(unique(YEAR)) == 3) %>% 
+        ungroup() %>% 
+        filter(ALL_YRS_LGL) %>% 
+        mutate(TOTAL_VAL = add(APPRLANDVAL,APPRIMPSVAL) %>% divide_by(UNIT_CNT) %>% round_any(1)) %>% 
+        arrange(PIN) %>% 
+        st_as_sf %>% 
+        write_rds(root_file('./1-data/4-interim/over-size-limit/prcl-geom-meta-sf.rds'))
+}
+
+        
+```
+
+```{r hous-geoms-aggregate}
+
+if(!file.exists(root_file('./1-data/4-interim/hous-val-long.rds'))){
+        
+        # Read in the parcel value data, drop sf, 
+        # remove incompletes, 
+        # filter to typical owner-occ res parcels
+        
+        res <- read_rds(root_file('./1-data/4-interim/over-size-limit/prcl-geom-meta-sf.rds')) %>% 
+                unclass %>% 
+                as_tibble() %>% 
+                select(-matches('geom')) %>% 
+                filter(!is.na(YEAR)) %>% 
+                filter(!is.na(GEOID6)) %>% 
+                filter(RES_LGL) %>% 
+                mutate(SEACCD = 'SEACCD',
+                       KC = 'KC') 
+        
+        # Build a table of arguments to pass to the pipe chain
+        map_args <- 
+                tribble(
+                ~ data,       ~name,               ~groups,         ~ comm_filter,        ~ seaccd_filter,   
+                   res,    'GEOID6',    c('GEOID6','YEAR'), unique(res$COMMUNITY), unique(res$SEACCD_LGL),
+                   res, 'COMMUNITY', c('COMMUNITY','YEAR'),   c("STKW","RV","WC"), unique(res$SEACCD_LGL),
+                   res,    'SEACCD',                'YEAR', unique(res$COMMUNITY),                   TRUE,
+                   res,        'KC',                'YEAR', unique(res$COMMUNITY), unique(res$SEACCD_LGL)
+                
+        )
+                
+        # A function for appropriately rounding a mean value
+        round_mean <- function(x,n) x[!is.na(x)] %>% mean() %>% round_any(n)
+
+
+# Calculate value summary stats for the tracts, commmunities, SEACCD, and the county
+
+val_by_geom <- 
+        map_args %>% 
+        transpose %>% 
+        map_df(
+                ~ .x$data %>% 
+                        filter(COMMUNITY %in% .x$comm_filter) %>% 
+                        filter(SEACCD_LGL %in% .x$seaccd_filter) %>% 
+                        group_by_(.dots = .x$groups) %>% 
+                        summarise(TOTAL_VAL_CNT = n(),
+                                  TOTAL_VAL_MEDIAN = if_else(TOTAL_VAL_CNT >= 100,
+                                                             median(TOTAL_VAL,na.rm = TRUE),
+                                                             NA_real_) %>% as.integer(),
+                                  TOTAL_VAL_MEAN = if_else(TOTAL_VAL_CNT >= 100,
+                                                           round_mean(TOTAL_VAL,1000),
+                                                           NA_real_)
+                        ) %>% 
+                        mutate(NAME = .x$name) 
+        ) %>% 
+        ungroup %>% 
+        mutate(NAME = case_when(
+                !is.na(.$COMMUNITY) ~ .$COMMUNITY,
+                is.na(.$COMMUNITY) & !is.na(.$GEOID6) ~ .$GEOID6,
+                TRUE ~ .$NAME
+        )
+        ) 
+
+
+# Prepare a separate geom metadata object
+
+geom_meta <- 
+        read_rds(root_file('./1-data/5-tidy/coo-acs-inds-not-acs-sf.rds')) %>% 
+        unclass %>% 
+        as_tibble %>% 
+        select(NAME:GEOG_FCT) %>% 
+        mutate(JOIN_ID = case_when(
+                .$GEOGRAPHY %in% 'tract' ~ .$GEOID6,
+                TRUE ~ .$NAME
+        ))
+
+# Create a df with all of the NAME and YEAR combinations - the geom metadata will be joined to this obj
+
+all_pairs <- crossing(
+        'NAME' = unique(extract2(val_by_geom,'NAME')),
+        'YEAR' = unique(extract2(val_by_geom,'YEAR')))
+
+# Join the metadata
+
+val_by_geom_meta <- 
+        val_by_geom %>%     
+        select(NAME,YEAR,matches('TOTAL')) %>% 
+        right_join(all_pairs, by = (c('NAME','YEAR'))) %>% 
+        left_join(geom_meta, by = c('NAME' = 'JOIN_ID')) %>% 
+        select(-matches('\\.y')) 
+
+# Write the object
+        write_rds(val_by_geom_meta,
+                  root_file('./1-data/4-interim/hous-val-long.rds'))
+}
+
+```
+
+```{r hous-geoms-inds}
+
+if(!file.exists(root_file('./1-data/4-interim/coo-hous-inds.rds'))){
+        
+        # Load the long parcel data
+        
+        val_long <- read_rds(root_file('./1-data/4-interim/hous-val-long.rds'))
+        
+        # Ratio indicator -------------------------------------------------------------------------------------------------
+        # -----------------------------------------------------------------------------------------------------------------
+        
+        get_comparison <- function(df,.comp_col,.val_col){
+                # browser()
+                df %>% filter(NAME %in% .comp_col) %>% extract2(.val_col) %>% as.integer
+        }
+        
+        val_ratio <-         
+                val_long %>% 
+                group_by(YEAR) %>% 
+                nest() %>% 
+                mutate(TOTAL_VAL_MEDIAN_SEACCD = map_int(.x = data, 
+                                                         .f = get_comparison, 
+                                                         .comp_col = 'SEACCD', 
+                                                         .val_col = 'TOTAL_VAL_MEDIAN'),
+                       TOTAL_VAL_MEDIAN_KC = map_int(.x = data, 
+                                                     .f = get_comparison, 
+                                                     .comp_col = 'KC', 
+                                                     .val_col = 'TOTAL_VAL_MEDIAN')) %>% 
+                unnest(data,.drop = FALSE) %>% 
+                mutate(RATIO_SEACCD = case_when(
+                        !.$SEACCD_LGL | is.na(SEACCD_LGL) ~ NA_real_,
+                        TRUE ~ divide_by(.$TOTAL_VAL_MEDIAN,.$TOTAL_VAL_MEDIAN_SEACCD) %>% round_any(.01)
+                ),
+                RATIO_KC = divide_by(TOTAL_VAL_MEDIAN,TOTAL_VAL_MEDIAN_KC) %>% round_any(.01)) %>%
+                group_by(YEAR) %>% 
+                mutate(TYPE_SEACCD = if_else(ntile(RATIO_SEACCD,5) > 3,'HIGH','LOW/MOD'),
+                       TYPE_KC = if_else(ntile(RATIO_KC,5) > 3,'HIGH','LOW/MOD')) %>% 
+                ungroup %>% 
+                mutate(KEY_MEDIAN = str_c('VAL_MEDIAN',YEAR,sep = '_'),
+                       KEY_MEDIAN_SEACCD = str_c('VAL_MEDIAN_SEACCD',YEAR,sep = '_'),
+                       KEY_MEDIAN_KC = str_c('VAL_MEDIAN_KC',YEAR,sep = '_'),
+                       KEY_RATIO_SEACCD = str_c('VAL_RATIO_SEACCD',YEAR,sep = '_'),
+                       KEY_RATIO_KC = str_c('VAL_RATIO_KC',YEAR,sep = '_'),
+                       KEY_TYPE_SEACCD = str_c('VAL_TYPE_SEACCD',YEAR,sep = '_'),
+                       KEY_TYPE_KC = str_c('VAL_TYPE_KC',YEAR,sep = '_')) %>% 
+                select(matches('NAME|TOTAL|RATIO|TYPE|KEY')) %>% 
+                spread(KEY_MEDIAN,TOTAL_VAL_MEDIAN) %>% 
+                spread(KEY_MEDIAN_SEACCD, TOTAL_VAL_MEDIAN_SEACCD) %>% 
+                spread(KEY_MEDIAN_KC, TOTAL_VAL_MEDIAN_KC) %>% 
+                spread(KEY_RATIO_SEACCD,RATIO_SEACCD) %>% 
+                spread(KEY_RATIO_KC,RATIO_KC) %>% 
+                spread(KEY_TYPE_SEACCD,TYPE_SEACCD) %>% 
+                spread(KEY_TYPE_KC,TYPE_KC) %>% 
+                group_by(NAME) %>% 
+                summarise_all(first_not_na)
+        
+        
+        
+        # Rate indicator --------------------------------------------------------------------------------------------------
+        # -----------------------------------------------------------------------------------------------------------------
+        find_appr_rate <- function(df, .start_year, .end_year, .seaccd_only = FALSE){
+                
+                if(df %>% extract2('TOTAL_VAL_MEDIAN') %>% map_lgl(is.na) %>% all){
+                        rate <- NA_real_
+                }else{
+                        start <- df %>% filter(YEAR %in% .start_year) %>% extract2('TOTAL_VAL_MEDIAN')
+                        
+                        end <- df %>% filter(YEAR %in% .end_year) %>% extract2('TOTAL_VAL_MEDIAN')
+                        
+                        rate <- divide_by(end,start) %>% round_any(.01)
+                        
+                        if(.seaccd_only & !isTRUE(unique(extract2(df,'SEACCD_LGL')))) {rate <- NA_real_}
+                }
+                return(rate)
+        }
+        
+        val_appr_rate <- 
+                val_long %>% 
+                group_by(NAME) %>%
+                nest() %>% 
+                mutate(APPR_RATE_99_04_SEACCD = map_dbl(.x = data,.f =  ~ find_appr_rate(.x,1999,2004, .seaccd_only = TRUE)),
+                       APPR_RATE_04_15_SEACCD = map_dbl(.x = data,.f =  ~ find_appr_rate(.x,2004,2015, .seaccd_only = TRUE)),
+                       APPR_RATE_99_15_SEACCD = map_dbl(.x = data,.f =  ~ find_appr_rate(.x,1999,2015, .seaccd_only = TRUE)),
+                       APPR_RATE_99_04_KC = map_dbl(.x = data,.f =  ~ find_appr_rate(.x,1999,2004,.seaccd_only = FALSE)),
+                       APPR_RATE_04_15_KC = map_dbl(.x = data,.f =  ~ find_appr_rate(.x,2004,2015,.seaccd_only = FALSE)),
+                       APPR_RATE_99_15_KC = map_dbl(.x = data,.f =  ~ find_appr_rate(.x,1999,2015,.seaccd_only = FALSE))) %>% 
+                mutate(APPR_TYPE_99_04_SEACCD = if_else(ntile(APPR_RATE_99_04_SEACCD,5) > 3,'HIGH','LOW/MOD'),
+                       APPR_TYPE_04_15_SEACCD = if_else(ntile(APPR_RATE_04_15_SEACCD,5) > 3,'HIGH','LOW/MOD'),
+                       APPR_TYPE_99_15_SEACCD = if_else(ntile(APPR_RATE_99_15_SEACCD,5) > 3,'HIGH','LOW/MOD'),
+                       APPR_TYPE_99_04_KC = if_else(ntile(APPR_RATE_99_04_KC,5) > 3,'HIGH','LOW/MOD'),
+                       APPR_TYPE_04_15_KC = if_else(ntile(APPR_RATE_04_15_KC,5) > 3,'HIGH','LOW/MOD'),
+                       APPR_TYPE_99_15_KC = if_else(ntile(APPR_RATE_99_15_KC,5) > 3,'HIGH','LOW/MOD')) %>% 
+                unnest(data,.drop = FALSE) %>% 
+                group_by(NAME) %>% 
+                summarise_all(first_not_na)
+        
+        
+        # Join and save  --------------------------------------------------------------------------------------------------
+        # -----------------------------------------------------------------------------------------------------------------
+        
+        val_ratio %>% 
+                select(-matches('TOTAL'),-NAME_FULL) %>% 
+                full_join(val_appr_rate, by = 'NAME') %>% 
+                select(NAME,YEAR:GEOG_FCT,matches('TOTAL_VAL'),matches('VAL_MEDIAN'),matches('VAL_RATIO|VAL_TYPE'),matches('APPR'),everything()) %>% 
+                write_rds(root_file('./1-data/4-interim/coo-hous-inds.rds'))
+
+}
+
+
+```

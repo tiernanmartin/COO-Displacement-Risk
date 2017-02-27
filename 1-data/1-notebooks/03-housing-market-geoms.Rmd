@@ -1,0 +1,172 @@
+---
+df_print: tibble
+output:
+  html_notebook:
+    code_folding: hide
+  pdf_document:
+    keep_tex: yes
+always_allow_html: yes
+---
+
+```{r hous-geom-setup, echo = FALSE, warning=FALSE,message=FALSE,comment=FALSE}
+library(plyr)
+library(gdalUtils)
+library(knitr)
+library(rprojroot)
+library(rgdal)
+library(sp)
+library(rgeos)
+library(tigris)
+library(leaflet)
+library(foreign)
+library(ggthemes)
+library(magrittr)
+library(stringr)
+library(downloader)
+library(webshot)
+library(htmltools)
+library(gplots)
+library(ggmap)
+library(shiny)
+library(htmlwidgets)
+library(readxl)
+library(acs)
+library(RColorBrewer)
+library(tidyverse)
+library(miscgis)
+library(operator.tools)
+library(leaflet.extras)
+library(viridisLite)
+library(maptools)
+library(cleangeo)
+library(sf)
+root <- rprojroot::is_rstudio_project
+root_file <- root$make_fix_file()
+opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
+```
+
+```{r hous-geom-colors}
+green <- miscgis::miscgis_pals$tableau_cat[["green"]]
+blue <- miscgis::miscgis_pals$tableau_cat[["blue"]]
+orange <- miscgis::miscgis_pals$tableau_cat[["orange"]]
+red <- miscgis::miscgis_pals$tableau_cat[["red"]]
+teal <- miscgis::miscgis_pals$tableau_cat[["teal"]]
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+proj_light_grey <- col2hex("grey75")
+proj_grey <- col2hex("grey50")
+proj_dark_grey <- col2hex("grey25")
+```
+
+
+### Parcel Geoms
+
+```{r hous-geom-prcl-tr}
+
+# Read in the 2015 parcel data as points
+
+
+if(!file.exists(root_file('./1-data/4-interim/over-size-limit/prcl-all-3-years-sf.rds'))){
+        
+        if(!file.exists(root_file('1-data/4-interim/prcl-all-2015-pt-geoid-sf.rds'))){
+                
+                # NOTE: the size of these datasets makes for long wait times 
+                
+                
+                prcl_all_2015_pt_sf <- read_rds(root_file('1-data/4-interim/over-size-limit/prcl_all_2015_pt_sf.rds'))
+                
+                
+                # Read in the tract sf object
+                
+                tr_kc_sf <- 
+                        read_rds(root_file('1-data/5-tidy/coo-census-not-acs-all-sf.rds')) %>% 
+                        select(NAME:GEOG_FCT,geom) %>% 
+                        filter(GEOGRAPHY %in% 'tract') %>% 
+                        st_set_crs(crs_proj@projargs)
+                
+                # Spatial join to the census tracts
+                
+                
+                over_sf(prcl_all_2015_pt_sf,tr_kc_sf) %>% 
+                        write_rds(root_file('1-data/4-interim/prcl-all-2015-pt-geoid-sf.rds'))
+                
+        }
+        
+        p_2015 <- read_rds(root_file('1-data/4-interim/prcl-all-2015-pt-geoid-sf.rds'))
+        
+        if(!file.exists(root_file('1-data/4-interim/prcl-all-2004-pt-geoid-sf.rds'))){
+                
+                # NOTE: the size of these datasets makes for long wait times 
+                
+                
+                prcl_all_2004_pt_sf <- read_rds(root_file('1-data/4-interim/over-size-limit/prcl_all_2004_pt_sf.rds'))
+                
+                
+                # Read in the tract sf object
+                
+                tr_kc_sf <- 
+                        read_rds(root_file('1-data/5-tidy/coo-census-not-acs-all-sf.rds')) %>% 
+                        select(NAME:GEOG_FCT,geom) %>% 
+                        filter(GEOGRAPHY %in% 'tract') %>% 
+                        st_set_crs(crs_proj@projargs)
+                
+                # Spatial join to the census tracts
+                
+                
+                over_sf(prcl_all_2004_pt_sf,tr_kc_sf) %>%
+                        write_rds(root_file('1-data/4-interim/prcl-all-2004-pt-geoid-sf.rds'))
+                
+        }
+        
+        p_2004 <- read_rds(root_file('1-data/4-interim/prcl-all-2004-pt-geoid-sf.rds'))
+        
+        if(!file.exists(root_file('1-data/4-interim/prcl-all-1999-pt-geoid-sf.rds'))){
+                
+                # NOTE: the size of these datasets makes for long wait times 
+                
+                
+                prcl_all_1999_pt_sf <- read_rds(root_file('1-data/4-interim/over-size-limit/prcl_all_1999_pt_sf.rds'))
+                
+                
+                # Read in the tract sf object
+                
+                tr_kc_sf <- 
+                        read_rds(root_file('1-data/5-tidy/coo-census-not-acs-all-sf.rds')) %>% 
+                        select(NAME:GEOG_FCT,geom) %>% 
+                        filter(GEOGRAPHY %in% 'tract') %>% 
+                        st_set_crs(crs_proj@projargs)
+                
+                # Spatial join to the census tracts
+                
+                
+                over_sf(prcl_all_1999_pt_sf,tr_kc_sf) %>%
+                        write_rds(root_file('1-data/4-interim/prcl-all-1999-pt-geoid-sf.rds'))
+                
+        }
+        
+        p_1999  <- read_rds(root_file('1-data/4-interim/prcl-all-1999-pt-geoid-sf.rds'))
+        
+        
+        
+        
+list(p_2015,p_2004,p_1999) %>%
+        map2(.y = list(2015,2004,1999),
+             .f = ~ .x %>% 
+                     mutate(YEAR = .y) %>% 
+                     filter(nchar(PIN)==10 & !is.na(PIN)) %>% 
+                     select(MAJOR,MINOR,PIN,everything(),-matches('AREA|PERIMETER|PARCEL|Shape'))) %>% 
+        reduce(rbind) %>% 
+        group_by(PIN) %>% 
+        mutate(ALL_YRS_LGL = length(unique(YEAR)) == 3) %>% 
+        ungroup() %>% 
+        filter(ALL_YRS_LGL) %>% 
+        st_as_sf %>% 
+                write_rds(root_file('./1-data/4-interim/over-size-limit/prcl-all-3-years-sf.rds'))
+}
+
+
+
+```
+
