@@ -269,11 +269,24 @@ if(!file.exists(root_file('1-data/4-interim/prcl-presuse-tbl-all.rds'))){
                 ) %>% 
                 reduce(bind_rows) %>% 
                 arrange(CODE,YEAR) %>% 
+                mutate(UNIT_CNT = case_when(
+                        .$DESC %in% 'Duplex' ~ 2,
+                        .$DESC %in% 'Triplex' ~ 3,
+                        .$DESC %in% '4-Plex' ~ 4,
+                        TRUE ~ 1
+                )) %>%
+                mutate(RES_LGL = between(CODE,1,9),
+                       UNIT_CNT = if_else(RES_LGL,
+                                          UNIT_CNT,
+                                          NA_real_)
+                ) %>%  
                 write_rds(root_file('1-data/4-interim/prcl-presuse-tbl-all.rds'))
 }
 
 # Note: some of the present use codes from the 1999 data do not exactly match those of the 2004 and 2015 data, 
 # but they are minor difference (e.g., Park & Zoo vs. Park) and do not effect the codes used in this analysis
+
+# Note: this is where the 
 ```
 
 

@@ -47,12 +47,10 @@ opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
 
 ```{r hous-intro-pu}
 
-pu_no_condo_tbl <- read_rds(root_file('1-data/4-interim/prcl-presuse-no-condo.rds')) %>% 
-        kable(col.names = c('CODE',
-                            'DESCRIPTION',
-                            'ASSUMED UNIT COUNT'))
-
-pu_incl_condo_tbl <- read_rds(root_file('1-data/4-interim/prcl-presuse-incl-condo.rds')) %>% 
+pu_tbl <- 
+        read_rds(root_file('1-data/4-interim/prcl-presuse-tbl-all.rds')) %>% 
+                filter(YEAR %in% 2015 & RES_LGL) %>% 
+        select(CODE,DESC,UNIT_CNT) %>% 
         kable(col.names = c('CODE',
                             'DESCRIPTION',
                             'ASSUMED UNIT COUNT'))
@@ -67,17 +65,10 @@ The first and most obvious challenge is the size and accessibility of this data;
 
 The method used by Lisa Bates uses ACS Table B25077 (Median Value of Owner-Occupied Housing Units), but that sample is not directly reproducible given the available metadata from the King County dataset. The tax assessor data is structured around parcels as the primary unit (with some exception given to condominium units), and there is no simple method for transforming those units into housing units. This method considers the following approximations samples as reasonable approximations of value per housing unit:
 
-* residential types that are _typically_ owner-occupied (not vacant)
-* residential types that are _typically_ owner-occupied (not vacant, including condos)
+* residential types that are _typically_ owner-occupied (not vacant, excludes condominiums)
 
 #### Present Use Codes
 
-The following categories of "Present Use" (a classification used by the King County assessor) are used to distinguish these two subsets of the parcel data:
+The following categories of "Present Use" (a classification used by the King County assessor) are used to filter the parcel data:
 
-##### Condos Excluded
-
-`r pu_no_condo_tbl`
-
-##### Condos Included
-
-`r pu_incl_condo_tbl`
+`r pu_tbl`
