@@ -173,10 +173,10 @@ if(!file.exists(root_file('./1-data/4-interim/coo-hous-val-inds.rds'))){
                                   full_obj = tr_sf,
                                   .type_col = 'VAL_TYPE_KC_2015')) %>% 
                 data.frame() %>% 
-                select(JOIN_ID,ADJ_SEACCD_LGL,ADJ_KC_LGL) %>% 
+                select(JOIN_ID,ADJ_SEACCD_LGL,ADJ_KC_LGL, NEIGHBORS = NB_ROOK) %>% 
                 left_join(data.frame(geoms_sf),., by = 'JOIN_ID') %>% 
                 data.frame() %>% 
-                select(JOIN_ID, matches('ADJ'))
+                select(JOIN_ID, matches('ADJ'),NEIGHBORS)
                 
                 
 
