@@ -257,19 +257,24 @@ Requires: digest
 Package: dplyr
 Source: github
 Version: 0.5.0.9000
-Hash: 6c68afacfc30d944f5c6d8bef5dc2737
+Hash: e5138ef8d90857c8dcd4a249d46a77aa
 Requires: BH, DBI, R6, Rcpp, assertthat, bindrcpp, lazyeval, magrittr,
     plogr, tibble
 GithubRepo: dplyr
 GithubUsername: hadley
 GithubRef: master
-GithubSha1: 3b8e1e3dd2625421af6dd38f9511fd18a06060bc
+GithubSha1: 8430adca4cc6488689fc08b0f8a40a88371fba2a
 
 Package: evaluate
 Source: CRAN
 Version: 0.10
 Hash: c3601a10c987d439e0c63ec635234a76
 Requires: stringr
+
+Package: expm
+Source: CRAN
+Version: 0.999-1
+Hash: 7cb61533b65bcf20af4cc22675136a54
 
 Package: forcats
 Source: CRAN
@@ -461,9 +466,13 @@ Hash: efdf3a10a129129f7b8f4ae5a0d7ec3d
 Requires: RColorBrewer
 
 Package: lazyeval
-Source: CRAN
-Version: 0.2.0
-Hash: 3d6e7608e65bbf5cb170dab1e3c9ed8b
+Source: github
+Version: 0.2.0.9000
+Hash: 25d09b7907a77cccd517bf1c2021f2ae
+GithubRepo: lazyeval
+GithubUsername: hadley
+GithubRef: master
+GithubSha1: c155c3d534072ca58bcb5fe22ab185e3e4098c73
 
 Package: leaflet
 Source: github
@@ -644,10 +653,14 @@ Hash: 9d4b62cad4b931e1726cb0b0a9bc55fe
 Requires: foreign, mnormt
 
 Package: purrr
-Source: CRAN
-Version: 0.2.2
-Hash: b79cabc480cf2af00c47fcc7d46087ed
+Source: github
+Version: 0.2.2.9000
+Hash: 2297e7da68f52dc3469cddd6c4452acb
 Requires: BH, Rcpp, dplyr, lazyeval, magrittr
+GithubRepo: purrr
+GithubUsername: hadley
+GithubRef: master
+GithubSha1: 53601430ac00f235d13e32e49d62abac7a260ca5
 
 Package: quadprog
 Source: CRAN
@@ -783,12 +796,12 @@ Requires: httpuv, jsonlite, mime
 Package: sf
 Source: github
 Version: 0.3-5
-Hash: 679d84efb89a0effd3069364d585ba71
+Hash: 552c8a7cf9b862962f621d6ac282f22a
 Requires: DBI, Rcpp, magrittr, units
 GithubRepo: sfr
 GithubUsername: edzer
 GithubRef: master
-GithubSha1: 9cf4160f68a53b9fb5c5e6ce447e66477532b7fb
+GithubSha1: 7057e42870e950d7f4aa5cf19ecc5b05182ec7df
 
 Package: shiny
 Source: CRAN
@@ -825,9 +838,9 @@ Hash: 4ffcf86fffee89e7b859f760528dd545
 
 Package: spdep
 Source: CRAN
-Version: 0.6-9
-Hash: 466bd2efc5f03d3dc764c3900d7b23fa
-Requires: LearnBayes, coda, deldir, gmodels, sp
+Version: 0.6-11
+Hash: 275f2acb1324f17980d70cadbb97ba87
+Requires: LearnBayes, coda, deldir, expm, gmodels, sp
 
 Package: stringi
 Source: CRAN

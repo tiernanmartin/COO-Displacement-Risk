@@ -1,0 +1,186 @@
+---
+df_print: tibble
+output:
+  html_notebook:
+    code_folding: hide
+  pdf_document:
+    keep_tex: yes
+always_allow_html: yes
+editor_options:
+  chunk_output_type: console
+---
+
+```{r hous-tract-setup, echo = FALSE, warning=FALSE,message=FALSE,comment=FALSE}
+library(plyr)
+library(gdalUtils)
+library(knitr)
+library(rprojroot)
+library(rgdal)
+library(sp)
+library(rgeos)
+library(tigris)
+library(leaflet)
+library(foreign)
+library(ggthemes)
+library(magrittr)
+library(stringr)
+library(downloader)
+library(webshot)
+library(htmltools)
+library(gplots)
+library(ggmap)
+library(shiny)
+library(htmlwidgets)
+library(readxl)
+library(acs)
+library(RColorBrewer)
+library(tidyverse)
+library(miscgis)
+library(operator.tools)
+library(leaflet.extras)
+library(viridisLite)
+library(maptools)
+library(cleangeo)
+library(sf)
+root <- rprojroot::is_rstudio_project
+root_file <- root$make_fix_file()
+opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
+```
+
+```{r hous-tract-colors}
+green <- miscgis::miscgis_pals$tableau_cat[["green"]]
+blue <- miscgis::miscgis_pals$tableau_cat[["blue"]]
+orange <- miscgis::miscgis_pals$tableau_cat[["orange"]]
+red <- miscgis::miscgis_pals$tableau_cat[["red"]]
+teal <- miscgis::miscgis_pals$tableau_cat[["teal"]]
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+proj_light_grey <- col2hex("grey75")
+proj_grey <- col2hex("grey50")
+proj_dark_grey <- col2hex("grey25")
+```
+
+```{r hous-tract-merge}
+
+if(!file.exists(root_file('./1-data/4-interim/over-size-limit/prcl-geom-meta-sf.rds'))){
+        
+geom <- read_rds(root_file('./1-data/4-interim/over-size-limit/prcl-all-3-years-sf.rds')) %>% unclass %>% as_tibble
+
+meta <- read_rds(root_file('1-data/4-interim/over-size-limit/prcl-meta.rds'))
+
+inner_join(geom,meta,by = c('PIN','YEAR')) %>% 
+        group_by(PIN) %>% 
+        mutate(ALL_YRS_LGL = length(unique(YEAR)) == 3) %>% 
+        ungroup() %>% 
+        filter(ALL_YRS_LGL) %>% 
+        mutate(TOTAL_VAL = add(APPRLANDVAL,APPRIMPSVAL) %>% divide_by(UNIT_CNT) %>% round_any(1)) %>% 
+        arrange(PIN) %>% 
+        st_as_sf %>% 
+        write_rds(root_file('./1-data/4-interim/over-size-limit/prcl-geom-meta-sf.rds'))
+}
+
+        
+```
+
+```{r hous-geoms-aggregate}
+
+if(!file.exists(root_file('./1-data/4-interim/hous-val-long.rds'))){
+        
+        # Read in the parcel value data, drop sf, 
+        # remove incompletes, 
+        # filter to typical owner-occ res parcels
+        
+        res <- read_rds(root_file('./1-data/4-interim/over-size-limit/prcl-geom-meta-sf.rds')) %>% 
+                unclass %>% 
+                as_tibble() %>% 
+                select(-matches('geom')) %>% 
+                filter(!is.na(YEAR)) %>% 
+                filter(!is.na(GEOID6)) %>% 
+                filter(RES_LGL) %>% 
+                mutate(SEACCD = 'SEACCD',
+                       KC = 'KC') 
+        
+        # Build a table of arguments to pass to the pipe chain
+        map_args <- 
+                tribble(
+                ~ data,       ~name,               ~groups,         ~ comm_filter,        ~ seaccd_filter,   
+                   res,    'GEOID6',    c('GEOID6','YEAR'), unique(res$COMMUNITY), unique(res$SEACCD_LGL),
+                   res, 'COMMUNITY', c('COMMUNITY','YEAR'),   c("STKW","RV","WC"), unique(res$SEACCD_LGL),
+                   res,    'SEACCD',                'YEAR', unique(res$COMMUNITY),                   TRUE,
+                   res,        'KC',                'YEAR', unique(res$COMMUNITY), unique(res$SEACCD_LGL)
+                
+        )
+                
+        # A function for appropriately rounding a mean value
+        round_mean <- function(x,n) x[!is.na(x)] %>% mean() %>% round_any(n)
+
+
+# Calculate value summary stats for the tracts, commmunities, SEACCD, and the county
+
+val_by_geom <- 
+        map_args %>% 
+        transpose %>% 
+        map_df(
+                ~ .x$data %>% 
+                        filter(COMMUNITY %in% .x$comm_filter) %>% 
+                        filter(SEACCD_LGL %in% .x$seaccd_filter) %>% 
+                        group_by_(.dots = .x$groups) %>% 
+                        summarise(TOTAL_VAL_CNT = n(),
+                                  TOTAL_VAL_MEDIAN = if_else(TOTAL_VAL_CNT >= 100,
+                                                             median(TOTAL_VAL,na.rm = TRUE),
+                                                             NA_real_) %>% as.integer(),
+                                  TOTAL_VAL_MEAN = if_else(TOTAL_VAL_CNT >= 100,
+                                                           round_mean(TOTAL_VAL,1000),
+                                                           NA_real_)
+                        ) %>% 
+                        mutate(NAME = .x$name) 
+        ) %>% 
+        ungroup %>% 
+        mutate(NAME = case_when(
+                !is.na(.$COMMUNITY) ~ .$COMMUNITY,
+                is.na(.$COMMUNITY) & !is.na(.$GEOID6) ~ .$GEOID6,
+                TRUE ~ .$NAME
+        )
+        ) 
+
+
+# Prepare a separate geom metadata object
+
+geom_meta <- 
+        read_rds(root_file('./1-data/5-tidy/coo-acs-inds-not-acs-sf.rds')) %>% 
+        unclass %>% 
+        as_tibble %>% 
+        select(NAME:GEOG_FCT) %>% 
+        mutate(JOIN_ID = case_when(
+                .$GEOGRAPHY %in% 'tract' ~ .$GEOID6,
+                TRUE ~ .$NAME
+        ))
+
+# Create a df with all of the NAME and YEAR combinations - the geom metadata will be joined to this obj
+
+geom_meta_names <- 
+        read_rds(root_file('./1-data/4-interim/acs_norml_all_geoms_sf.rds')) %>% 
+        mutate(NAME = if_else(is.na(GEOID6),NAME,GEOID6)) %>% 
+        extract2('NAME')
+
+all_pairs <- crossing(
+        'NAME' = geom_meta_names,
+        'YEAR' = unique(extract2(val_by_geom,'YEAR')))
+
+# Join the metadata
+
+val_by_geom_meta <- 
+        val_by_geom %>%     
+        select(NAME,YEAR,matches('TOTAL')) %>% 
+        right_join(all_pairs, by = (c('NAME','YEAR'))) %>% 
+        left_join(geom_meta, by = c('NAME' = 'JOIN_ID')) %>% 
+        select(-matches('\\.y')) 
+
+# Write the object
+        write_rds(val_by_geom_meta,
+                  root_file('./1-data/4-interim/hous-val-long.rds'))
+}
+
+```
