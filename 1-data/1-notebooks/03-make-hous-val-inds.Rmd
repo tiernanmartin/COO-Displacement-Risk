@@ -221,7 +221,7 @@ if(!file.exists(root_file('./1-data/4-interim/coo-hous-val-inds.rds'))){
                 select(JOIN_ID,matches('APPR'))
         
         
-        # Join and save  --------------------------------------------------------------------------------------------------
+        # Join, create final inds, and save  --------------------------------------------------------------------------------------------------
         # -----------------------------------------------------------------------------------------------------------------
         
         hous_val_inds_sf <- 
@@ -229,7 +229,36 @@ if(!file.exists(root_file('./1-data/4-interim/coo-hous-val-inds.rds'))){
                 map(~ .x %>% data.frame() %>% select( -matches('geom'))) %>% 
                 prepend(list(data.frame(geoms_sf))) %>% 
                 reduce(left_join, by = 'JOIN_ID') %>% 
-                st_as_sf
+                mutate(HOUS_ADJ_SEACCD_LGL = if_else(VAL_TYPE_SEACCD_2015 %in% 'LOW/MOD' &
+                                                             APPR_TYPE_04_15_SEACCD %in% 'LOW/MOD' &
+                                                             ADJ_SEACCD_LGL,
+                                                     TRUE,
+                                                     FALSE),
+                       HOUS_ADJ_KC_LGL = if_else(VAL_TYPE_KC_2015 %in% 'LOW/MOD' &
+                                                             APPR_TYPE_04_15_KC %in% 'LOW/MOD' &
+                                                             ADJ_KC_LGL,
+                                                     TRUE,
+                                                     FALSE),
+                       HOUS_ACCL_SEACCD_LGL = if_else(VAL_TYPE_SEACCD_2015 %in% 'LOW/MOD' &
+                                                              APPR_TYPE_04_15_SEACCD %in% 'HIGH',
+                                                      TRUE,
+                                                      FALSE),
+                       HOUS_ACCL_KC_LGL = if_else(VAL_TYPE_KC_2015 %in% 'LOW/MOD' &
+                                                              APPR_TYPE_04_15_KC %in% 'HIGH',
+                                                      TRUE,
+                                                      FALSE),
+                       HOUS_APPR_SEACCD_LGL = if_else(VAL_TYPE_SEACCD_1999 %in% 'LOW/MOD' & 
+                                                              VAL_TYPE_SEACCD_2015 %in% 'HIGH' & 
+                                                              APPR_TYPE_99_15_SEACCD %in% 'HIGH',
+                                                      TRUE,
+                                                      FALSE),
+                       HOUS_APPR_KC_LGL = if_else(VAL_TYPE_KC_1999 %in% 'LOW/MOD' & 
+                                                              VAL_TYPE_KC_2015 %in% 'HIGH' & 
+                                                              APPR_TYPE_99_15_KC %in% 'HIGH',
+                                                      TRUE,
+                                                      FALSE)) %>% 
+                st_as_sf 
+        
         
         write_rds(hous_val_inds_sf, root_file('./1-data/4-interim/coo-hous-val-inds.rds'))
         
