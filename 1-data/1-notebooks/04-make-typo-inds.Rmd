@@ -1,0 +1,102 @@
+---
+df_print: tibble
+output:
+  html_notebook:
+    code_folding: hide
+  pdf_document:
+    keep_tex: yes
+always_allow_html: yes
+---
+
+```{r make-typo-setup, echo = FALSE, warning=FALSE,message=FALSE,comment=FALSE}
+library(plyr)
+library(knitr)
+library(rprojroot)
+library(rgdal)
+library(sp)
+library(rgeos)
+library(tigris)
+library(leaflet)
+library(foreign)
+library(ggthemes)
+library(magrittr)
+library(stringr)
+library(downloader)
+library(webshot)
+library(htmltools)
+library(gplots)
+library(ggmap)
+library(shiny)
+library(htmlwidgets)
+library(readxl)
+library(acs)
+library(RColorBrewer)
+library(tidyverse)
+library(miscgis)
+library(operator.tools)
+library(leaflet.extras)
+library(viridisLite)
+library(maptools)
+library(cleangeo)
+library(sf)
+root <- rprojroot::is_rstudio_project
+root_file <- root$make_fix_file()
+opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
+```
+
+
+```{r make-typo-colors}
+green <- miscgis::miscgis_pals$tableau_cat[["green"]]
+blue <- miscgis::miscgis_pals$tableau_cat[["blue"]]
+orange <- miscgis::miscgis_pals$tableau_cat[["orange"]]
+red <- miscgis::miscgis_pals$tableau_cat[["red"]]
+teal <- miscgis::miscgis_pals$tableau_cat[["teal"]]
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+proj_light_grey <- col2hex("grey75")
+proj_grey <- col2hex("grey50")
+proj_dark_grey <- col2hex("grey25")
+```
+
+
+```{r make-typo-combine-inds}
+
+acs_inds_sf <- read_rds(root_file('1-data/5-tidy/coo-acs-inds-not-acs-sf.rds')) %>% 
+        mutate(JOIN_ID = if_else(is.na(GEOID6),NAME,GEOID6)) %>% 
+        select(-matches('NAME|GEOID6|COMMUNITY|GEOG|^SEACCD_LGL$'))
+
+hous_val_inds_sf <- 
+        read_rds(root_file('./1-data/4-interim/coo-hous-val-inds.rds')) 
+
+
+# NOTE: the different types for each baseline should be created in a single programmatic step
+
+typology_sf <- 
+        list(acs_inds_sf,
+                    hous_val_inds_sf) %>% 
+        map(~ select(data.frame(.x), -matches('geom'))) %>% # convert to df (left_join trips on sf's)
+        reduce(left_join, by = 'JOIN_ID') %>%  # combine
+        mutate(geom = st_geometry(acs_inds_sf)) %>% # add the st_geometry
+        st_sf() %>% 
+        mutate(TYPO_TYPE_SEACCD = case_when(
+                .$TYPO_VULN_LGL %in% FALSE & .$TYPO_DEMO_CHNG_LGL & .$TYPO_HOUS_APPR_SEACCD_LGL ~ 'Continued Loss',
+                .$TYPO_VULN_LGL & .$TYPO_DEMO_CHNG_LGL & .$TYPO_HOUS_APPR_SEACCD_LGL ~ 'Late',
+                .$TYPO_VULN_LGL & .$TYPO_DEMO_CHNG_LGL & .$TYPO_HOUS_ACCL_SEACCD_LGL ~ 'Dynamic',
+                .$TYPO_VULN_LGL & .$TYPO_DEMO_CHNG_LGL & .$TYPO_HOUS_ADJ_SEACCD_LGL ~ 'Early Type 2',
+                .$TYPO_VULN_LGL & .$TYPO_DEMO_CHNG_LGL %in% FALSE & .$TYPO_HOUS_ACCL_SEACCD_LGL ~ 'Early Type 1',
+                .$TYPO_VULN_LGL & .$TYPO_DEMO_CHNG_LGL %in% FALSE & .$TYPO_HOUS_ADJ_SEACCD_LGL ~ 'Susceptible',
+                TRUE ~ NA_character_)
+        )  %>% 
+        mutate(TYPO_TYPE_SEACCD_FCT = factor(TYPO_TYPE_SEACCD,
+                                      levels = c('Susceptible',
+                                                 'Early Type 1',
+                                                 'Early Type 2',
+                                                 'Dynamic',
+                                                 'Late',
+                                                 'Continued Loss'),ordered = TRUE)) %>% 
+        select(TYPO_TYPE_SEACCD, TYPO_TYPE_SEACCD_FCT,COMMUNITY, everything())
+        
+
+```
