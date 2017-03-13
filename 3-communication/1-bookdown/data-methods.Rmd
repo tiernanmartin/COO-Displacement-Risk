@@ -84,11 +84,11 @@ demo_chng_income_fp <- root_file('1-data/1-notebooks/03-demo-change-inc.Rmd')
 
 hous_intro_fp <- root_file('1-data/1-notebooks/housing-market-intro.Rmd')
 
-hous_ratio_fp
-
-hous_rate_fp
-
-hous_neighbor_fp
+# hous_ratio_fp
+# 
+# hous_rate_fp
+# 
+# hous_neighbor_fp
 
 
 ```
