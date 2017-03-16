@@ -60,7 +60,6 @@ proj_grey <- col2hex("grey50")
 proj_dark_grey <- col2hex("grey25")
 ```
 
-### Parcel Metadata 
 
 ```{r hous-meta-value}
 

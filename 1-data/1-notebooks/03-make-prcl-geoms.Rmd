@@ -61,8 +61,6 @@ proj_dark_grey <- col2hex("grey25")
 ```
 
 
-### Parcel Geoms
-
 ```{r hous-geom-prcl-tr}
 
 # Read in the 2015 parcel data as points

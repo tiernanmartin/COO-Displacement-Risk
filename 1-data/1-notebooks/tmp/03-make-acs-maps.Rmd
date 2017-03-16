@@ -95,8 +95,6 @@ if(!file.exists(root_file('./1-data/4-interim/htmltable-popups.rds'))){
         
         make_popup_tbl <- function(long_df, .category,.topic,.tbl_cols){
                 
-                
-               
                 popup_tbl_sel_df <- 
                         long_df %>% 
                         mutate(COLS_TO_REMOVE = if_else(.category %in% 'VULN', '2009','KEEP ALL')) %>% 
@@ -259,12 +257,18 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-map-fun.rds'))){
                                  .height = NULL,
                                  .css_style = "text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF"){
         
+        # browser()
+        
         data <- 
                 long_sf %>% 
                 filter(GEOGRAPHY %in% .geog) %>% 
                 filter(CAT %in% .category) %>% 
                 filter(TOPIC %in% .topic) 
         
+        # Exclude non-COO tracts when .comms_only == TRUE
+        if(.comms_only){
+                data %<>% filter(!is.na(COMMUNITY))
+        }
         
         data_all_geogs <- long_sf %>% filter(CAT %in% .category & TOPIC %in% .topic)
         
@@ -279,21 +283,13 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-map-fun.rds'))){
                 data_all_geogs %>% 
                 filter(GEOGRAPHY %in% 'community') %>%
                 st_cast('LINESTRING')
+                
         
         # Create center point for the map
-        # Exclude non-COO tracts when .comms_only == TRUE
-        if(.comms_only){
-                data %<>% filter(!is.na(COMMUNITY))
-                data_cnt <- data %>% st_union %>% st_centroid() %>% st_bbox()
-        }else{
-                data_cnt <- 
-                        data_all_geogs %>% 
-                        filter(NAME %in% 'SEACCD') %>% 
-                        st_union %>% 
-                        st_centroid() %>% 
-                        st_bbox()
-        }
- 
+        
+        
+        data_cnt <- data %>% st_union %>% st_centroid() %>% st_bbox()
+        
         # Color palette
         pal <- colorNumeric(.pal, data_all_geogs[['VAL']])
         
@@ -379,7 +375,12 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-crosstalk-fun.rds'))){
         
         data_pt_sf <- data %>% st_centroid()
         
-        data_poly_sf <- data 
+        data_poly_sf <- data
+        
+        # Exclude non-COO tracts when .comms_only == TRUE
+        if(.comms_only){
+                data %<>% filter(!is.na(COMMUNITY))
+        }
         
         data_all_geogs <- long_sf %>% filter(CAT %in% .category & TOPIC %in% .topic)
         
@@ -394,21 +395,13 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-crosstalk-fun.rds'))){
                 data_all_geogs %>% 
                 filter(GEOGRAPHY %in% 'community') %>%
                 st_cast('LINESTRING')
+                
         
         # Create center point for the map
-        # Exclude non-COO tracts when .comms_only == TRUE
-        if(.comms_only){
-                data %<>% filter(!is.na(COMMUNITY))
-                data_cnt <- data %>% st_union %>% st_centroid() %>% st_bbox()
-        }else{
-                data_cnt <- 
-                        data_all_geogs %>% 
-                        filter(NAME %in% 'SEACCD') %>% 
-                        st_union %>% 
-                        st_centroid() %>% 
-                        st_bbox()
-        }
- 
+        
+        
+        data_cnt <- data %>% st_union %>% st_centroid() %>% st_bbox()
+        
         # Color palette
         pal <- colorNumeric(.pal,data_all_geogs$VAL)
 

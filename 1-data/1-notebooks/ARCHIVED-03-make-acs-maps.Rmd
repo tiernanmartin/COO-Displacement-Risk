@@ -59,156 +59,178 @@ pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","or
 proj_light_grey <- col2hex("grey75")
 proj_grey <- col2hex("grey50")
 proj_dark_grey <- col2hex("grey25")
-div_pal <- brewer.pal(11,'RdBu')[2:10]
+div_pal <- brewer.pal(11,'Spectral')[2:10]
 ```
 
 ```{r make-acs-maps-htmlTable}
 
-if(!exists('inds_sf')){inds_sf <- read_rds(root_file('./1-data/5-tidy/coo-acs-inds-not-acs-sf.rds'))}
+if(!exists('inds')){inds <- read_rds(root_file('./1-data/5-tidy/coo-acs-inds-not-acs-sf.rds'))}
 
 if(!file.exists(root_file('./1-data/4-interim/htmltable-popups.rds'))){
         
-        # Create a long df with category and topic columns that can be filtered to produce a popup table
+        # A function to build a tibble containing the html text
+        # of the map popup tables - this will be joined to
+        # the sf object 
         
-        inds_df <-
-                inds_sf %>% 
+        make_popup_tbl <- function(.category,.topic,.tbl_cols){
+        #dataset - should be full
+        # browser()
+        data <-
+                inds %>% 
                 unclass %>% 
-                as_tibble()  
+                as_tibble() %>% 
+                filter(GEOGRAPHY %in% c('tract','community','county subdivision')) %>% 
+                filter(SEACCD_LGL|NAME %in% c('SEACCD','COO','RV','WC','STKW')) %>% 
+                group_by(GEOGRAPHY) 
         
-        # create a long df that can be filtered by .category and .topic
-        inds_long_df <- 
-                inds_df %>% 
-                select(NAME,GEOGRAPHY,matches('EST')) %>%       # select only estimate cols
-                select(-matches('VULN_CNT_2009|VULN_PCT_2009|SEACCD|KC'))%>%       # get rid of the indicators that won't be used
-                gather(TBL,VAL,-NAME,-GEOGRAPHY) %>%    # wide -> long
-                mutate(CAT = str_sub(TBL,1,4) %>% str_replace('_',''),   # create columns to facilitate filtering later on
+        if(.category %in% 'VULN'){
+                remove_cols <- '2009'
+                
+                
+        }else{
+                remove_cols <- 'NOTFOUND'
+                
+                
+        }
+        
+        # after the table is produced
+        popup_tbl_df <- 
+                data %>% 
+                select(NAME,GEOGRAPHY,matches('EST')) %>% 
+                select(-matches('VULN_CNT_2009|VULN_PCT_2009|SEACCD'))%>% 
+                gather(TBL,VAL,-NAME,-GEOGRAPHY) %>% 
+                mutate(CAT = str_sub(TBL,1,4) %>% str_replace('_',''),
                        TOPIC = str_extract(TBL,'B[[:digit:]]{5}')) %>%
                 mutate(TYPE = str_extract(TBL,'_[[:alpha:]]{3}_'),
                        TYPE = str_replace_all(TYPE,'_','')) %>%
-                mutate(VAL_LBL = if_else(TYPE %in% 'PCT',   # create labels
+                mutate(VAL_LBL = if_else(TYPE %in% 'PCT',
                                          VAL %>% multiply_by(100) %>% round_any(1) %>% paste0('%'),
                                          VAL %>% round_any(1) %>% scales::comma())) %>% 
                 mutate(VAL_LBL = if_else(TYPE %in% 'PCT' & VAL>=0 & str_detect(TBL, 'DEMO_CHNG'),
                                          str_c('+',VAL_LBL),
                                          VAL_LBL)) %>% 
-                select(-VAL,-TYPE) 
+                select(-VAL,-TYPE) %>% 
+                filter(CAT %in% c(.category,'TOT') & TOPIC %in% .topic) %>% 
+                filter(!str_detect(TBL,remove_cols)) %>% 
+                select(-CAT) %>% 
+                spread(TBL,VAL_LBL) %>% 
+                as.data.frame() %>% 
+                mutate(NAME_FULL = if_else(NAME %in% c('SEACCD','COO','RV','WC','STKW'),
+                                           NAME,
+                                           str_c('Tract',NAME,sep = ' '))) %>% 
+                set_rownames(extract2(.,'NAME_FULL')) 
+                
         
-        make_popup_tbl <- function(long_df, .category,.topic,.tbl_cols){
+        if(.category %in% 'VULN'){
+                
+                popup_tbl_df <- 
+                        popup_tbl_df %>% 
+                        as.data.frame(check.names = FALSE) %>% 
+                        select('#' = matches('CNT'),
+                               '%' = matches('PCT'),
+                               '#' = matches('TOT')
+                        )  %>% as.data.frame(check.names = FALSE)
                 
                 
-               
-                popup_tbl_sel_df <- 
-                        long_df %>% 
-                        mutate(COLS_TO_REMOVE = if_else(.category %in% 'VULN', '2009','KEEP ALL')) %>% 
-                        filter(CAT %in% c(.category,'TOT') & TOPIC %in% .topic) %>% 
-                        filter(!str_detect(TBL,COLS_TO_REMOVE)) %>% 
-                        select(-CAT) %>% 
-                        spread(TBL,VAL_LBL) %>% 
-                        as.data.frame() %>% 
-                        mutate(NAME_FULL = if_else(NAME %in% c('SEACCD','COO','RV','WC','STKW','KC'),
-                                                   NAME,
-                                                   str_c('Tract',NAME,sep = ' '))) %>% 
-                        set_rownames(extract2(.,'NAME_FULL')) 
+                n.cgroup <- c(2,1)
+                align_cgroup <- paste(rep('c',3),collapse='')
                 
                 
-                if(.category %in% 'VULN'){
-                        
-                        # Define the table
-                        popup_tbl_sel_df <- 
-                                popup_tbl_sel_df %>% 
-                                as.data.frame(check.names = FALSE) %>% 
-                                select('#' = matches('CNT'),
-                                       '%' = matches('PCT'),
-                                       '#' = matches('TOT')
-                                )  %>% as.data.frame(check.names = FALSE)
-                        
-                        # Define the column groups and their header alignments
-                        n.cgroup <- c(2,1)
-                        align_cgroup <- paste(rep('c',3),collapse='')
-                        
-                        
-                }else{
-                        # Define the table
-                        popup_tbl_sel_df <- 
-                                popup_tbl_sel_df %>% 
-                                as.data.frame(check.names = FALSE) %>% 
-                                select('#' = matches('CNT_2009'),
-                                       '%' = matches('PCT_2009'),
-                                       'Total #' = matches('TOT_2009'),
-                                       '#' = matches('CNT_2015'),
-                                       '%' = matches('PCT_2015'),
-                                       'Total #' = matches('TOT_2015'),
-                                       '%' = matches('CHNG')
-                                ) %>% as.data.frame(check.names = FALSE)
-                        
-                        # Define the column groups and their header alignments
-                        n.cgroup <- c(3,3,1)
-                        align_cgroup <- paste(rep('c',7),collapse='')
-                        
-                }
+        }else{
                 
-                # Define the two comparison rows
-                seaccd_row <- which(rownames(popup_tbl_sel_df) %in% 'SEACCD')[[1]]
-                kc_row <- which(rownames(popup_tbl_sel_df) %in% 'KC')[[1]]
+                popup_tbl_df <- 
+                        popup_tbl_df %>% 
+                        as.data.frame(check.names = FALSE) %>% 
+                        select('#' = matches('CNT_2009'),
+                               '%' = matches('PCT_2009'),
+                               '#' = matches('TOT_2009'),
+                               '#' = matches('CNT_2015'),
+                               '%' = matches('PCT_2015'),
+                               '#' = matches('TOT_2015'),
+                               '%' = matches('CHNG')
+                        ) %>% as.data.frame(check.names = FALSE)
                 
-                cgroup <-  .tbl_cols 
-                
-                # Loop over the rows to create a popup table for each
-                lapply(seq_along(1:nrow(popup_tbl_sel_df)), 
-                       function(n){
-                               tibble('NAME' = popup_tbl_sel_df %>% rownames() %>% extract2(n) %>% str_replace('Tract ' ,''),
-                                      'CATEGORY' = .category,
-                                      'TOPIC' = .topic,
-                                      'POPUP' = htmlTable::htmlTable(popup_tbl_sel_df[c(n,seaccd_row,kc_row),],
-                                                                     cgroup = cgroup,
-                                                                     n.cgroup = n.cgroup,
-                                                                     align = 'r',
-                                                                     align.cgroup = align_cgroup))
-                       } 
-                )[!rownames(popup_tbl_sel_df) %in% c('SEACCD','KC')] %>% 
-                        reduce(bind_rows)
+                n.cgroup <- c(3,3,1)
+                align_cgroup <- paste(rep('c',7),collapse='')
                 
         }
+        
+        
+        seaccd_row <- which(rownames(popup_tbl_df) %in% 'SEACCD')[[1]]
+        
+        cgroup <-  .tbl_cols
+        
+        
+        
+        
+        n.cgroup 
+        
+        lapply(seq_along(1:nrow(popup_tbl_df)), 
+                                        function(n){
+                                                tibble('NAME' = popup_tbl_df %>% rownames() %>% extract2(n) %>% str_replace('Tract ' ,''),
+                                                       'CATEGORY' = .category,
+                                                       'TOPIC' = .topic,
+                                                       'POPUP' = htmlTable::htmlTable(popup_tbl_df[c(n,seaccd_row),],
+                                                                                      cgroup = cgroup,
+                                                                                      n.cgroup = n.cgroup,
+                                                                                      align = 'r',
+                                                                                      align.cgroup = align_cgroup))
+                                        } 
+               )[!rownames(popup_tbl_df) %in% 'SEACCD'] %>% 
+                reduce(bind_rows)
+                
+        
+        # tibble('NAME' = rownames(popup_tbl_df)[[row]],
+        #        'CATEGORY' = .category,
+        #        'TOPIC' = .topic,
+        #        'popup' = htmlTable::htmlTable(popup_tbl_df[c(row,seaccd_row),],
+        #                                       cgroup = cgroup,
+        #                                       n.cgroup = n.cgroup))[!rownames(popup_tbl_df) %in% 'SEACCD',]
+        
+        # lapply(seq_along(1:nrow(popup_tbl_df)), 
+        #                          function(row) htmlTable::htmlTable(popup_tbl_df[c(row,seaccd_row),],
+        #                                                             cgroup = cgroup,
+        #                                                             n.cgroup = n.cgroup))[!rownames(popup_tbl_df) %in% 'SEACCD']
+               
+        
+        
+}
         
         # Pass a tibble of parameters to the `map` function. 
         # The make_popup_table function will be applied recursively to these parameters,
         # resulting in one set of popup tables for each indicator type and topic.
        
-        popup_tbl <- 
-                tibble(
-                        'category' = c(rep(c('DEMO'),4),
-                                       rep(c('VULN'),4)),
-                        'topic' = rep(c('B03002',
-                                        'B15002',
-                                        'B19001',
-                                        'B25033'),2),
-                        'tbl_cols' = list(
-                                c('2009','2015','Change'),
-                                c('2009','2015','Change'),
-                                c('2009','2015','Change'),
-                                c('2009','2015','Change'),
-                                c('PoC','Tot. Pop.'),
-                                c('l/t BA','Tot. +25'),
-                                c('Low Inc','Tot. HH'),
-                                c('Rent','Tot. HU')
-                        )
-                ) %>%  
+        tibble(
+                'category' = c(rep(c('DEMO'),4),
+                               rep(c('VULN'),4)),
+                'topic' = rep(c('B03002',
+                                'B15002',
+                                'B19001',
+                                'B25033'),2),
+                'tbl_cols' = list(
+                        c('2009','2015','Change'),
+                        c('2009','2015','Change'),
+                        c('2009','2015','Change'),
+                        c('2009','2015','Change'),
+                        c('PoC','Tot. Pop.'),
+                        c('l/t BA','Tot. +25'),
+                        c('Low Inc','Tot. HH'),
+                        c('Rent','Tot. HU')
+                )
+        ) %>% 
                 invoke_rows(list,.,.to = 'RESULT') %>% 
                 extract2('RESULT') %>% 
                 map(
-                        ~ make_popup_tbl(long_df = inds_long_df,
-                                         .category = extract2(.x,'category'),
+                        ~ make_popup_tbl(.category = extract2(.x,'category'),
                                          .topic = extract2(.x,'topic'),
                                          .tbl_cols = extract2(.x,'tbl_cols'))
                 ) %>% 
-                reduce(bind_rows)  %>% 
+                reduce(bind_rows) %>% 
                 mutate(POPUP = map(POPUP, ~ as(.x,'htmlTable'))) %>% 
                 unite(CAT_TOP, CATEGORY,TOPIC, sep = '_') %>% 
                 mutate(CAT_TOP = paste0(CAT_TOP,'_POPUP')) %>% 
-                spread(CAT_TOP,POPUP) 
-        
-        
-        write_rds(popup_tbl,root_file('./1-data/4-interim/htmltable-popups.rds'))
+                spread(CAT_TOP,POPUP) %>% 
+                write_rds(root_file('./1-data/4-interim/htmltable-popups.rds'))
 }
 
 ```
@@ -216,8 +238,7 @@ if(!file.exists(root_file('./1-data/4-interim/htmltable-popups.rds'))){
 ```{r make-acs-maps-data}
 
 if(!exists('tbl_popup')){
-        tbl_popup <- 
-                read_rds(root_file('./1-data/4-interim/htmltable-popups.rds')) %>% 
+        tbl_popup <- read_rds(root_file('./1-data/4-interim/htmltable-popups.rds')) %>% 
                 gather(TBL,POPUP,-NAME) %>% 
                 mutate(CAT_TOP = str_replace_all(TBL,'_POPUP','')) %>% 
                 select(-TBL)
@@ -225,10 +246,11 @@ if(!exists('tbl_popup')){
 
 if(!file.exists(root_file('./1-data/4-interim/coo-acs-inds-map-sf.rds'))){
         
-        joined_sf <- 
-                inds_sf %>%  
+        inds %>% 
+                filter(GEOGRAPHY %in% c('tract','community','county subdivision','county')) %>% 
+                filter(SEACCD_LGL|NAME %in% c('SEACCD','COO','RV','WC','STKW','KC')) %>% 
                 select(NAME,NAME_FULL,GEOGRAPHY,GEOG_FCT,COMMUNITY,matches('EST')) %>% 
-                select(-matches('VULN_CNT_2009|VULN_PCT_2009|SEACCD|KC')) %>% 
+                select(-matches('VULN_CNT_2009|VULN_PCT_2009|SEACCD')) %>% 
                 mutate(row = row_number()) %>% 
                 gather(TBL,VAL,-NAME,-NAME_FULL,-GEOGRAPHY,-GEOG_FCT,-COMMUNITY,-geometry,-row) %>% 
                 mutate(CAT = str_sub(TBL,1,4) %>% str_replace('_',''),
@@ -236,9 +258,8 @@ if(!file.exists(root_file('./1-data/4-interim/coo-acs-inds-map-sf.rds'))){
                        CAT_TOP = str_c(CAT,TOPIC,sep = '_')) %>% 
                 filter(str_detect(TBL, 'DEMO_CHNG_PCT|VULN_PCT')) %>% 
                 st_cast('MULTIPOLYGON') %>% 
-                left_join(tbl_popup, by = c('NAME','CAT_TOP')) 
-        
-        write_rds(joined_sf,root_file('./1-data/4-interim/coo-acs-inds-map-sf.rds'))
+                left_join(tbl_popup, by = c('NAME','CAT_TOP')) %>% 
+                write_rds(root_file('./1-data/4-interim/coo-acs-inds-map-sf.rds'))
 }
 
 
@@ -259,12 +280,18 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-map-fun.rds'))){
                                  .height = NULL,
                                  .css_style = "text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF"){
         
+        # browser()
+        
         data <- 
                 long_sf %>% 
                 filter(GEOGRAPHY %in% .geog) %>% 
                 filter(CAT %in% .category) %>% 
                 filter(TOPIC %in% .topic) 
         
+        # Exclude non-COO tracts when .comms_only == TRUE
+        if(.comms_only){
+                data %<>% filter(!is.na(COMMUNITY))
+        }
         
         data_all_geogs <- long_sf %>% filter(CAT %in% .category & TOPIC %in% .topic)
         
@@ -279,23 +306,15 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-map-fun.rds'))){
                 data_all_geogs %>% 
                 filter(GEOGRAPHY %in% 'community') %>%
                 st_cast('LINESTRING')
+                
         
         # Create center point for the map
-        # Exclude non-COO tracts when .comms_only == TRUE
-        if(.comms_only){
-                data %<>% filter(!is.na(COMMUNITY))
-                data_cnt <- data %>% st_union %>% st_centroid() %>% st_bbox()
-        }else{
-                data_cnt <- 
-                        data_all_geogs %>% 
-                        filter(NAME %in% 'SEACCD') %>% 
-                        st_union %>% 
-                        st_centroid() %>% 
-                        st_bbox()
-        }
- 
+        
+        
+        data_cnt <- data %>% st_union %>% st_centroid() %>% st_bbox()
+        
         # Color palette
-        pal <- colorNumeric(.pal, data_all_geogs[['VAL']])
+        pal <- colorNumeric(.pal,data_all_geogs$VAL)
         
         # Make the leaflet map
         myLfltGrey(data,
@@ -345,6 +364,7 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-map-fun.rds'))){
 
 ```
 
+
 ```{r make-acs-crosstalk-fun}
 if(!file.exists(root_file('./1-data/4-interim/make-acs-crosstalk-fun.rds'))){
         make_acs_crosstalk <- function(long_sf,
@@ -379,7 +399,12 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-crosstalk-fun.rds'))){
         
         data_pt_sf <- data %>% st_centroid()
         
-        data_poly_sf <- data 
+        data_poly_sf <- data
+        
+        # Exclude non-COO tracts when .comms_only == TRUE
+        if(.comms_only){
+                data %<>% filter(!is.na(COMMUNITY))
+        }
         
         data_all_geogs <- long_sf %>% filter(CAT %in% .category & TOPIC %in% .topic)
         
@@ -394,21 +419,13 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-crosstalk-fun.rds'))){
                 data_all_geogs %>% 
                 filter(GEOGRAPHY %in% 'community') %>%
                 st_cast('LINESTRING')
+                
         
         # Create center point for the map
-        # Exclude non-COO tracts when .comms_only == TRUE
-        if(.comms_only){
-                data %<>% filter(!is.na(COMMUNITY))
-                data_cnt <- data %>% st_union %>% st_centroid() %>% st_bbox()
-        }else{
-                data_cnt <- 
-                        data_all_geogs %>% 
-                        filter(NAME %in% 'SEACCD') %>% 
-                        st_union %>% 
-                        st_centroid() %>% 
-                        st_bbox()
-        }
- 
+        
+        
+        data_cnt <- data %>% st_union %>% st_centroid() %>% st_bbox()
+        
         # Color palette
         pal <- colorNumeric(.pal,data_all_geogs$VAL)
 
@@ -536,6 +553,7 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-crosstalk-fun.rds'))){
 }
 ```
 
+
 ```{r make-acs-dt-fun}
 
 if(!file.exists(root_file('./1-data/4-interim/make-acs-dt-fun.rds'))){
@@ -577,6 +595,7 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-dt-fun.rds'))){
 
 ```
 
+
 ```{r make-acs-maps-examples, eval=FALSE}
 
 
@@ -592,17 +611,10 @@ make_acs_map(long_sf = map_data_sf,
              .legend_title = "SHARE OF<br>PEOPLE OF COLOR<hr>2011-2015")
 
 make_acs_map(long_sf = map_data_sf,
-             .geog = 'tract',
-             .category = 'DEMO',
-             .topic = 'B03002',
-             .pal = div_pal,
-             .legend_title = "SHARE OF<br>PEOPLE OF COLOR<hr>2011-2015")
-
-make_acs_map(long_sf = map_data_sf,
              .comms_only = TRUE,
              .geog = 'tract',
              .category = 'VULN',
-             .topic = 'B15002',
+             .topic = 'B03002',
              .pal = 'plasma',
              .legend_title = "SHARE OF<br>PEOPLE OF COLOR<hr>2011-2015")
 
