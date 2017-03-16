@@ -61,7 +61,7 @@ pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","or
 proj_light_grey <- col2hex("grey75")
 proj_grey <- col2hex("grey50")
 proj_dark_grey <- col2hex("grey25")
-div_pal <- brewer.pal(11,'Spectral')[2:10]
+div_pal <- brewer.pal(11,'RdBu')[2:10]
 ```
 
 ```{r demo-chng-own-objs}
@@ -78,13 +78,14 @@ if(!exists('map_acs_data_sf')){map_acs_data_sf <- read_rds(root_file('./1-data/4
 
 ```
 
-#### Housing Tenure: Change in Share of Population in Owned Housing Units {-}
+### Housing Tenure {-}
 
-[[_Descriptive text here_]]
+This map and graph show the **change in the share of people living in housing units that they own** between the two observation periods for each census tract in Seattle CCD. 
 
-##### Seattle CCD {-}
+The observation periods used in this method are the following five-year spans: 2005-2009 and 2011-2015.
 
-These maps show change in the share of people living in housing units that they own between the two observation periods for each census tract in Seattle CCD. The observation periods used in this method are the following five-year spans: 2005-2009 and 2011-2015.
+<br>
+
 
 ```{r demo-chng-own-seaccd-map}
 

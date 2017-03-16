@@ -61,7 +61,7 @@ pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","or
 proj_light_grey <- col2hex("grey75")
 proj_grey <- col2hex("grey50")
 proj_dark_grey <- col2hex("grey25")
-div_pal <- brewer.pal(11,'Spectral')[2:10]
+div_pal <- brewer.pal(11,'RdBu')[2:10]
 ```
 
 ```{r vuln-rent-objs}
@@ -78,14 +78,12 @@ if(!exists('map_acs_data_sf')){map_acs_data_sf <- read_rds(root_file('./1-data/4
 
 ```
 
-#### Housing Tenure: Renters {-}
+### Housing Tenure  {-} 
+These maps show the **share of the population that lives in rented housing units** for each census tract in Seattle CCD.
 
-[[_Descriptive text here_]]
+The data reflects a sample observed over a five-year span between 2011 and 2015.
 
-##### Seattle CCD {-}
-
-These maps show the share of the population that lives in rented housing units for each census tract in Seattle CCD.
-
+<br>
 ```{r vuln-rent-seaccd-map}
 
 make_acs_crosstalk(long_sf = map_acs_data_sf,

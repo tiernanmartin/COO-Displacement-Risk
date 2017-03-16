@@ -39,9 +39,7 @@ kc_parcels_fp <- root_file('1-data/1-notebooks/02-king-county-parcels.Rmd')
 ```
 
 
-## Indicators   
-
-```{r data-methods-indicators}
+```{r data-methods-inds-setup}
 
 # Setup scripts
 
@@ -57,10 +55,17 @@ make_hous_by_geoms_fp <- root_file('1-data/1-notebooks/03-make-prcl-aggr-by-geom
 
 make_hous_val_inds_fp <- root_file('1-data/1-notebooks/03-make-hous-val-inds.Rmd')
 
+```
 
+`r knit_child(make_acs_inds_fp)`
+`r knit_child(make_acs_maps_fp)`
+`r knit_child(make_hous_geoms_fp)`
+`r knit_child(make_hous_meta_fp)`
+`r knit_child(make_hous_by_geoms_fp)`
+
+## Vulnerability Indicators   
+```{r data-methods-vuln-inds}
 # Visualization scripts
-
-ind_intro_fp <- root_file('1-data/1-notebooks/03-indicators-intro.Rmd')
 
 vuln_intro_fp <- root_file('1-data/1-notebooks/03-vuln-intro.Rmd')
 
@@ -72,6 +77,28 @@ vuln_lt_bach_fp <- root_file('1-data/1-notebooks/03-vuln-lt-bach.Rmd')
 
 vuln_low_inc_fp <- root_file('1-data/1-notebooks/03-vuln-low-inc.Rmd')
 
+
+```
+
+`r knit_child(vuln_intro_fp)`
+<br>
+<hr>
+`r knit_child(vuln_poc_fp)`
+<br>
+<hr>
+`r knit_child(vuln_lt_bach_fp)`
+<br>
+<hr>
+`r knit_child(vuln_low_inc_fp)`
+<br>
+<hr>
+`r knit_child(vuln_rent_fp)`
+<br>
+
+
+## Demographic Change Indicators   
+```{r data-methods-demo-chng-inds}
+
 demo_chng_intro_fp <- root_file('1-data/1-notebooks/03-demo-change-intro.Rmd')
 
 demo_chng_white_fp <- root_file('1-data/1-notebooks/03-demo-change-white.Rmd')
@@ -82,6 +109,26 @@ demo_chng_bach_fp <- root_file('1-data/1-notebooks/03-demo-change-bach.Rmd')
 
 demo_chng_income_fp <- root_file('1-data/1-notebooks/03-demo-change-inc.Rmd')
 
+```
+
+`r knit_child(demo_chng_intro_fp)`
+<br>
+<hr>
+`r knit_child(demo_chng_white_fp)`
+<br>
+<hr>
+`r knit_child(demo_chng_bach_fp)`
+<br>
+<hr>
+`r knit_child(demo_chng_income_fp)`
+<br>
+<hr>
+`r knit_child(demo_chng_own_fp)`
+<br>
+
+
+## Housing Market Indicators
+```{r data-methods-hous-inds}
 hous_intro_fp <- root_file('1-data/1-notebooks/housing-market-intro.Rmd')
 
 # hous_ratio_fp
@@ -89,37 +136,8 @@ hous_intro_fp <- root_file('1-data/1-notebooks/housing-market-intro.Rmd')
 # hous_rate_fp
 # 
 # hous_neighbor_fp
-
-
 ```
 
-`r knit_child(ind_intro_fp)`
-`r knit_child(make_acs_inds_fp)`
-`r knit_child(make_acs_maps_fp)`
-`r knit_child(make_hous_geoms_fp)`
-`r knit_child(make_hous_meta_fp)`
-`r knit_child(make_hous_by_geoms_fp)`
-
-`r knit_child(vuln_intro_fp)`
-<br>
-`r knit_child(vuln_poc_fp)`
-<br>
-`r knit_child(vuln_lt_bach_fp)`
-<br>
-`r knit_child(vuln_low_inc_fp)`
-<br>
-`r knit_child(vuln_rent_fp)`
-<br>
-<hr>
-`r knit_child(demo_chng_intro_fp)`
-<br>
-`r knit_child(demo_chng_white_fp)`
-<br>
-`r knit_child(demo_chng_bach_fp)`
-<br>
-`r knit_child(demo_chng_income_fp)`
-<br>
-`r knit_child(demo_chng_own_fp)`
 
 ## Typology
 

@@ -62,16 +62,15 @@ inds_seaccd <-
 
 
 ```
-
-### Vulnerability {-}
-
+ 
 The concept of "vulnerability" has received considerable attention by social science researchers, policy experts, and the media; it has also been subject to some criticism [@cardona_need_2004].
 
 A tract is considered "vulnerable" if it exceeds the county subdivision value for any **three of the four** indicators:
 
-  * Greater than `r inds_seaccd[['race_VULN']]` of the population belong to communities of color
-  * Greater than `r inds_seaccd[['housing_VULN']]` of households are renters
-  * Greater than `r inds_seaccd[['ed_VULN']]` of the population 25 years and older do not have a bachelor’s degree
-  * Greater than `r inds_seaccd[['income_VULN']]` of households have incomes at or below 80% of the HUD-adjusted median family income (MFI)^[HUD's FY2015 MFI for the
-Seattle-Bellevue, WA HUD Metro FMR Area was $89,500; this does *not* account for household size.]
+  * Greater than **`r inds_seaccd[['race_VULN']]`** of the population belong to communities of color
+  * Greater than **`r inds_seaccd[['housing_VULN']]`** of households are renters
+  * Greater than **`r inds_seaccd[['ed_VULN']]`** of the population 25 years and older do not have a bachelor’s degree
+  * Greater than **`r inds_seaccd[['income_VULN']]`** of households have incomes at or below 80% of the HUD-adjusted median family income (MFI)^[HUD's FY2015 MFI for the Seattle-Bellevue, WA HUD Metro FMR Area was $89,500; this does *not* account for household size.]
+
+<br>
 

@@ -61,7 +61,7 @@ pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","or
 proj_light_grey <- col2hex("grey75")
 proj_grey <- col2hex("grey50")
 proj_dark_grey <- col2hex("grey25")
-div_pal <- brewer.pal(11,'Spectral')[2:10]
+div_pal <- brewer.pal(11,'RdBu')[2:10]
 ```
 
 ```{r demo-chng-bach-objs}
@@ -78,13 +78,14 @@ if(!exists('map_acs_data_sf')){map_acs_data_sf <- read_rds(root_file('./1-data/4
 
 ```
 
-#### Education: Change in Share of Mod./Highly Educated Adults {-}
+### Education {-}
+ 
+This map and graph show the **change in the share of adults with a bachelor degree (or a more advanced degree)** between the two observation periods for each census tract in Seattle CCD. 
 
-[[_Descriptive text here_]]
+The observation periods used in this method are the following five-year spans: 2005-2009 and 2011-2015.
 
-##### Seattle CCD {-}
+<br>
 
-These maps show change in the share of adults with a bachelor degree (or a more advanced degree) between the two observation periods for each census tract in Seattle CCD. The observation periods used in this method are the following five-year spans: 2005-2009 and 2011-2015.
 
 ```{r demo-chng-bach-seaccd-map}
 
@@ -126,7 +127,6 @@ make_acs_map(long_sf = map_acs_data_sf,
 
 
 ```
-
 
 
 #####Data: All Geographies {-}

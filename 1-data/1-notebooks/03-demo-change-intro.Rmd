@@ -61,12 +61,12 @@ inds_seaccd <-
         {set_names(x = .$VALUE, nm = .$NAME)}
 ```
 
-### Demographic Change {-}
-
 A tract is considered to have experienced gentrification-related "demographic change" during the observation period (2004-2015) if any **two of the following four** indicators exceed the values observed in the county subdivision:
 
-  * The white population share either increased or it decreased less than `r inds_seaccd[['race_DEMO_CHNG']]`
-  * The share of homeowners either increased more than `r inds_seaccd[['housing_DEMO_CHNG']]`
+  * The white population share either increased or it decreased less than **`r inds_seaccd[['race_DEMO_CHNG']]`**
+  * The share of homeowners either increased more than **`r inds_seaccd[['housing_DEMO_CHNG']]`**
   * The share of the population 25 years and older with a bachelor’s degree increased more
-than `r inds_seaccd[['ed_DEMO_CHNG']]`
-  * The share of household earning more than 80% AMI increased or it decreased less than `r inds_seaccd[['income_DEMO_CHNG']]`
+than **`r inds_seaccd[['ed_DEMO_CHNG']]`**
+  * The share of household earning more than 80% AMI increased or it decreased less than **`r inds_seaccd[['income_DEMO_CHNG']]`**
+  
+ <br>
