@@ -326,12 +326,12 @@ Requires: RgoogleMaps, digest, geosphere, ggplot2, jpeg, mapproj, plyr,
 Package: ggplot2
 Source: github
 Version: 2.2.1.9000
-Hash: f0dda79eaa7d8a0f81c0db5bfb09a405
+Hash: d2f04f88f88826a591e892b50236d43e
 Requires: digest, gtable, lazyeval, plyr, reshape2, scales, tibble
 GithubRepo: ggplot2
 GithubUsername: hadley
 GithubRef: master
-GithubSha1: 464e0f3101c3c5fee79d6a4e3cc435296542c571
+GithubSha1: 08e135e020428ed78158b8feccc012eae02773b0
 
 Package: ggrepel
 Source: github
