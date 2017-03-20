@@ -59,7 +59,7 @@ pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","or
 proj_light_grey <- col2hex("grey75")
 proj_grey <- col2hex("grey50")
 proj_dark_grey <- col2hex("grey25")
-div_pal <- brewer.pal(11,'RdBu')[2:10]
+new_spectral <- brewer.pal(11, 'Spectral')[c(3:5,8:10)]
 ```
 
 ```{r make-acs-maps-htmlTable}
@@ -248,16 +248,17 @@ if(!file.exists(root_file('./1-data/4-interim/coo-acs-inds-map-sf.rds'))){
 
 if(!file.exists(root_file('./1-data/4-interim/make-acs-map-fun.rds'))){
         make_acs_map <- function(long_sf,
-                                 .geog,
-                                 .comms_only = FALSE,
-                                 .category,
-                                 .topic,
-                                 .pal,
-                                 .legend_title,
-                                 zoom = 10,
-                                 .width = NULL,
-                                 .height = NULL,
-                                 .css_style = "text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF"){
+                         .geog,
+                         .comms_only = FALSE,
+                         .category,
+                         .topic,
+                         .pal,
+                         .pal_type,
+                         .legend_title,
+                         zoom = 10,
+                         .width = NULL,
+                         .height = NULL,
+                         .css_style = "text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF"){
         
         data <- 
                 long_sf %>% 
@@ -269,7 +270,7 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-map-fun.rds'))){
         data_all_geogs <- long_sf %>% filter(CAT %in% .category & TOPIC %in% .topic)
         
         # Create outlines and labels for the COO communities
-
+        
         comm_cnt_sf <- 
                 data_all_geogs %>% 
                 filter(GEOGRAPHY %in% 'community') %>% 
@@ -293,9 +294,48 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-map-fun.rds'))){
                         st_centroid() %>% 
                         st_bbox()
         }
- 
+        
+
         # Color palette
-        pal <- colorNumeric(.pal, data_all_geogs[['VAL']])
+        
+        if(.pal_type %in% 'quantile' & .category %in% 'DEMO'){
+                
+                # Set palette domain
+                domain <- 
+                        data_all_geogs %>% 
+                        extract2('VAL') %>% 
+                        map_dbl(abs) %>% 
+                        max(na.rm = TRUE) %>% 
+                        c(-1*.,.)
+                
+                # create the discrete color scale
+                pal <- colorBin(palette = .pal, 
+                                domain = domain, 
+                                bins = 6,
+                                pretty = TRUE)
+                
+        }else if(.pal_type %in% 'quantile' & .category %in% 'VULN'){
+                # Set palette domain
+                domain <- 
+                        data_all_geogs %>% 
+                        extract2('VAL') %>% 
+                        range(na.rm = TRUE)
+                
+                # create the discrete color scale
+                pal <- colorBin(palette = .pal, 
+                                domain = domain, 
+                                bins = 6,
+                                pretty = TRUE)
+        }else{
+                # Set palette domain
+                domain <- 
+                        data_all_geogs %>% 
+                        extract2('VAL') %>% 
+                        range(na.rm = TRUE)
+                # create the continuous color scale
+                pal <- colorNumeric(.pal, domain)
+        }
+        
         
         # Make the leaflet map
         myLfltGrey(data,
@@ -325,7 +365,7 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-map-fun.rds'))){
                 addLegend(title = .legend_title,
                           position = 'topright',
                           pal = pal,
-                          values = data_all_geogs %>% extract2('VAL'),
+                          values = domain,
                           opacity = .75,
                           labFormat = labelFormat(suffix = '%',transform = function(x) 100 * x)) %>%
                 setView(lng = data_cnt[['xmin']],
@@ -334,10 +374,10 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-map-fun.rds'))){
                 styleWidget(style = .css_style) %>% 
                 myLfltOpts(hideControls = FALSE) %>% 
                 addFullscreenControl(pseudoFullscreen = TRUE)
-                
         
         
-        }
+        
+}
         
         make_acs_map %>% write_rds(root_file('./1-data/4-interim/make-acs-map-fun.rds'))
         
@@ -353,6 +393,7 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-crosstalk-fun.rds'))){
                                  .category,
                                  .topic,
                                  .pal,
+                                 .pal_type,
                                  .legend_title,
                                  zoom = 10,
                                  .height_lflt = 400,
@@ -410,7 +451,45 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-crosstalk-fun.rds'))){
         }
  
         # Color palette
-        pal <- colorNumeric(.pal,data_all_geogs$VAL)
+        
+        if(.pal_type %in% 'quantile' & .category %in% 'DEMO'){
+                
+                # Set palette domain
+                domain <- 
+                        data_all_geogs %>% 
+                        extract2('VAL') %>% 
+                        map_dbl(abs) %>% 
+                        max(na.rm = TRUE) %>% 
+                        c(-1*.,.)
+                
+                # create the discrete color scale
+                pal <- colorBin(palette = .pal, 
+                                domain = domain, 
+                                bins = 6,
+                                pretty = TRUE)
+                
+        }else if(.pal_type %in% 'quantile' & .category %in% 'VULN'){
+                # Set palette domain
+                domain <- 
+                        data_all_geogs %>% 
+                        extract2('VAL') %>% 
+                        range(na.rm = TRUE)
+                
+                # create the discrete color scale
+                pal <- colorBin(palette = .pal, 
+                                domain = domain, 
+                                bins = 6,
+                                pretty = TRUE)
+        }else{
+                # Set palette domain
+                domain <- 
+                        data_all_geogs %>% 
+                        extract2('VAL') %>% 
+                        range(na.rm = TRUE)
+                # create the continuous color scale
+                pal <- colorNumeric(.pal, domain)
+        }
+        
 
         
         # Shared data
@@ -448,7 +527,7 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-crosstalk-fun.rds'))){
                 addLegend(title = .legend_title,
                           position = 'topright',
                           pal = pal,
-                          values = data_all_geogs %>% extract2('VAL'),
+                          values = domain,
                           opacity = .75,
                           labFormat = labelFormat(suffix = '%',transform = function(x) 100 * x)) %>%
                 setView(lng = data_cnt[['xmin']],
@@ -589,14 +668,16 @@ make_acs_map(long_sf = map_data_sf,
              .category = 'VULN',
              .topic = 'B03002',
              .pal = 'plasma',
+             .pal_type = 'quantile',
              .legend_title = "SHARE OF<br>PEOPLE OF COLOR<hr>2011-2015")
 
 make_acs_map(long_sf = map_data_sf,
              .geog = 'tract',
              .category = 'DEMO',
              .topic = 'B03002',
-             .pal = div_pal,
-             .legend_title = "SHARE OF<br>PEOPLE OF COLOR<hr>2011-2015")
+             .pal = new_spectral,
+             .pal_type = 'quantile',
+             .legend_title = "CHANGE IN<br>SHARE OF<br>PEOPLE OF COLOR<hr>2011-2015")
 
 make_acs_map(long_sf = map_data_sf,
              .comms_only = TRUE,

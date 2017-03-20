@@ -61,7 +61,7 @@ pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","or
 proj_light_grey <- col2hex("grey75")
 proj_grey <- col2hex("grey50")
 proj_dark_grey <- col2hex("grey25")
-div_pal <- brewer.pal(11,'RdBu')[2:10]
+new_spectral <- brewer.pal(11, 'Spectral')[c(3:5,8:10)]
 ```
 
 ```{r demo-chng-inc-objs}
@@ -93,7 +93,8 @@ make_acs_crosstalk(long_sf = map_acs_data_sf,
              .geog = 'tract',
              .category = 'DEMO',
              .topic = 'B19001',
-             .pal = div_pal,
+             .pal = new_spectral,              
+             .pal_type = 'quantile',
              .legend_title = "CHANGE IN<br>% MOD/HIGH INCOME<hr>2005-2009<br>TO<br>2011-2015",
              .height_lflt = 600,
              .height_pltly_upper = 200,
@@ -112,7 +113,8 @@ make_acs_map(long_sf = map_acs_data_sf,
              .geog = 'tract',
              .category = 'DEMO',
              .topic = 'B19001',
-             .pal = div_pal,
+             .pal = new_spectral,              
+             .pal_type = 'quantile',
              .legend_title = "",
              .css_style = paste0("float: left;","margin:3px;","text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF")) 
 
@@ -121,7 +123,8 @@ make_acs_map(long_sf = map_acs_data_sf,
              .geog = 'community',
              .category = 'DEMO',
              .topic = 'B19001',
-             .pal = div_pal,
+             .pal = new_spectral,              
+             .pal_type = 'quantile',
              .legend_title = "",
              .css_style = paste0("float: none;","margin:3px;","text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF")) 
 

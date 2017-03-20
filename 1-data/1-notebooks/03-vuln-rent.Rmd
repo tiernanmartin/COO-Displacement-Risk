@@ -91,6 +91,7 @@ make_acs_crosstalk(long_sf = map_acs_data_sf,
              .category = 'VULN',
              .topic = 'B25033',
              .pal = 'plasma',
+             .pal_type = 'quantile',
              .legend_title = "RENTERS<hr>2011-2015",
              .height_lflt = 600,
              .height_pltly_upper = 200,
@@ -110,6 +111,7 @@ make_acs_map(long_sf = map_acs_data_sf,
              .category = 'VULN',
              .topic = 'B25033',
              .pal = 'plasma',
+             .pal_type = 'quantile',
              .legend_title = "",
              .css_style = paste0("float: left;","margin:3px;","text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF")) 
 
@@ -119,6 +121,7 @@ make_acs_map(long_sf = map_acs_data_sf,
              .category = 'VULN',
              .topic = 'B25033',
              .pal = 'plasma',
+             .pal_type = 'quantile',
              .legend_title = "",
              .css_style = paste0("float: none;","margin:3px;","text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF")) 
 
