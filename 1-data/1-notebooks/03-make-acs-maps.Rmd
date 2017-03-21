@@ -241,6 +241,24 @@ if(!file.exists(root_file('./1-data/4-interim/coo-acs-inds-map-sf.rds'))){
         write_rds(joined_sf,root_file('./1-data/4-interim/coo-acs-inds-map-sf.rds'))
 }
 
+if(!file.exists(root_file('./1-data/4-interim/coo-acs-lgl-inds-map-sf.rds'))){
+        
+        joined_lgl_sf <- 
+                inds_sf %>%  
+                select(NAME,NAME_FULL,GEOGRAPHY,GEOG_FCT,COMMUNITY,matches('LGL_')) %>% 
+                mutate(row = row_number()) %>% 
+                gather(TBL,VAL,-NAME,-NAME_FULL,-GEOGRAPHY,-GEOG_FCT,-COMMUNITY,-geometry,-row) %>% 
+                mutate(CAT = str_sub(TBL,6,10) %>% str_replace('_',''),
+                       TOPIC = str_extract(TBL,'B[[:digit:]]{5}$'),
+                       CAT_TOP = str_c(CAT,TOPIC,sep = '_'),
+                       BASELINE = str_extract(TBL,'KC|SEACCD')) %>% 
+                st_cast('MULTIPOLYGON') %>% 
+                left_join(tbl_popup, by = c('NAME','CAT_TOP')) 
+        
+        write_rds(joined_lgl_sf,root_file('./1-data/4-interim/coo-acs-lgl-inds-map-sf.rds'))
+}
+
+
 
 ```
 
@@ -250,6 +268,7 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-map-fun.rds'))){
         make_acs_map <- function(long_sf,
                          .geog,
                          .comms_only = FALSE,
+                         .baseline = NULL,
                          .category,
                          .topic,
                          .pal,
@@ -265,6 +284,8 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-map-fun.rds'))){
                 filter(GEOGRAPHY %in% .geog) %>% 
                 filter(CAT %in% .category) %>% 
                 filter(TOPIC %in% .topic) 
+        
+        if(!is.null(.baseline)){data %<>% filter(BASELINE %in% .baseline)}
         
         
         data_all_geogs <- long_sf %>% filter(CAT %in% .category & TOPIC %in% .topic)
@@ -313,6 +334,7 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-map-fun.rds'))){
                                 domain = domain, 
                                 bins = 6,
                                 pretty = TRUE)
+                lab_format <- labelFormat(suffix = '%',transform = function(x) 100 * x)
                 
         }else if(.pal_type %in% 'quantile' & .category %in% 'VULN'){
                 # Set palette domain
@@ -326,7 +348,17 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-map-fun.rds'))){
                                 domain = domain, 
                                 bins = 6,
                                 pretty = TRUE)
-        }else{
+                
+                lab_format <- labelFormat(suffix = '%',transform = function(x) 100 * x)
+        }else if(.pal_type %in% 'factor'){
+                # Set palette domain
+                domain <- data_all_geogs %>% extract2('VAL') %>% unique()
+                
+                # create the discrete color scale
+                pal <- colorFactor(palette = .pal, 
+                                domain = domain)
+                lab_format <- labelFormat()
+        }else {
                 # Set palette domain
                 domain <- 
                         data_all_geogs %>% 
@@ -334,6 +366,8 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-map-fun.rds'))){
                         range(na.rm = TRUE)
                 # create the continuous color scale
                 pal <- colorNumeric(.pal, domain)
+                
+                lab_format <- labelFormat(suffix = '%',transform = function(x) 100 * x)
         }
         
         
@@ -367,7 +401,7 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-map-fun.rds'))){
                           pal = pal,
                           values = domain,
                           opacity = .75,
-                          labFormat = labelFormat(suffix = '%',transform = function(x) 100 * x)) %>%
+                          labFormat = lab_format) %>%
                 setView(lng = data_cnt[['xmin']],
                         lat = data_cnt[['ymin']],
                         zoom = zoom) %>% 

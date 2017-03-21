@@ -75,8 +75,10 @@ if(!exists('make_acs_crosstalk')){make_acs_crosstalk <- read_rds(root_file('./1-
 # Load the DT function
 if(!exists('make_acs_dt')){make_acs_dt <- read_rds(root_file('./1-data/4-interim/make-acs-dt-fun.rds'))}
 
-# Load the acs indicator object that is prepared for the above function
+# Load the two acs indicator objecta that are prepared for the above function
 if(!exists('map_acs_data_sf')){map_acs_data_sf <- read_rds(root_file('./1-data/4-interim/coo-acs-inds-map-sf.rds'))}
+
+if(!exists('map_acs_lgl_data_sf')){map_acs_lgl_data_sf <- read_rds(root_file('./1-data/4-interim/coo-acs-lgl-inds-map-sf.rds'))}
 
 
 ```
@@ -105,28 +107,31 @@ make_acs_crosstalk(long_sf = map_acs_data_sf,
              zoom = 9)
 ```
 
-##### COO Communities {-}
+##### COO Baselines: Seattle Subdivision vs King County {-}
 ```{r vuln-poc-comm-map, fig.height=3, fig.width=2,  fig.show='hold', dpi=150}
 
-# Tracts in COO communities
-make_acs_map(long_sf = map_acs_data_sf,
+# SEACCD
+make_acs_map(long_sf = map_acs_lgl_data_sf,
              .comms_only = TRUE,
+             .baseline = 'SEACCD',
              .geog = 'tract',
              .category = 'VULN',
              .topic = 'B03002',
              .pal = 'plasma',
-             .pal_type = 'quantile',
-             .legend_title = "",
+             .pal_type = 'factor',
+             .legend_title = "Tract<br>exceeds<br>Baseline<br>(SEACCD)",
              .css_style = paste0("float: left;","margin:3px;","text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF")) 
 
-# Aggregated tracts for each COO community
-make_acs_map(long_sf = map_acs_data_sf,
-             .geog = 'community',
+# KC
+make_acs_map(long_sf = map_acs_lgl_data_sf,
+             .comms_only = TRUE,
+             .baseline = 'KC',
+             .geog = 'tract',
              .category = 'VULN',
              .topic = 'B03002',
              .pal = 'plasma',
-             .pal_type = 'quantile',
-             .legend_title = "",
+             .pal_type = 'factor',
+             .legend_title = "Tract<br>exceeds<br>Baseline<br>(KC)",
              .css_style = paste0("float: none;","margin:3px;","text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF")) 
 
 
