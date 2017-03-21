@@ -203,12 +203,12 @@ Requires: ggplot2, htmltools, htmlwidgets, miniUI, shiny, shinyjs
 Package: crosstalk
 Source: github
 Version: 1.0.1
-Hash: 1a3a6c072c33a57ed2b334ececa9c9a6
+Hash: 9d42aacc29aa62ab2f0223d7ce1eec12
 Requires: R6, ggplot2, htmltools, jsonlite, lazyeval, shiny
 GithubRepo: crosstalk
 GithubUsername: rstudio
 GithubRef: master
-GithubSha1: 6a36da10f03d463ecb427fea649571be84b9bb43
+GithubSha1: c719d72223f40ad0e918a837567e3952def1b9ee
 
 Package: curl
 Source: CRAN
@@ -445,8 +445,8 @@ Hash: 189af3df9864c6aa8546033f08ba9358
 
 Package: jsonlite
 Source: CRAN
-Version: 1.2
-Hash: 3a193a612cae6814719ed523f7e7cf44
+Version: 1.3
+Hash: b9cc3c97b7a6cd513e9b516fe881d6c9
 
 Package: knitr
 Source: CRAN
@@ -477,13 +477,13 @@ GithubSha1: c155c3d534072ca58bcb5fe22ab185e3e4098c73
 Package: leaflet
 Source: github
 Version: 1.1.0.9000
-Hash: ff027b0962422bc7e7601472470a4789
+Hash: 7147d0d43f531d37b7c3e1ee1ca582a1
 Requires: RColorBrewer, base64enc, crosstalk, htmltools, htmlwidgets,
     magrittr, markdown, png, raster, scales, sp, viridis
 GithubRepo: leaflet
 GithubUsername: rstudio
 GithubRef: master
-GithubSha1: b35b57323cee867e354a03544cb1abb0a4315138
+GithubSha1: 49e6fe56762ce998ee57dd9e6179260c325f11b0
 
 Package: leaflet.extras
 Source: github
