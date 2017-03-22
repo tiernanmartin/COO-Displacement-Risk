@@ -14,4 +14,7 @@ csl: planning-perspectives.csl
 
 # Preface {-}
 
+![](coo-logo-grayscale.png)
+
 This is a work in-progress.
+
