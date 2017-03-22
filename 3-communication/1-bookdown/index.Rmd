@@ -1,20 +1,18 @@
---- 
-title: Communities of Opportunity Displacement Risk Assessment
-subtitle: A User Guide
-date: Winter 2017
+---  
+title: Diplacement Risk Assessment  |  User Guide
 site: bookdown::bookdown_site
 output:
   bookdown::gitbook:
     df_print: paged
 documentclass: book
-description: "This is a report."
 bibliography: ["coo.bib"]
 csl: planning-perspectives.csl
 ---
 
-# Preface {-}
+#   {-}
 
 ![](coo-logo-grayscale.png)
 
-This is a work in-progress.
+
+This document is a work in-progress.
 
