@@ -258,7 +258,22 @@ if(!file.exists(root_file('./1-data/4-interim/coo-acs-lgl-inds-map-sf.rds'))){
         write_rds(joined_lgl_sf,root_file('./1-data/4-interim/coo-acs-lgl-inds-map-sf.rds'))
 }
 
-
+if(!file.exists(root_file('./1-data/4-interim/coo-acs-lgl-typo-inds-map-sf.rds'))){
+        
+        joined_lgl_typo_sf <- 
+                inds_sf %>%  
+                select(NAME,NAME_FULL,GEOGRAPHY,GEOG_FCT,COMMUNITY,matches('TYPO.*LGL$')) %>% 
+                mutate(row = row_number()) %>% 
+                gather(TBL,VAL,-NAME,-NAME_FULL,-GEOGRAPHY,-GEOG_FCT,-COMMUNITY,-geometry,-row) %>% 
+                mutate(CAT = str_sub(TBL,6,10) %>% str_replace('_',''),
+                       TOPIC = str_extract(TBL,'B[[:digit:]]{5}$'),
+                       CAT_TOP = str_c(CAT,TOPIC,sep = '_'),
+                       BASELINE = str_extract(TBL,'KC|SEACCD')) %>% 
+                st_cast('MULTIPOLYGON') %>% 
+                left_join(tbl_popup, by = c('NAME','CAT_TOP')) 
+        
+        write_rds(joined_lgl_typo_sf,root_file('./1-data/4-interim/coo-acs-lgl-typo-inds-map-sf.rds'))
+}
 
 ```
 

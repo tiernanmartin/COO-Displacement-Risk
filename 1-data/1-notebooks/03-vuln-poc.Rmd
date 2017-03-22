@@ -62,6 +62,7 @@ proj_light_grey <- col2hex("grey75")
 proj_grey <- col2hex("grey50")
 proj_dark_grey <- col2hex("grey25")
 div_pal <- brewer.pal(11,'RdBu')[2:10]
+plasma_bivariate <- viridisLite::plasma(n = 9)[c(3,7)]
 ```
 
 ```{r vuln-poc-objs}
@@ -117,7 +118,7 @@ make_acs_map(long_sf = map_acs_lgl_data_sf,
              .geog = 'tract',
              .category = 'VULN',
              .topic = 'B03002',
-             .pal = 'plasma',
+             .pal = plasma_bivariate,
              .pal_type = 'factor',
              .legend_title = "Tract<br>exceeds<br>Baseline<br>(SEACCD)",
              .css_style = paste0("float: left;","margin:3px;","text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF")) 
@@ -129,7 +130,7 @@ make_acs_map(long_sf = map_acs_lgl_data_sf,
              .geog = 'tract',
              .category = 'VULN',
              .topic = 'B03002',
-             .pal = 'plasma',
+             .pal = plasma_bivariate,
              .pal_type = 'factor',
              .legend_title = "Tract<br>exceeds<br>Baseline<br>(KC)",
              .css_style = paste0("float: none;","margin:3px;","text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF")) 

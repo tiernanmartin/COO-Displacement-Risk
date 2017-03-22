@@ -42,6 +42,25 @@ root_file <- root$make_fix_file()
 opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
 ```
 
+
+```{r demo-change-colors}
+green <- miscgis::miscgis_pals$tableau_cat[["green"]]
+blue <- miscgis::miscgis_pals$tableau_cat[["blue"]]
+orange <- miscgis::miscgis_pals$tableau_cat[["orange"]]
+red <- miscgis::miscgis_pals$tableau_cat[["red"]]
+teal <- miscgis::miscgis_pals$tableau_cat[["teal"]]
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_4 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+pal_rgb_6 <- miscgis::miscgis_pals$tableau_cat[c("red","gold","green","blue","orange","purple")] %>% unlist %>% palette()
+proj_light_grey <- col2hex("grey75")
+proj_grey <- col2hex("grey50")
+proj_dark_grey <- col2hex("grey25")
+plasma_bivariate <- viridisLite::plasma(n = 9)[c(3,7)]
+new_spectral <- brewer.pal(11, 'Spectral')[c(3:5,8:10)]
+```
+
+
 ```{r demo-change-intro-load-objs}
 
 # Load census indicators as an sf object
@@ -56,17 +75,75 @@ inds_seaccd <-
                'TOPIC' = c('race', 'housing', 'ed', 'income') %>% rep(2),
                'CATEGORY' = c(rep('DEMO_CHNG',4),rep('VULN',4))) %>% 
         mutate(VALUE = map_dbl(IND, ~ census_inds_sf %>% unclass %>% as_tibble %>% select(matches(.x)) %>% slice(1) %>% extract2(1)),
-               VALUE = scales::percent(VALUE),
+               VALUE_CHR = VALUE %>% multiply_by(100) %>% round_any(1) %>% str_c('%'),
                NAME = str_c(TOPIC,CATEGORY,sep = '_')) %>% 
-        {set_names(x = .$VALUE, nm = .$NAME)}
+               {set_names(x = .$VALUE_CHR, nm = .$NAME)}
+
+inds_kc <- 
+        crossing(c('VULN_PCT_2015_KC','DEMO_CHNG_PCT_KC'),
+                c('B03002_EST','B15002_EST', 'B19001_EST', 'B25033_EST')) %>% 
+        invoke_rows(str_c,.d = .,sep = '_',.collate = 'cols',.to = 'IND') %>% 
+        extract2('IND') %>% 
+        tibble('IND' = .,
+               'TOPIC' = c('race', 'housing', 'ed', 'income') %>% rep(2),
+               'CATEGORY' = c(rep('DEMO_CHNG',4),rep('VULN',4))) %>% 
+        mutate(VALUE = map_dbl(IND, ~ census_inds_sf %>% unclass %>% as_tibble %>% select(matches(.x)) %>% slice(1) %>% extract2(1)),
+               VALUE_CHR = VALUE %>% multiply_by(100) %>% round_any(1) %>% str_c('%'),
+               NAME = str_c(TOPIC,CATEGORY,sep = '_')) %>% 
+               {set_names(x = .$VALUE_CHR, nm = .$NAME)}
+
+# Load the map-making function
+if(!exists('make_acs_map')){make_acs_map <- read_rds(root_file('./1-data/4-interim/make-acs-map-fun.rds'))}
+
+# Load the acs indicator object that is prepared for the above function 
+
+if(!exists('map_acs_lgl_typo_data_sf')){map_acs_lgl_typo_data_sf <- read_rds(root_file('./1-data/4-interim/coo-acs-lgl-typo-inds-map-sf.rds'))}
+
 ```
 
-A tract is considered to have experienced gentrification-related "demographic change" during the observation period (2004-2015) if any **two of the following four** indicators exceed the values observed in the county subdivision:
+A tract is considered to have experienced gentrification-related "demographic change" during the observation period (2004-2015) if any **two of the following four** indicators exceed the values observed in the comparison populations:
 
+##### SEACCD {-}
   * The white population share either increased or it decreased less than **`r inds_seaccd[['race_DEMO_CHNG']]`**
   * The share of homeowners either increased more than **`r inds_seaccd[['housing_DEMO_CHNG']]`**
   * The share of the population 25 years and older with a bachelor’s degree increased more
 than **`r inds_seaccd[['ed_DEMO_CHNG']]`**
   * The share of household earning more than 80% AMI increased or it decreased less than **`r inds_seaccd[['income_DEMO_CHNG']]`**
-  
- <br>
+
+##### King County {-}
+  * The white population share either increased or it decreased less than **`r inds_kc[['race_DEMO_CHNG']]`**
+  * The share of homeowners either increased more than **`r inds_kc[['housing_DEMO_CHNG']]`**
+  * The share of the population 25 years and older with a bachelor’s degree increased more
+than **`r inds_kc[['ed_DEMO_CHNG']]`**
+  * The share of household earning more than 80% AMI increased or it decreased less than **`r inds_kc[['income_DEMO_CHNG']]`**
+
+
+##### COO Baselines: Seattle Subdivision vs King County {-}
+```{r demo-change-lgl-map, fig.height=3, fig.width=2,  fig.show='hold', dpi=150}
+
+# SEACCD
+make_acs_map(long_sf = map_acs_lgl_typo_data_sf,
+             .comms_only = TRUE,
+             .baseline = 'SEACCD',
+             .geog = 'tract',
+             .category = 'DEMO',
+             .topic = NA,
+             .pal = new_spectral,
+             .pal_type = 'factor',
+             .legend_title = "Demographic<br>Change<br>Tract<br>(SEACCD)",
+             .css_style = paste0("float: left;","margin:3px;","text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF")) 
+
+# KC
+make_acs_map(long_sf = map_acs_lgl_typo_data_sf,
+             .comms_only = TRUE,
+             .baseline = 'KC',
+             .geog = 'tract',
+             .category = 'DEMO',
+             .topic = NA,
+             .pal = new_spectral,
+             .pal_type = 'factor',
+             .legend_title = "Demographic<br>Change<br>Tract<br>(KC)",
+             .css_style = paste0("float: none;","margin:3px;","text-transform:uppercase;text-shadow:-1px 0 #FFFFFF,0 1px #FFFFFF,1px 0 #FFFFFF,0 -1px #FFFFFF")) 
+
+
+```
