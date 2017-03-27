@@ -11,6 +11,7 @@ always_allow_html: yes
 
 ```{r demo-change-intro-setup, echo = FALSE, warning=FALSE,message=FALSE,comment=FALSE}
 library(plyr)
+library(sparkline)
 library(knitr)
 library(rprojroot)
 library(rgdal)
@@ -69,8 +70,8 @@ if(!exists('census_inds_sf')){census_inds_sf <- read_rds(root_file('./1-data/5-t
 inds_seaccd <- 
         crossing(c('VULN_PCT_2015_SEACCD','DEMO_CHNG_PCT_SEACCD'),
                 c('B03002_EST','B15002_EST', 'B19001_EST', 'B25033_EST')) %>% 
-        invoke_rows(str_c,.d = .,sep = '_',.collate = 'cols',.to = 'IND') %>% 
-        extract2('IND') %>% 
+        transpose() %>% 
+        map_chr(str_c, collapse = '_') %>% 
         tibble('IND' = .,
                'TOPIC' = c('race', 'housing', 'ed', 'income') %>% rep(2),
                'CATEGORY' = c(rep('DEMO_CHNG',4),rep('VULN',4))) %>% 
@@ -82,8 +83,8 @@ inds_seaccd <-
 inds_kc <- 
         crossing(c('VULN_PCT_2015_KC','DEMO_CHNG_PCT_KC'),
                 c('B03002_EST','B15002_EST', 'B19001_EST', 'B25033_EST')) %>% 
-        invoke_rows(str_c,.d = .,sep = '_',.collate = 'cols',.to = 'IND') %>% 
-        extract2('IND') %>% 
+        transpose() %>% 
+        map_chr(str_c, collapse = '_') %>% 
         tibble('IND' = .,
                'TOPIC' = c('race', 'housing', 'ed', 'income') %>% rep(2),
                'CATEGORY' = c(rep('DEMO_CHNG',4),rep('VULN',4))) %>% 
@@ -91,6 +92,12 @@ inds_kc <-
                VALUE_CHR = VALUE %>% multiply_by(100) %>% round_any(1) %>% str_c('%'),
                NAME = str_c(TOPIC,CATEGORY,sep = '_')) %>% 
                {set_names(x = .$VALUE_CHR, nm = .$NAME)}
+
+# Load the sparklines
+
+if(!exists('sprk')){ sprk <- read_rds(root_file('./1-data/4-interim/acs-sparklines.rds'))
+
+}
 
 # Load the map-making function
 if(!exists('make_acs_map')){make_acs_map <- read_rds(root_file('./1-data/4-interim/make-acs-map-fun.rds'))}
@@ -104,18 +111,16 @@ if(!exists('map_acs_lgl_typo_data_sf')){map_acs_lgl_typo_data_sf <- read_rds(roo
 A tract is considered to have experienced gentrification-related "demographic change" during the observation period (2004-2015) if any **two of the following four** indicators exceed the values observed in the comparison populations:
 
 ##### SEACCD {-}
-  * The white population share either increased or it decreased less than **`r inds_seaccd[['race_DEMO_CHNG']]`**
-  * The share of homeowners either increased more than **`r inds_seaccd[['housing_DEMO_CHNG']]`**
-  * The share of the population 25 years and older with a bachelor’s degree increased more
-than **`r inds_seaccd[['ed_DEMO_CHNG']]`**
-  * The share of household earning more than 80% AMI increased or it decreased less than **`r inds_seaccd[['income_DEMO_CHNG']]`**
+  * The white population share either increased or it decreased less than **`r inds_seaccd[['race_DEMO_CHNG']]`**  `r sprk[['race_DEMO_SEACCD']]`
+  * The share of homeowners either increased more than **`r inds_seaccd[['housing_DEMO_CHNG']]`**  `r sprk[['housing_DEMO_SEACCD']]`
+  * The share of the population 25 years and older with a bachelor’s degree increased more than **`r inds_seaccd[['ed_DEMO_CHNG']]`**  `r sprk[['ed_DEMO_SEACCD']]`
+  * The share of household earning more than 80% AMI increased or it decreased less than **`r inds_seaccd[['income_DEMO_CHNG']]`**  `r sprk[['income_DEMO_SEACCD']]`
 
 ##### King County {-}
-  * The white population share either increased or it decreased less than **`r inds_kc[['race_DEMO_CHNG']]`**
-  * The share of homeowners either increased more than **`r inds_kc[['housing_DEMO_CHNG']]`**
-  * The share of the population 25 years and older with a bachelor’s degree increased more
-than **`r inds_kc[['ed_DEMO_CHNG']]`**
-  * The share of household earning more than 80% AMI increased or it decreased less than **`r inds_kc[['income_DEMO_CHNG']]`**
+  * The white population share either increased or it decreased less than **`r inds_kc[['race_DEMO_CHNG']]`**  `r sprk[['race_DEMO_KC']]`
+  * The share of homeowners either increased more than **`r inds_kc[['housing_DEMO_CHNG']]`**  `r sprk[['housing_DEMO_KC']]`
+  * The share of the population 25 years and older with a bachelor’s degree increased more than **`r inds_kc[['ed_DEMO_CHNG']]`**  `r sprk[['ed_DEMO_KC']]`
+  * The share of household earning more than 80% AMI increased or it decreased less than **`r inds_kc[['income_DEMO_CHNG']]`**  `r sprk[['income_DEMO_KC']]`
 
 
 ##### COO Baselines: Seattle Subdivision vs King County {-}

@@ -655,12 +655,12 @@ Requires: foreign, mnormt
 Package: purrr
 Source: github
 Version: 0.2.2.9000
-Hash: 2297e7da68f52dc3469cddd6c4452acb
-Requires: BH, Rcpp, dplyr, lazyeval, magrittr
+Hash: e237ce88c8c3855c5962df14ae2947ad
+Requires: magrittr, rlang, tibble
 GithubRepo: purrr
 GithubUsername: hadley
 GithubRef: master
-GithubSha1: 53601430ac00f235d13e32e49d62abac7a260ca5
+GithubSha1: 011e690be5aa54e4a5f031bf9a5ed297654a2818
 
 Package: quadprog
 Source: CRAN
@@ -706,6 +706,12 @@ Version: 1.4.2
 Hash: 85d9947f8a5e187dff7f18265b96cb13
 Requires: Rcpp, plyr, stringr
 
+Package: rex
+Source: CRAN
+Version: 1.1.1
+Hash: 69e208c6283398d235e507a658ba8079
+Requires: lazyeval, magrittr
+
 Package: rgdal
 Source: CRAN
 Version: 1.2-5
@@ -728,6 +734,15 @@ Package: rjson
 Source: CRAN
 Version: 0.2.15
 Hash: def074f38d0cff3b597649ee6f976128
+
+Package: rlang
+Source: github
+Version: 0.0.0.9003
+Hash: 48e4adbbd0b4bde1409969fd3359e98c
+GithubRepo: rlang
+GithubUsername: hadley
+GithubRef: master
+GithubSha1: 233f435e5aa9e6e611cee742ca5dbbe88701b7e3
 
 Package: rmarkdown
 Source: CRAN
@@ -835,6 +850,16 @@ Package: sp
 Source: CRAN
 Version: 1.2-4
 Hash: 4ffcf86fffee89e7b859f760528dd545
+
+Package: sparkline
+Source: github
+Version: 2.0
+Hash: d4b9365df367fdfe3ec8f9b3aa08a71b
+Requires: htmltools, htmlwidgets
+GithubRepo: sparkline
+GithubUsername: htmlwidgets
+GithubRef: master
+GithubSha1: 69d86d146323bd2f1abc86db4c9dbac4b482d19e
 
 Package: spdep
 Source: CRAN

@@ -76,7 +76,7 @@ if(!exists('make_acs_crosstalk')){make_acs_crosstalk <- read_rds(root_file('./1-
 # Load the DT function
 if(!exists('make_acs_dt')){make_acs_dt <- read_rds(root_file('./1-data/4-interim/make-acs-dt-fun.rds'))}
 
-# Load the two acs indicator objecta that are prepared for the above function
+# Load the two acs indicator objects that are prepared for the above function
 if(!exists('map_acs_data_sf')){map_acs_data_sf <- read_rds(root_file('./1-data/4-interim/coo-acs-inds-map-sf.rds'))}
 
 if(!exists('map_acs_lgl_data_sf')){map_acs_lgl_data_sf <- read_rds(root_file('./1-data/4-interim/coo-acs-lgl-inds-map-sf.rds'))}

@@ -47,6 +47,8 @@ make_acs_inds_fp <- root_file('1-data/1-notebooks/03-make-acs-inds.Rmd')
 
 make_acs_maps_fp <- root_file('1-data/1-notebooks/03-make-acs-maps.Rmd')
 
+make_acs_sparklines_fp <- root_file('./1-data/4-interim/acs-sparkline-tbl.rds')
+
 make_hous_geoms_fp <- root_file('1-data/1-notebooks/03-make-prcl-geoms.Rmd')
 
 make_hous_meta_fp <- root_file('1-data/1-notebooks/03-make-prcl-meta.Rmd')
@@ -59,6 +61,7 @@ make_hous_val_inds_fp <- root_file('1-data/1-notebooks/03-make-hous-val-inds.Rmd
 
 `r knit_child(make_acs_inds_fp)`
 `r knit_child(make_acs_maps_fp)`
+`r knit_child(make_acs_sparklines_fp)`
 `r knit_child(make_hous_geoms_fp)`
 `r knit_child(make_hous_meta_fp)`
 `r knit_child(make_hous_by_geoms_fp)`
