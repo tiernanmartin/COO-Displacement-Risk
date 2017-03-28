@@ -10,7 +10,7 @@ csl: planning-perspectives.csl
 
 # Diplacement Risk Assessment {-}
 
-![](coo-logo-grayscale.png)
+![](coo-logo-gray-displ.png)
 
 
 This document is a work in-progress.
