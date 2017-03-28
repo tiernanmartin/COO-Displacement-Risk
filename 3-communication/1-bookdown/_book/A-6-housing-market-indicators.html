@@ -128,7 +128,10 @@
 <li class="chapter" data-level="" data-path="A-2-census-data.html"><a href="A-2-census-data.html#normalized-pre-2010-data"><i class="fa fa-check"></i>Normalized pre-2010 Data</a></li>
 <li class="chapter" data-level="" data-path="A-2-census-data.html"><a href="A-2-census-data.html#coo-communities"><i class="fa fa-check"></i>COO Communities</a></li>
 </ul></li>
-<li class="chapter" data-level="A.3" data-path="A-3-king-county-assessor-data.html"><a href="A-3-king-county-assessor-data.html"><i class="fa fa-check"></i><b>A.3</b> King County Assessor Data</a></li>
+<li class="chapter" data-level="A.3" data-path="A-3-king-county-assessor-data.html"><a href="A-3-king-county-assessor-data.html"><i class="fa fa-check"></i><b>A.3</b> King County Assessor Data</a><ul>
+<li class="chapter" data-level="" data-path="A-3-king-county-assessor-data.html"><a href="A-3-king-county-assessor-data.html#the-dataset"><i class="fa fa-check"></i>The Dataset</a></li>
+<li class="chapter" data-level="" data-path="A-3-king-county-assessor-data.html"><a href="A-3-king-county-assessor-data.html#method"><i class="fa fa-check"></i>Method</a></li>
+</ul></li>
 <li class="chapter" data-level="A.4" data-path="A-4-vulnerability-indicators.html"><a href="A-4-vulnerability-indicators.html"><i class="fa fa-check"></i><b>A.4</b> Vulnerability Indicators</a><ul>
 <li class="chapter" data-level="" data-path="A-4-vulnerability-indicators.html"><a href="A-4-vulnerability-indicators.html#race"><i class="fa fa-check"></i>Race</a></li>
 <li class="chapter" data-level="" data-path="A-4-vulnerability-indicators.html"><a href="A-4-vulnerability-indicators.html#education"><i class="fa fa-check"></i>Education</a></li>
@@ -164,6 +167,67 @@
             <section class="normal" id="section-">
 <div id="housing-market-indicators" class="section level2">
 <h2><span class="header-section-number">A.6</span> Housing Market Indicators</h2>
+<p>Housing market patterns provide an important compliment to the two demographic indicator groups, but they come with their own set of challenges. While all of the data underlying the vulnerability and demographic change indicators comes from the American Community Survey, the housing market data used in this method is provided by the King County tax assessor.</p>
+<p>The first and most obvious challenge is the size and accessibility of this data; King County has approximate 600,000 parcels and their spatial and metadata is stored across a set of large tabular files that must be manually joined. Additionally, there is no official documentation linking a given parcel to a census tract, so this relationship must be established with using geospatial methods that are computationally expensive (i.e., time consuming). Finally, determining the unit of measure for this indicator is more complicated than it might at first appear: ultimately there must be a median housing value for each tract, but determining which properties to include in the sample requires consideration.</p>
+<p>The method used by Lisa Bates uses ACS Table B25077 (Median Value of Owner-Occupied Housing Units), but that sample is not directly reproducible given the available metadata from the King County dataset. The tax assessor data is structured around parcels as the primary unit (with some exception given to condominium units), and there is no simple method for transforming those units into housing units. This method considers the following approximations samples as reasonable approximations of value per housing unit:</p>
+<ul>
+<li>residential types that are <em>typically</em> owner-occupied (not vacant, excludes condominiums)</li>
+</ul>
+<div id="present-use-codes" class="section level4">
+<h4><span class="header-section-number">A.6.0.1</span> Present Use Codes</h4>
+<p>The following categories of “Present Use” (a classification used by the King County assessor) are used to filter the parcel data:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="right">CODE</th>
+<th align="left">DESCRIPTION</th>
+<th align="right">ASSUMED UNIT COUNT</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">2</td>
+<td align="left">Single Family(Res Use/Zone)</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">3</td>
+<td align="left">Duplex</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="right">4</td>
+<td align="left">Triplex</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="right">5</td>
+<td align="left">4-Plex</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="right">6</td>
+<td align="left">Single Family(C/I Zone)</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">7</td>
+<td align="left">Houseboat</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="right">8</td>
+<td align="left">Mobile Home</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">9</td>
+<td align="left">Single Family(C/I Use)</td>
+<td align="right">1</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
             </section>
 
