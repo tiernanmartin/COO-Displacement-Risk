@@ -1,0 +1,49 @@
+---
+output:
+  html_notebook:
+    code_folding: hide
+  pdf_document:
+    keep_tex: yes
+always_allow_html: yes
+---
+
+
+Tax parcels are the pieces of land associated with property value. King County appraises parcels in order to determine an estimate of their fair market value, which is then used in the process of determening taxation rates. For the purpose of this assessment, parcels are the geographic unit of the indicator of housing market conditions: median residential property value. 
+
+More information about the parcel dataset is available at the King County GIS Center:
+
+  * [KCGIS Center](http://www.kingcounty.gov/operations/GIS/GISData.aspx)
+  * [Parcel Shapefile Metadata](http://www5.kingcounty.gov/sdc/Metadata.aspx?Layer=parcel)
+
+### The Dataset {-}
+
+The King County parcel dataset is a large spatiotemporal dataset comprised of approximately 600,000 annually-updated records. There are several factors worth mentioning about how these data were obtained, what they represent, and how the will be used in this analysis:
+
+#### Sources {-}
+The parcel data is sepatated into a spatial dataset (polygons with minimal metadata) and several sets of tabular metadata that can be joined to each other or the spatial data using the unique Parcel Identification Number (`PIN`). The most current version of these data is made publicly available by King County GIS and the KC Assessor's office (see the links provided above).
+
+This project requires _historical_ property values which are only available by special request to the KC Assessor's office. The complete parcel datasets were obtained for the 2005, 2010, and 2016 tax years, which correspond to the property values in 2004, 2009, and 2015 (respectively). Like the most current dataset, these data are split into one geospatial and several accompanying tabular metadata sets for each year.
+
+#### Temporal Change {-}
+In order to assess property value patterns it is important to be aware of the fact that parcels come and go. More specifically, the county's stock of parcels changes over time as property owners either subdivide or merge their properties. These changes create new `PIN` codes and eliminate old ones, resulting in historically discontinuous records for these parcels. 
+
+Fortuntately, the geographic unit of analysis for this project is the census tract rather than the individual parcels themselves. In order to calculate the median residential property value for each tract, it is only necessary to determine which tract each parcel is within for each observations period; it is not necessary to know the changes of each individual parcel's property value over time.
+
+### Method {-}
+The large size of these datasets present challenges, particularly for computationally expensive GIS operations. The following process makes an effort to reduce the volume of data involved in the geospatial overlay operations while producing the desired summary statistic: median residential property value by tract by year.
+
+#### Process {-}
+
+  1. 2014 Observations
+    1. Reduce geospatial data from polygons to points (`rgeos::gCentroid()`)
+    2. Subset data to include only those parcel within the Seattle CCD of King County
+    3. Pass census tract unique identifier codes (`GEOID`) to parcel points using a spatial overlay (`sp::over()`)
+  2. 2004 & 2009 Observations
+    1. Subset the geospatial data to include only those parcels that are _not_ present in the 2015 data
+    2. Repeat the same same spatial overlay process used in the 2014 observations to transfer GEOIDs to parcels
+  3. Combined Data
+    1. Add a new variable to record the year of the observation to each dataset (`YEAR`)
+    2. Merge the datasets (by `PIN`), using an operation that retains all records (`dplyr::full_join()`)
+
+
+

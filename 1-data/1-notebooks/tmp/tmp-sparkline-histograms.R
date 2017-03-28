@@ -58,11 +58,27 @@ inds_cuts <-
         filter(str_detect(TBL, 'DEMO_CHNG_PCT|VULN_PCT')) %>%
         group_by(CAT_TOP) %>% 
         nest %>% 
-        crossing('SEACCD_ONLY_LGL' = c(TRUE,FALSE)) 
-
-inds_cuts %>% 
-        mutate(SPARKLINE = map2_dbl(data, SEACCD_ONLY_LGL,~ .x %>% 
+        crossing('SEACCD_ONLY_LGL' = c(TRUE,FALSE)) %>% 
+        mutate(SPARKLINE = map2(data, SEACCD_ONLY_LGL,~ .x %>% 
                                        {if(.y) filter(., SEACCD_LGL) else .} %>% 
                                        extract2('VAL') %>% sparkline( type = 'box', 
+                                                                      lineColor = 'black', 
+                                                                      whiskerColor = 'black', 
+                                                                      outlierFillColor = 'transparent', 
+                                                                      outlierLineColor = 'lightgrey', 
+                                                                      medianColor = 'tomato', 
+                                                                      boxFillColor = 'black', 
+                                                                      boxLineColor = 'black',
                                                                       tooltipFormatFieldlist = c('med', 'lq', 'uq'), 
-                                                                      tooltipFormatFieldlistKey =  'field')))
+                                                                      tooltipFormatFieldlistKey =  'field'))) 
+
+cd <- list(list(targets = c(2), render = JS("function(data, type, full){ return '<span class=spark>' + data + '</span>' }")))
+
+box_string <- "type: 'box', lineColor: 'black', whiskerColor: 'black', outlierFillColor: 'black', outlierLineColor: 'black', medianColor: 'black', boxFillColor: 'orange', boxLineColor: 'black'"
+
+cb_box1 = JS(paste0("function (oSettings, json) { $('.spark:not(:has(canvas))').sparkline('html', { ", 
+                    box_string, " }); }"), collapse = "")
+
+d1 <- datatable(df, rownames = FALSE, options = list(columnDefs = cd,  fnDrawCallback = cb_box1))
+d1$dependencies <- append(d1$dependencies, htmlwidgets:::getDependency("sparkline"))
+

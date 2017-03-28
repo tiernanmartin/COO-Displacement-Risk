@@ -8,7 +8,7 @@ output:
 always_allow_html: yes
 ---
 
-```{r hous-intro-setup}
+```{r hous-intro-setup, include =  FALSE}
 library(plyr)
 library(gdalUtils)
 library(knitr)
@@ -47,10 +47,10 @@ opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, comment=FALSE)
 
 ```{r hous-intro-pu}
 
-pu_tbl <- 
-        read_rds(root_file('1-data/4-interim/prcl-presuse-tbl-all.rds')) %>% 
-                filter(YEAR %in% 2015 & RES_LGL) %>% 
-        select(CODE,DESC,UNIT_CNT) %>% 
+pu_tbl <-
+        read_rds(root_file('1-data/4-interim/prcl-presuse-tbl-all.rds')) %>%
+                filter(YEAR %in% 2015 & RES_LGL) %>%
+        select(CODE,DESC,UNIT_CNT) %>%
         kable(col.names = c('CODE',
                             'DESCRIPTION',
                             'ASSUMED UNIT COUNT'))
