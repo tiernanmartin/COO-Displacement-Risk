@@ -67,7 +67,7 @@ The method used by Lisa Bates uses ACS Table B25077 (Median Value of Owner-Occup
 
 * residential types that are _typically_ owner-occupied (not vacant, excludes condominiums)
 
-#### Present Use Codes
+#### Present Use Codes {-}
 
 The following categories of "Present Use" (a classification used by the King County assessor) are used to filter the parcel data:
 
