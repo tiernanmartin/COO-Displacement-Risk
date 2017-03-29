@@ -8,7 +8,7 @@ bibliography: ["coo.bib"]
 csl: planning-perspectives.csl
 ---
 
-# Diplacement Risk Assessment {-}
+# {-}
 
 ![](coo-logo-gray-displ.png)
 
