@@ -13,7 +13,8 @@ csl: planning-perspectives.csl
 ![](coo-logo-gray-displ.png)
 
 
-This document is a work in-progress.
+<br>
+**Please note: this document is a work in progress.**
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque bibendum est eget ex porta, sed fermentum erat malesuada. Suspendisse sed turpis neque. Aliquam nec elit venenatis, faucibus eros non, aliquam mauris. Maecenas porta vulputate suscipit. Integer sollicitudin, est vel varius gravida, dolor neque pharetra orci, id convallis risus ligula vitae sem. Donec faucibus nunc vulputate convallis vestibulum. Nulla purus mi, tincidunt et rhoncus vel, efficitur ac ipsum.
 
