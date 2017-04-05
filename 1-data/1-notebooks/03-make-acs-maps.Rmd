@@ -62,167 +62,24 @@ proj_dark_grey <- col2hex("grey25")
 new_spectral <- brewer.pal(11, 'Spectral')[c(3:5,8:10)]
 ```
 
-```{r make-acs-maps-htmlTable}
-
-if(!exists('inds_sf')){inds_sf <- read_rds(root_file('./1-data/5-tidy/coo-acs-inds-not-acs-sf.rds'))}
-
-if(!file.exists(root_file('./1-data/4-interim/htmltable-popups.rds'))){
-        
-        # Create a long df with category and topic columns that can be filtered to produce a popup table
-        
-        inds_df <-
-                inds_sf %>% 
-                unclass %>% 
-                as_tibble()  
-        
-        # create a long df that can be filtered by .category and .topic
-        inds_long_df <- 
-                inds_df %>% 
-                select(NAME,GEOGRAPHY,matches('EST')) %>%       # select only estimate cols
-                select(-matches('VULN_CNT_2009|VULN_PCT_2009|SEACCD|KC'))%>%       # get rid of the indicators that won't be used
-                gather(TBL,VAL,-NAME,-GEOGRAPHY) %>%    # wide -> long
-                mutate(CAT = str_sub(TBL,1,4) %>% str_replace('_',''),   # create columns to facilitate filtering later on
-                       TOPIC = str_extract(TBL,'B[[:digit:]]{5}')) %>%
-                mutate(TYPE = str_extract(TBL,'_[[:alpha:]]{3}_'),
-                       TYPE = str_replace_all(TYPE,'_','')) %>%
-                mutate(VAL_LBL = if_else(TYPE %in% 'PCT',   # create labels
-                                         VAL %>% multiply_by(100) %>% round_any(1) %>% paste0('%'),
-                                         VAL %>% round_any(1) %>% scales::comma())) %>% 
-                mutate(VAL_LBL = if_else(TYPE %in% 'PCT' & VAL>=0 & str_detect(TBL, 'DEMO_CHNG'),
-                                         str_c('+',VAL_LBL),
-                                         VAL_LBL)) %>% 
-                select(-VAL,-TYPE) 
-        
-        make_popup_tbl <- function(long_df, .category,.topic,.tbl_cols){
-                
-                
-               
-                popup_tbl_sel_df <- 
-                        long_df %>% 
-                        mutate(COLS_TO_REMOVE = if_else(.category %in% 'VULN', '2009','KEEP ALL')) %>% 
-                        filter(CAT %in% c(.category,'TOT') & TOPIC %in% .topic) %>% 
-                        filter(!str_detect(TBL,COLS_TO_REMOVE)) %>% 
-                        select(-CAT) %>% 
-                        spread(TBL,VAL_LBL) %>% 
-                        as.data.frame() %>% 
-                        mutate(NAME_FULL = if_else(NAME %in% c('SEACCD','COO','RV','WC','STKW','KC'),
-                                                   NAME,
-                                                   str_c('Tract',NAME,sep = ' '))) %>% 
-                        set_rownames(extract2(.,'NAME_FULL')) 
-                
-                
-                if(.category %in% 'VULN'){
-                        
-                        # Define the table
-                        popup_tbl_sel_df <- 
-                                popup_tbl_sel_df %>% 
-                                as.data.frame(check.names = FALSE) %>% 
-                                select('#' = matches('CNT'),
-                                       '%' = matches('PCT'),
-                                       '#' = matches('TOT')
-                                )  %>% as.data.frame(check.names = FALSE)
-                        
-                        # Define the column groups and their header alignments
-                        n.cgroup <- c(2,1)
-                        align_cgroup <- paste(rep('c',3),collapse='')
-                        
-                        
-                }else{
-                        # Define the table
-                        popup_tbl_sel_df <- 
-                                popup_tbl_sel_df %>% 
-                                as.data.frame(check.names = FALSE) %>% 
-                                select('#' = matches('CNT_2009'),
-                                       '%' = matches('PCT_2009'),
-                                       'Total #' = matches('TOT_2009'),
-                                       '#' = matches('CNT_2015'),
-                                       '%' = matches('PCT_2015'),
-                                       'Total #' = matches('TOT_2015'),
-                                       '%' = matches('CHNG')
-                                ) %>% as.data.frame(check.names = FALSE)
-                        
-                        # Define the column groups and their header alignments
-                        n.cgroup <- c(3,3,1)
-                        align_cgroup <- paste(rep('c',7),collapse='')
-                        
-                }
-                
-                # Define the two comparison rows
-                seaccd_row <- which(rownames(popup_tbl_sel_df) %in% 'SEACCD')[[1]]
-                kc_row <- which(rownames(popup_tbl_sel_df) %in% 'KC')[[1]]
-                
-                cgroup <-  .tbl_cols 
-                
-                # Loop over the rows to create a popup table for each
-                lapply(seq_along(1:nrow(popup_tbl_sel_df)), 
-                       function(n){
-                               tibble('NAME' = popup_tbl_sel_df %>% rownames() %>% extract2(n) %>% str_replace('Tract ' ,''),
-                                      'CATEGORY' = .category,
-                                      'TOPIC' = .topic,
-                                      'POPUP' = htmlTable::htmlTable(popup_tbl_sel_df[c(n,seaccd_row,kc_row),],
-                                                                     cgroup = cgroup,
-                                                                     n.cgroup = n.cgroup,
-                                                                     align = 'r',
-                                                                     align.cgroup = align_cgroup))
-                       } 
-                )[!rownames(popup_tbl_sel_df) %in% c('SEACCD','KC')] %>% 
-                        reduce(bind_rows)
-                
-        }
-        
-        # Pass a tibble of parameters to the `map` function. 
-        # The make_popup_table function will be applied recursively to these parameters,
-        # resulting in one set of popup tables for each indicator type and topic.
-       
-        popup_tbl <- 
-                tibble(
-                        'category' = c(rep(c('DEMO'),4),
-                                       rep(c('VULN'),4)),
-                        'topic' = rep(c('B03002',
-                                        'B15002',
-                                        'B19001',
-                                        'B25033'),2),
-                        'tbl_cols' = list(
-                                c('2009','2015','Change'),
-                                c('2009','2015','Change'),
-                                c('2009','2015','Change'),
-                                c('2009','2015','Change'),
-                                c('PoC','Tot. Pop.'),
-                                c('l/t BA','Tot. +25'),
-                                c('Low Inc','Tot. HH'),
-                                c('Rent','Tot. HU')
-                        )
-                ) %>%  
-                invoke_rows(list,.,.to = 'RESULT') %>% 
-                extract2('RESULT') %>% 
-                map(
-                        ~ make_popup_tbl(long_df = inds_long_df,
-                                         .category = extract2(.x,'category'),
-                                         .topic = extract2(.x,'topic'),
-                                         .tbl_cols = extract2(.x,'tbl_cols'))
-                ) %>% 
-                reduce(bind_rows)  %>% 
-                mutate(POPUP = map(POPUP, ~ as(.x,'htmlTable'))) %>% 
-                unite(CAT_TOP, CATEGORY,TOPIC, sep = '_') %>% 
-                mutate(CAT_TOP = paste0(CAT_TOP,'_POPUP')) %>% 
-                spread(CAT_TOP,POPUP) 
-        
-        
-        write_rds(popup_tbl,root_file('./1-data/4-interim/htmltable-popups.rds'))
-}
-
-```
-
 ```{r make-acs-maps-data}
 
+# Load the complete acs indicator data object
+if(!exists('inds_sf')){
+        inds_sf <- read_rds(root_file('./1-data/5-tidy/coo-acs-inds-not-acs-sf.rds'))
+        }
+
+# Load the complete acs popup table, 
+# created in `03-make-acs-popups.Rmd`
 if(!exists('tbl_popup')){
         tbl_popup <- 
-                read_rds(root_file('./1-data/4-interim/htmltable-popups.rds')) %>% 
+                read_rds(root_file('./1-data/4-interim/acs-htmltable-popups.rds')) %>% 
                 gather(TBL,POPUP,-NAME) %>% 
                 mutate(CAT_TOP = str_replace_all(TBL,'_POPUP','')) %>% 
                 select(-TBL)
 }
 
+# Gather the data object, join the popups, save
 if(!file.exists(root_file('./1-data/4-interim/coo-acs-inds-map-sf.rds'))){
         
         joined_sf <- 
@@ -278,6 +135,8 @@ if(!file.exists(root_file('./1-data/4-interim/coo-acs-lgl-typo-inds-map-sf.rds')
 ```
 
 ```{r make-acs-maps-fun}
+
+# Make the function that will be used to build the leaflet maps for the acs indicators
 
 if(!file.exists(root_file('./1-data/4-interim/make-acs-map-fun.rds'))){
         make_acs_map <- function(long_sf,
@@ -705,7 +564,7 @@ if(!file.exists(root_file('./1-data/4-interim/make-acs-dt-fun.rds'))){
 
 ```
 
-```{r make-acs-maps-examples, eval=FALSE}
+```{r make-acs-maps-examples, eval=FALSE, include = FALSE}
 
 
 make_acs_map <- read_rds(root_file('./1-data/4-interim/make-acs-map-fun.rds'))
